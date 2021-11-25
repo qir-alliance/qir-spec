@@ -73,14 +73,3 @@ callable values in the compilation, then the corresponding sections in
 The [list page](List.md) may be used to track current public projects that use
 QIR. Please file a pull request to this page if you'd like your project listed.
 
-## Index
-
-1. [Data Types](Data-Types.md)
-1. [Callables](Callables.md)
-1. [Metadata](Metadata.md)
-1. [Identifiers](Identifiers.md)
-1. [Classical Runtime](Classical-Runtime.md)
-1. [Quantum Runtime](Quantum-Runtime.md)
-1. [Code Generation](Code-Generation.md)
-1. [Profiles](Profiles.md)
-2. [Appendix: Library Reference](Library-Reference.md)

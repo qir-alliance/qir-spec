@@ -37,7 +37,7 @@ The last element of the range may be `end`; that is, `end` is inclusive. A range
 is empty if `step` is positive and `end` is less than `start`, or if `step` is
 negative and `end` is greater than `start`. For example:
 
-```
+```text
 0..1..2 = {0, 1, 2}
 0..2..4 = {0, 2, 4}
 0..2..5 = {0, 2, 4}
@@ -194,6 +194,7 @@ common for all tuples, such as the functions listed below.
 Many languages provide immutable tuples, along with operators that allow a
 modified copy of an existing tuple to be created. QIR supports this by requiring
 the runtime to track and be able to access the following given a `%Tuple*`:
+
 - The size of the tuple in bytes
 - The alias count indicating how many handles to the tuple exist in the source
   code
