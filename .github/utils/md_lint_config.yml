@@ -1,5 +1,7 @@
 default: true
-line-length: false
+line-length:
+  line_length: 80
+  tables: false
 
 # Use #-style section headings without the ending # marks, as that can
 # cause problems working with the Samples Browser.
