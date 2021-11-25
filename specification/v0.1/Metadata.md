@@ -29,9 +29,9 @@ callable `Your.Op`with two attributes, `My.Attribute(6, "hello")` and
         @Your.Op-body,
     void (%Tuple*, %Tuple*, %Tuple*)*
         @Your.Op-adj,
-    void (%Tuple*, %Tuple*, %Tuple*)* 
+    void (%Tuple*, %Tuple*, %Tuple*)*
         @Your.Op-ctl,
-    void (%Tuple*, %Tuple*, %Tuple*)* 
+    void (%Tuple*, %Tuple*, %Tuple*)*
         @Your.Op-ctladj
   ], !quantum.My.Attribute {i64 6, !"hello\00"},
      !quantum.Their.Attribute {double 2.1}

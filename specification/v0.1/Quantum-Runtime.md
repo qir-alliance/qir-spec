@@ -29,7 +29,7 @@ We define the following functions for managing qubits:
 The language-specific compiler may assume that qubits are always allocated in a
 zero-state. Since individual targets may give different guarantees regarding the
 qubit state upon allocation, the target-specific compilation phase should insert
-the code required to ensure that the state of qubits is set appropriately. 
+the code required to ensure that the state of qubits is set appropriately.
 
 Any measurements or resets applied upon release are at the discretion of the
 target as well; for the quantum algorithm to be correct, the qubits that are to

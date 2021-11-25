@@ -202,7 +202,7 @@ The language specific compiler is responsible for injecting calls to increase
 and decrease the alias count as needed, as well as to accurately reflect when
 references to the LLVM structure representing a tuple are created and removed.
 See [this section](Classical-Runtime.md#reference-and-alias-counting) for
-further details on the distinction between alias and reference counting. 
+further details on the distinction between alias and reference counting.
 
 In the case where the source language treats tuples as immutable values, the
 language-specific compiler is expected to request the necessary copies prior to
@@ -266,7 +266,7 @@ array projections.
   `%Range`. In particular, if the step of the `%Range` is negative, the elements
   in the sliced dimension will be in the reverse order than they were in the
   original array. If the `%Range` is empty, the resulting array will be empty.
-  
+
   Array slices can be created using the `__quantum__rt__array_slice_1d` or
   `__quantum__rt__array_slice` runtime functions.
 - An array *projection* is specified by providing a dimension to project along
@@ -275,7 +275,7 @@ array projections.
   with the projected dimension fixed to the given index value. Projection is the
   array access analog to partial application; effectively it creates a new array
   that has the same elements as the original array, but one of the indices is
-  fixed at a constant value.  
+  fixed at a constant value.
   Array projections can be created using the `__quantum__rt__array_project`
   runtime function.
 

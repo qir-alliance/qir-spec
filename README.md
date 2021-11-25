@@ -66,7 +66,7 @@ support for functor application. This introduces the need to define a common
 structure to represent callable values and their arguments. If the source
 language does not make use of such features and there is no need to represent
 callable values in the compilation, then the corresponding sections in
-[Callables.md](Callables.md) don't apply. 
+[Callables.md](Callables.md) don't apply.
 
 ## Current Projects / Users
 

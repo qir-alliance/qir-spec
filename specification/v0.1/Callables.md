@@ -141,16 +141,16 @@ with periods replaced by double underscores, "__".
 For the example above, the following would be generated:
 
 ```LLVM
-@Some__Namespace__Symbol = constant 
+@Some__Namespace__Symbol = constant
   [void (%Tuple*, %Tuple*, %Tuple*)*]
   [
     void (%Tuple*, %Tuple*, %Tuple*)*
         @Some__Namespace__Symbol__body__wrapper,
     void (%Tuple*, %Tuple*, %Tuple*)*
         @Some__Namespace__Symbol__adj__wrapper,
-    void (%Tuple*, %Tuple*, %Tuple*)* 
+    void (%Tuple*, %Tuple*, %Tuple*)*
         @Some__Namespace__Symbol__ctl__wrapper,
-    void (%Tuple*, %Tuple*, %Tuple*)* 
+    void (%Tuple*, %Tuple*, %Tuple*)*
         @Some__Namespace__Symbol__ctladj__wrapper
   ]
 ```
@@ -215,8 +215,8 @@ The following snippet of LLVM code could be generated:
 
 ```LLVM
 %f = call %Callable* @__quantum__rt__callable_create(
-  [4 x void (%Tuple*, %Tuple*, %Tuple*)*]* @someOp, 
-  [2 x void (%Tuple*, i32)*]* null, 
+  [4 x void (%Tuple*, %Tuple*, %Tuple*)*]* @someOp,
+  [2 x void (%Tuple*, i32)*]* null,
   %Tuple* null)
 %g = call %__quantum__rt__callable_copy(%f)
 call %__quantum__rt__callable_make_adjoint(%g)
@@ -321,7 +321,7 @@ While sufficient type information for the captured values is known upon creation
 of the value, the information is no longer available at the time when it is
 released. Upon creation, a table with two function pointers for modifying
 reference and alias counts for captured values is hence associated with a
-callable value. 
+callable value.
 
 Like the implementation table, the table is defined as global constant with a
 unique name. It contains two pointers of type `void(%Tuple*, i32)*`; the first
@@ -335,7 +335,7 @@ and alias count for captured values lays with the compiler. The two functions
 can be invoked using the runtime function
 `__quantum__rt__capture_update_reference_count` and
 `__quantum__rt__capture_update_alias_count` respectively, see the description
-[below](Callables.md#runtime-functions). 
+[below](Callables.md#runtime-functions).
 
 ## External Callables
 

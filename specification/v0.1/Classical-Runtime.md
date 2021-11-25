@@ -28,19 +28,19 @@ classical memory management, see [here](Quantum-Runtime.md#qubits) for more
 detail.
 
 To ensure that unnecessary copying of data can be avoided, QIR distinguishes two
-kinds of counts that can be tracked: reference counts and alias counts. 
+kinds of counts that can be tracked: reference counts and alias counts.
 
 Reference counts track the number of handles that allow access to a certain
 value *in LLVM*. They hence determine when the value can be released by the
 runtime; values are allocated with a reference count of 1, and will be released
-when their reference count reaches 0. 
+when their reference count reaches 0.
 
 Alias counts, on the other hand, track how many handles to a value exist *in the
 source language*. They determine when the runtime needs to copy data; when copy
 functions are invoked, the copy is executed only if the alias count is larger
 than 0, or the copy is explicitly forced. Alias counts are useful for optimizing
 the handling of data types that are represented as pointers in QIR, but are
-value types, i.e. immutable, within the source language. 
+value types, i.e. immutable, within the source language.
 
 The compiler is responsible for generating code that tracks both counts
 correctly by injecting the corresponding calls to modify them. A call to modify
