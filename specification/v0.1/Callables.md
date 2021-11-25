@@ -3,6 +3,14 @@
 We use to term _callable_ to mean a subroutine in the source language. Different
 source languages use different names for this concept.
 
+### *Note:*
+> The QIR specification permits the usage of subroutines as first
+class values, and includes the necessary expressiveness to e.g. provide runtime
+support for functor application. This introduces the need to define a common
+structure to represent callable values and their arguments. If the source
+language does not make use of such features and there is no need to represent
+callable values in the compilation, then the corresponding sections in this document don't apply.
+
 ## Runtime Failure
 
 There are several error conditions that are specified as causing a runtime
