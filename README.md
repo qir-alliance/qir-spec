@@ -1,7 +1,7 @@
 # Quantum Intermediate Representation (QIR)
 
-This draft specification defines an intermediate representation for compiled quantum 
-computations.
+This specification defines an [LLVM](https://llvm.org/)-based intermediate representation for quantum 
+programs.
 
 ## Motivation
 
