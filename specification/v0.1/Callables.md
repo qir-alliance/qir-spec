@@ -368,9 +368,9 @@ represented in LLVM.
 The following functions are provided by the classical runtime to support
 callable values:
 
-| <div style="width:300px">Function</div> | <div style="width:400px">Signature</div> | <div style="width:300px">Description</div> |
+| Function                        | Signature                                  | Description |
 |---------------------------------|--------------------------------------------|-------------|
-| __quantum__rt__callable_create  | `%Callable*(`<br/><ul>`[4 x void (%Tuple*, %Tuple*, %Tuple*)*]*,`<br/>` [2 x void(%Tuple*, i32)]*, %Tuple*)` | Initializes the callable with the provided function table, memory management table, and capture tuple. The memory management table pointer and the capture tuple pointer should be null if there is no capture. |
+| __quantum__rt__callable_create  | `%Callable*([4 x void (%Tuple*, %Tuple*, %Tuple*)*]*, [2 x void(%Tuple*, i32)]*, %Tuple*)` | Initializes the callable with the provided function table, memory management table, and capture tuple. The memory management table pointer and the capture tuple pointer should be null if there is no capture. |
 | __quantum__rt__callable_copy    | `%Callable*(%Callable*, i1)`             | Creates a shallow copy of the callable if the alias count is larger than 0 or the second argument is `true`. Returns the given callable pointer (the first parameter) otherwise, after increasing its reference count by 1. The reference count of the capture tuple remains unchanged. If the `%Callable*` parameter is null, a runtime failure should occur. |
 | __quantum__rt__callable_invoke  | `void(%Callable*, %Tuple*, %Tuple*)` | Invokes the callable with the provided argument tuple and fills in the result tuple. The `%Tuple*` parameters may be null if the callable either takes no arguments or returns `Unit`. If the `%Callable*` parameter is null, a runtime failure should occur. |
 | __quantum__rt__callable_make_adjoint | `void(%Callable*)`                         | Updates the callable by applying the Adjoint functor. If the `%Callable*` parameter is null or if the corresponding entry in the callable's function table is null, a runtime failure should occur. |
