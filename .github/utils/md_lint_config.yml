@@ -22,4 +22,4 @@ no-duplicate-heading:
 
 # Allow selective inline markdown
 no-inline-html:
-  allowed_elements: br
+  allowed_elements: [br]
