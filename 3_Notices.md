@@ -2,8 +2,7 @@
 
 ## Code of Conduct
 
-Please contact a publicly listed member of the
-[QIR Alliance](https://github.com/orgs/qir-alliance/people) for Code of Conduct
+Please contact [qiralliance@mail.com](mailto:qiralliance@mail.com) for Code of Conduct
 issues or inquires.
 
 ## License Acceptance
