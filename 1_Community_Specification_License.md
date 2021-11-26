@@ -1,9 +1,9 @@
 # Community Specification License 1.0
 
 **The Purpose of this License.**  This License sets forth the terms under which
-1) Contributor will participate in and contribute to the development of
+(1) Contributor will participate in and contribute to the development of
 specifications, standards, best practices, guidelines, and other similar
-materials under this Working Group, and 2) how the materials developed under
+materials under this Working Group, and (2) how the materials developed under
 this License may be used.  It is not intended for source code.  Capitalized
 terms are defined in the License’s last section.
 
@@ -270,8 +270,6 @@ Claims are limited to that Contributor’s Contributions.
 **9.14. Working Group.**  “Working Group” means this project to develop
 specifications, standards, best practices, guidelines, and other similar
 materials under this License.
-
-
 
 *The text of this Community Specification License is Copyright 2020 Joint
 Development Foundation and is licensed under the Creative Commons Attribution

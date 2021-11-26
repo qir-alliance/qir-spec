@@ -2,9 +2,8 @@
 
 ## Specification License
 
-Specifications in the repository are subject to the **Community Specification
-License 1.0** available at
-[https://github.com/CommunitySpecification/1.0](https://github.com/CommunitySpecification/1.0).
+Specifications in the repository are subject to the
+[**Community Specification License 1.0**](1_Community_Specification_License.md).
 
 ## Source Code License
 

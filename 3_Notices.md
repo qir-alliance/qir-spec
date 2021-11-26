@@ -11,7 +11,6 @@ receiving the complaint. We recommend two individuals in the case one of the
 individuals is the subject of or directly involved in the subject of a
 complaint.]
 
-
 ## License Acceptance
 
 Per Community Specification License 1.0 Section 2.1.3.3, Licensees may indicate
@@ -49,11 +48,8 @@ Approved Deliverable as set forth in the Community Specification Development
 License.  Each Exclusion Notice must include the following information:
 
 -   Name of party making the Exclusion Notice:
-
 -   Name of patent owner:
-
 -   Specification:
-
 -   Version number:
 
 **For issued patents and published patent applications:**
@@ -68,4 +64,4 @@ License.  Each Exclusion Notice must include the following information:
 
     (ii) identification of the specific part(s) of the Specification whose implementation makes the excluded claim a Necessary Claim.
 
------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------

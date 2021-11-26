@@ -3,15 +3,15 @@
 By making a Contribution to this repository, I agree to the terms of the
 following documents located in this repository:
 
-* [Community Specification License 1.0](1_Community_Specification_License.md)
-* [Community Specification Governance Policy 1.0](5_Governance.md)
-* [Community Specification Contribution Policy 1.0](6_Contributing.md)
-* [Community Specification Code of Conduct](7_Code_of_Conduct.md)
+- [Community Specification License 1.0](1_Community_Specification_License.md)
+- [Community Specification Governance Policy 1.0](5_Governance.md)
+- [Community Specification Contribution Policy 1.0](6_Contributing.md)
+- [Community Specification Code of Conduct](7_Code_of_Conduct.md)
 
 In addition, for source code contributions, I certify that:
 
 (a) The contribution was created in whole or in part by me and I have the right
-to submit it under the open source license indicated in the file; or <br/>
+to submit it under the open source license indicated in the file; or
 (b) The contribution is based upon previous work that, to the best  of my
 knowledge, is covered under an appropriate open source license and I have the
 right under that license to submit that work with modifications, whether created

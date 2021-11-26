@@ -1,9 +1,11 @@
-# Scope
+# QIR Alliance
 
 The [QIR Alliance](https://qir-alliance.org/) is a joint effort to establish a
 many-to-many intermediate representation between programming languages and
 current and future quantum devices, to accelerate the growth and
 interoperability of the quantum ecosystem.
+
+## Working Group Scope
 
 This effort includes the creation of a specification for how to represent
 quantum programs within the LLVM IR, developed on this repository. The

@@ -19,3 +19,7 @@ ul-style:
 # Allow duplicate headings if they are not siblings.
 no-duplicate-heading:
   siblings_only: true
+
+# Allow selective inline markdown
+no-inline-html:
+  allowed_elements: br
