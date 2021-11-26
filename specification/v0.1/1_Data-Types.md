@@ -76,7 +76,7 @@ with values of type `%Result*`:
 ## Qubits
 
 Qubits are represented as pointers to an opaque LLVM structure type, `%Qubit`.
-This is done so that qubit values may be distinugished from other value types.
+This is done so that qubit values may be distinguished from other value types.
 It is not expected that qubit values actually be valid memory addresses, and
 neither user code nor runtime code should ever attempt to dereference a qubit
 value.
@@ -90,7 +90,7 @@ Qubits may be managed either statically or dynamically. Static qubits have
 target-specific identifiers known at compile time, while dynamic qubits are
 managed by the quantum runtime.
 
-A statc qubit value may be created using the LLVM `inttoptr` instruction. For
+A static qubit value may be created using the LLVM `inttoptr` instruction. For
 instance, to initialize a value that identifies device qubit 3, the following
 LLVM code would be used:
 
