@@ -1,9 +1,9 @@
 # Community Specification License 1.0
 
-**The Purpose of this License.**  This License sets forth the terms under which
-(1) Contributor will participate in and contribute to the development of
+**The Purpose of this License.**  This License sets forth the terms under
+which 1) Contributor will participate in and contribute to the development of
 specifications, standards, best practices, guidelines, and other similar
-materials under this Working Group, and (2) how the materials developed under
+materials under this Working Group, and 2) how the materials developed under
 this License may be used.  It is not intended for source code.  Capitalized
 terms are defined in the License’s last section.
 
@@ -90,6 +90,7 @@ party.
 Section 2.1, Contributor agrees to grant everyone a no charge, royalty-free
 license on reasonable and non-discriminatory terms to Contributor’s Necessary
 Claims that are within Scope for:
+
 1) Implementations of a Draft Specification, where such license applies only to
    those Necessary Claims infringed by implementing Contributor's
    Contribution(s) included in that Draft Specification, and

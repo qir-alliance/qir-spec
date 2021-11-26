@@ -11,7 +11,7 @@ following documents located in this repository:
 In addition, for source code contributions, I certify that:
 
 (a) The contribution was created in whole or in part by me and I have the right
-to submit it under the open source license indicated in the file; or
+to submit it under the open source license indicated in the file; or <br/>
 (b) The contribution is based upon previous work that, to the best  of my
 knowledge, is covered under an appropriate open source license and I have the
 right under that license to submit that work with modifications, whether created
