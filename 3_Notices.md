@@ -2,14 +2,9 @@
 
 ## Code of Conduct
 
-Please contact the [QIR Alliance](https://qir-alliance.org/) for Code of Conduct
+Please contact a publicly listed member of the
+[QIR Alliance](https://github.com/orgs/qir-alliance/people) for Code of Conduct
 issues or inquires.
-
-[Ideally list two different individuals above (not a generic mailing list) as
-someone submitting a Code of Conduct complaint will want to know exactly who is
-receiving the complaint. We recommend two individuals in the case one of the
-individuals is the subject of or directly involved in the subject of a
-complaint.]
 
 ## License Acceptance
 

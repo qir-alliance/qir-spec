@@ -53,7 +53,7 @@ will respond in writing within a reasonable time.
 ## 3.   Ways of Working
 
 Inspired by [ANSI’s Essential Requirements for Due
-Process](https://share.ansi.org/Shared%20Documents/Standards%20Activities/American%20National%20Standards/Procedures,%20Guides,%20and%20Forms/2020_ANSI_Essential_Requirements.pdf),
+Process](https://share.ansi.org/Shared%20Documents/Standards%20Activities/American%20National%20Standards/Procedures,%20Guides,%20and%20Forms/2021_ANSI_Essential_Requirements.pdf),
 Community Specification Working Groups must adhere to consensus-based due
 process requirements.  These requirements apply to activities related to the
 development of consensus for approval, revision, reaffirmation, and withdrawal
