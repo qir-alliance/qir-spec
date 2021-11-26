@@ -3,12 +3,12 @@
 QIR defines LLVM representations for a variety of classical and quantum data
 types that may be used as part of a compiled quantum program. For more
 information about classical memory management including reference and alias
-counting, see [here](Classical-Runtime.md#memory-management).
+counting, see [here](3_Classical_Runtime.md#memory-management).
 
 There are several error conditions that are specified as causing a runtime
 failure. The `quantum__rt__fail` function is the mechanism to use to cause a
 runtime failure; it is documented in the [Classical
-Runtime](Classical-Runtime.md) section.
+Runtime](3_Classical_Runtime.md) section.
 
 ## Simple Types
 
@@ -98,7 +98,7 @@ LLVM code would be used:
     %qubit3 = inttoptr i32 3 to %Qubit*
 ```
 
-Dynamic qubits are managed using the [quantum runtime](Quantum-Runtime.md)
+Dynamic qubits are managed using the [quantum runtime](4_Quantum_Runtime.md)
 functions.
 
 ## Strings
@@ -184,7 +184,7 @@ Tuple data, including values of user-defined types, is represented as the
 corresponding LLVM structure type. For instance, a tuple containing two
 integers, `(Int, Int)`, would be represented in LLVM as `type {i64, i64}`.
 
-When [invoking callable values](Callables.md#invoking-a-callable-value) using
+When [invoking callable values](2_Callables.md#invoking-a-callable-value) using
 the `__quantum__rt__callable_invoke` runtime function, tuples are passed as a
 pointer to an opaque LLVM structure, `%Tuple`. The pointer is expected to point
 to the contained data such that it can be cast to the correct data structures by
@@ -202,7 +202,7 @@ the runtime to track and be able to access the following given a `%Tuple*`:
 The language specific compiler is responsible for injecting calls to increase
 and decrease the alias count as needed, as well as to accurately reflect when
 references to the LLVM structure representing a tuple are created and removed.
-See [this section](Classical-Runtime.md#reference-and-alias-counting) for
+See [this section](3_Classical_Runtime.md#reference-and-alias-counting) for
 further details on the distinction between alias and reference counting.
 
 In the case where the source language treats tuples as immutable values, the
@@ -317,7 +317,7 @@ is enabled:
 | __quantum__rt__array_project     | `%Array*(%Array*, i32, i64, i1)`         | Creates and returns an array that is a projection of an existing array. The projection may be accessing the same memory as the given array unless its alias count is larger than 0 or the last argument is `true`. The `i32` indicates which dimension the projection is on, and the `i64` specifies the index in that dimension to project. The reference count of all array elements remains unchanged. If the existing array is one-dimensional then a runtime failure should occur. |
 
 There are special runtime functions defined for allocating or releasing an array
-of qubits. See [here](Quantum-Runtime.md#qubits) for these functions.
+of qubits. See [here](4_Quantum_Runtime.md#qubits) for these functions.
 
 For all of these functions, if an `%Array*` pointer is null, a runtime failure
 should occur.

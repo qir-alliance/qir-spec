@@ -16,7 +16,7 @@ the compilation, then the corresponding sections in this document don't apply.
 There are several error conditions that are specified as causing a runtime
 failure. The `__quantum__rt__fail` function is the mechanism to use to cause a
 runtime failure; it is documented in the [Classical
-Runtime](Classical-Runtime.md) section.
+Runtime](3_Classical_Runtime.md) section.
 
 ## Basics
 
@@ -343,7 +343,7 @@ and alias count for captured values lays with the compiler. The two functions
 can be invoked using the runtime function
 `__quantum__rt__capture_update_reference_count` and
 `__quantum__rt__capture_update_alias_count` respectively, see the description
-[below](Callables.md#runtime-functions).
+[below](2_Callables.md#runtime-functions).
 
 ## External Callables
 

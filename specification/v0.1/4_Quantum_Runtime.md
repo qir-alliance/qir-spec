@@ -5,7 +5,7 @@
 There are several error conditions that are specified as causing a runtime
 failure. The `quantum__rt__fail` function is the mechanism to use to cause a
 runtime failure; it is documented in the [Classical
-Runtime](Classical-Runtime.md) section.
+Runtime](3_Classical_Runtime.md) section.
 
 ## Standard Operations (Gates)
 

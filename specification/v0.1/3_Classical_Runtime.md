@@ -1,7 +1,7 @@
 # Classical Runtime
 
 Most functions in the classical runtime are defined in the [Data
-Types](Data-Types.md) specification.
+Types](1_Data_Types.md) specification.
 
 Additionally, QIR requires the following functions to be present for the purpose
 of logging and program termination:
@@ -24,7 +24,7 @@ QIR specifies a set of runtime functions for types that are represented as
 pointers that may be used by the language-specific compiler to expose them as
 immutable types in the language. The exception is the `%Qubit*` type, for which
 no such functions exist since the management of quantum memory is distinct from
-classical memory management, see [here](Quantum-Runtime.md#qubits) for more
+classical memory management, see [here](4_Quantum_Runtime.md#qubits) for more
 detail.
 
 To ensure that unnecessary copying of data can be avoided, QIR distinguishes two
