@@ -5,7 +5,7 @@ documents developed using the Community Specification process in a repository
 (each a “Working Group”).  Additional or alternate contribution policies may be
 adopted and documented by the Working Group.
 
-## 1. Contribution Guidelines.
+## 1. Contribution Guidelines
 
 This Working Group accepts contributions via pull requests. The following
 section outlines the process for merging contributions to the specification
