@@ -1,12 +1,16 @@
 # Community Specification Contributor License Agreement 1.0
 
 By making a Contribution to this repository, I agree to the terms of the
-following documents located in this repository:
+following documents:
 
-- [Community Specification License 1.0](1_Community_Specification_License.md)
-- [Community Specification Governance Policy 1.0](5_Governance.md)
-- [Community Specification Contribution Policy 1.0](6_Contributing.md)
-- [Community Specification Code of Conduct](7_Code_of_Conduct.md)
+- [Community Specification License
+  1.0](https://github.com/qir-alliance/.github/blob/main/Community_Specification_License.md#community-specification-license-10)
+- [QIR Alliance Governance Policy
+  1.0](https://github.com/qir-alliance/.github/blob/main/Governance.md#qir-alliance-governance-policy-10)
+- [QIR Contribution Policy
+  1.0](https://github.com/qir-alliance/.github/blob/main/Contributing.md#qir-alliance-contribution-policy-10)
+- [Code of
+  Conduct](https://github.com/qir-alliance/.github/blob/main/Code_of_Conduct.md#contributor-covenant-code-of-conduct)
 
 In addition, for source code contributions, I certify that:
 
