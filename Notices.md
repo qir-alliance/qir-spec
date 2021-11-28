@@ -1,11 +1,5 @@
 # Notices
 
-## Code of Conduct
-
-Please contact [qiralliance@mail.com](mailto:qiralliance@mail.com) for [Code of
-Conduct](https://github.com/qir-alliance/.github/blob/main/Code_of_Conduct.md#contributor-covenant-code-of-conduct)
-issues or inquires.
-
 ## License Acceptance
 
 Per Community Specification License 1.0 Section 2.1.3.3, Licensees may indicate
