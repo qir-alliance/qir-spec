@@ -1,4 +1,4 @@
-# Welcome to the QIR Specification!
+# Welcome to the QIR Specification
 
 The QIR specification is an effort of the [QIR
 Alliance](https://qir-alliance.org/). It defines how to represent quantum
@@ -64,7 +64,6 @@ And last but not least:
 **Thank You!** <br/>
 Your contributions to open source, large or small, make great projects like this
 possible. Thank you for taking the time to contribute.
-
 
 ## Code of Conduct
 

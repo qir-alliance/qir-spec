@@ -20,14 +20,14 @@ With our work and partnership, we aim to
 
 ## Working Group Scope
 
-This effort includes the creation of a [specification](specification/) for how to represent
-quantum programs within the LLVM IR, developed on this repository. It provides a
-holistic program representation suitable for taking full advantage of the unique
-and distinct capabilities of quantum computing systems across a variety of
-different hardware platforms. The specification includes profiles for current
-and future quantum processor architectures.
+This effort includes the creation of a [specification](specification/) for how
+to represent quantum programs within the LLVM IR, developed on this repository.
+It provides a holistic program representation suitable for taking full advantage
+of the unique and distinct capabilities of quantum computing systems across a
+variety of different hardware platforms. The specification includes profiles for
+current and future quantum processor architectures.
 
 A set of tools and samples to facilitate the adoption of the specification can
 be found in the respective [GitHub
-repositories](https://github.com/qir-alliance#contributing) and are
-licensed under MIT license unless specified otherwise.
+repositories](https://github.com/qir-alliance#contributing) and are licensed
+under MIT license unless specified otherwise.
