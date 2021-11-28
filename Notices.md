@@ -2,7 +2,8 @@
 
 ## Code of Conduct
 
-Please contact [qiralliance@mail.com](mailto:qiralliance@mail.com) for Code of Conduct
+Please contact [qiralliance@mail.com](mailto:qiralliance@mail.com) for [Code of
+Conduct](https://github.com/qir-alliance/.github/blob/main/Code_of_Conduct.md#contributor-covenant-code-of-conduct)
 issues or inquires.
 
 ## License Acceptance
@@ -39,7 +40,9 @@ Date of withdrawal:
 
 This section includes any Exclusion Notices made against a Draft Deliverable or
 Approved Deliverable as set forth in the Community Specification Development
-License.  Each Exclusion Notice must include the following information:
+License.
+
+Each Exclusion Notice must include the following information:
 
 - Name of party making the Exclusion Notice:
 
@@ -51,14 +54,18 @@ License.  Each Exclusion Notice must include the following information:
 
 **For issued patents and published patent applications:**
 
-    (i) patent number(s) or title and application number(s), as the case may be:
+  (i) patent number(s) or title and application number(s), as the case may be:
 
-    (ii) identification of the specific part(s) of the Specification whose implementation makes the excluded claim a Necessary Claim.
+  (ii) identification of the specific part(s) of the Specification whose
+  implementation makes the excluded claim a Necessary Claim:
 
 **For unpublished patent applications must provide either:**
 
-    (i) the text of the filed application; or
+  (i) the text of the filed application:
 
-    (ii) identification of the specific part(s) of the Specification whose implementation makes the excluded claim a Necessary Claim.
+  or
+
+  (ii) identification of the specific part(s) of the Specification whose
+  implementation makes the excluded claim a Necessary Claim:
 
 ---------------------------------------------------------------------------------

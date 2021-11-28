@@ -2,8 +2,9 @@
 
 ## Specification License
 
-Specifications in the repository are subject to the
-[**Community Specification License 1.0**](1_Community_Specification_License.md).
+Specifications in the repository are subject to the [**Community Specification
+License
+1.0**](https://github.com/qir-alliance/.github/blob/main/Community_Specification_License.md#community-specification-license-10).
 
 ## Source Code License
 
