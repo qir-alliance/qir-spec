@@ -6,6 +6,7 @@ current and future heterogenous quantum processors, to accelerate the growth and
 interoperability of the quantum ecosystem.
 
 With our work and partnership, we aim to
+
 - reduce the required development effort for all parties by promoting
   interoperability between different frameworks and languages
 - enable the development of shared libraries both for quantum application
