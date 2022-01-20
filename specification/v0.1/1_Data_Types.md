@@ -82,7 +82,7 @@ neither user code nor runtime code should ever attempt to dereference a qubit
 value.
 
 A qubit value should be thought of as an integer identifier that has been
-bit-cast into a special type so that it cen be distinguished from normal
+bit-cast into a special type so that it can be distinguished from normal
 integers. The only operation that may be performed on a qubit value is to pass
 it to a function.
 

@@ -1,6 +1,6 @@
 # Callables
 
-We use to term _callable_ to mean a subroutine in the source language. Different
+We use the term _callable_ to mean a subroutine in the source language. Different
 source languages use different names for this concept.
 
 > *Note:* <br/>
@@ -81,7 +81,7 @@ wrapper functions**.
 
 Each wrapper is an LLVM function that takes three tuple header pointers as input
 and returns no output; that is, `void(%Tuple*, %Tuple*, %Tuple*)`. The first
-input is the capture tuple, which used for closures. The second input is the
+input is the capture tuple, which is used for closures. The second input is the
 argument tuple. The third input points to the result tuple, which will be
 allocated by the caller. If the callable has `Unit` result, then the result
 tuple pointer will be null.
@@ -260,7 +260,7 @@ implementation table to be used is selected as follows:
 If the controlled count is greater than one, then
 `__quantum__rt__callable_invoke` also needs to do some manipulation of the input
 tuple. Each application of the `Controlled` functor modifies the signature of
-the specialization by adding replacing the current argument tuple with a
+the specialization by replacing the current argument tuple with a
 two-tuple containing the array of control qubits as the first element and a
 tuple of the remaining arguments as the second tuple.
 
@@ -331,7 +331,7 @@ released. Upon creation, a table with two function pointers for modifying
 reference and alias counts for captured values is hence associated with a
 callable value.
 
-Like the implementation table, the table is defined as global constant with a
+Like the implementation table, the table is defined as a global constant with a
 unique name. It contains two pointers of type `void(%Tuple*, i32)*`; the first
 one points to the function for modifying the reference counts of captured
 values, the second points to the one for modifying the alias counts. Either of
