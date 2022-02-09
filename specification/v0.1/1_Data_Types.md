@@ -123,8 +123,8 @@ support strings:
 
 The following utility functions support converting values of other types to
 strings. In every case, the returned string is allocated on the heap; the string
-can't be allocated by the caller because the length of the string depends on the
-actual value.
+cannot be allocated by the caller because the length of the string depends on
+the actual value.
 
 | Function                         | Signature            | Description |
 |----------------------------------|----------------------|-------------|
@@ -276,9 +276,8 @@ array projections.
   with the projected dimension fixed to the given index value. Projection is the
   array access analog to partial application; effectively it creates a new array
   that has the same elements as the original array, but one of the indices is
-  fixed at a constant value.
-  Array projections can be created using the `__quantum__rt__array_project`
-  runtime function.
+  fixed at a constant value. Array projections can be created using the
+  `__quantum__rt__array_project` runtime function.
 
 Attempting to access an index or dimension outside the bounds of an array should
 cause an immediate runtime failure. This applies to slicing and projection
