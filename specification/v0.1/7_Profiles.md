@@ -8,7 +8,8 @@ specification. Profiles also provide a roadmap for implementors by specifying
 stages they can progress through that will be useful to consumers of the
 specification.
 
-This document defines two initial profiles of the QIR specification. We expect
+This document drafts two initial profiles of the QIR specification. We expect a
+more comprehensive specification for these and
 additional profiles to be added in the future.
 
 ## Profile A: Basic Quantum Functionality
@@ -34,7 +35,7 @@ restrictions:
   the QIR.
 - The only LLVM primitives allowed are: `call`, `bitcast`, `getelementptr`,
   `load`, `store`, `ret`, and `extractvalue`.
-- The only QIR runtime functions allowed are: **TBD**.
+- The only QIR runtime functions allowed are: **[to be determined]**.
 - LLVM functions will always be passed null pointers for the capture tuple.
 - The only classical value types allowed are `%Int`, `%Double`, `%Result`,
   `%Pauli`, and tuples of these values.
@@ -70,7 +71,7 @@ restrictions:
   the QIR.
 - The only LLVM primitives allowed are: `call`, `bitcast`, `getelementptr`,
   `load`, `store`, `ret`, `extractvalue`, `icmp`, `alloca`, and `br`.
-- The only QIR runtime functions allowed are: **TBD**.
+- The only QIR runtime functions allowed are: **[to be determined]**.
 - LLVM functions will always be passed a null pointer for the capture tuple.
 - LLVM functions may fill in the result tuple. If they do, the result tuple may
   only contain `%Result` values or tuples of `%Result` values.
