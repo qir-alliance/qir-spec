@@ -1,7 +1,7 @@
 # Callables
 
-We use to term _callable_ to mean a subroutine in the source language. Different
-source languages use different names for this concept.
+We use the term _callable_ to mean a subroutine in the source language.
+Different source languages use different names for this concept.
 
 > *Note:* <br/>
 The QIR specification permits the usage of subroutines as first class values,
@@ -9,7 +9,7 @@ and includes the necessary expressiveness to e.g. provide runtime support for
 functor application. This introduces the need to define a common structure to
 represent callable values and their arguments. If the source language does not
 make use of such features and there is no need to represent callable values in
-the compilation, then the corresponding sections in this document don't apply.
+the compilation, then the corresponding sections in this document do not apply.
 
 ## Runtime Failure
 
@@ -56,7 +56,7 @@ pointer. These values are represented by a pointer to an opaque LLVM type,
 
 ### Wrapper Functions
 
-Because LLVM doesn't support generics, the LLVM function pointers used to
+Because LLVM does not support generics, the LLVM function pointers used to
 initialize a `%Callable` have to be of a single type. To accomplish this, we
 create a new "wrapper" function for each of the callable's specializations. All
 such wrapper functions have the same signature and so are of the same LLVM type.
@@ -76,12 +76,12 @@ A callable may define a "ctladj" specialization if and only if it defines both
 "adj" and "ctl" specializations.
 
 There is no need to create wrappers for callables that are never pointed to.
-That is, **a callable that is never turned into a callable value doesn't need
+That is, **a callable that is never turned into a callable value does not need
 wrapper functions**.
 
 Each wrapper is an LLVM function that takes three tuple header pointers as input
 and returns no output; that is, `void(%Tuple*, %Tuple*, %Tuple*)`. The first
-input is the capture tuple, which used for closures. The second input is the
+input is the capture tuple, which is used for closures. The second input is the
 argument tuple. The third input points to the result tuple, which will be
 allocated by the caller. If the callable has `Unit` result, then the result
 tuple pointer will be null.
@@ -141,7 +141,7 @@ define void Some__Namespace__Symbol__ctladj__wrapper (%Tuple* capture,
 ### Implementation Table
 
 For each callable that is used to create a callable value, a table is created
-with pointers to the four wrapper functions; specializations that don't exist
+with pointers to the four wrapper functions; specializations that do not exist
 for a specific callable have a null pointer in that place. The table is defined
 as a global constant whose name is the namespace-qualified name of the callable
 with periods replaced by double underscores, "__".
@@ -165,7 +165,7 @@ For the example above, the following would be generated:
 
 There is no need to create an implementation table for callables that are never
 pointed to. That is, **a callable that is never turned into a callable value
-doesn't need an implementation table**.
+does not need an implementation table**.
 
 ## Creating Callable Values
 
@@ -260,9 +260,9 @@ implementation table to be used is selected as follows:
 If the controlled count is greater than one, then
 `__quantum__rt__callable_invoke` also needs to do some manipulation of the input
 tuple. Each application of the `Controlled` functor modifies the signature of
-the specialization by adding replacing the current argument tuple with a
-two-tuple containing the array of control qubits as the first element and a
-tuple of the remaining arguments as the second tuple.
+the specialization by replacing the current argument tuple with a two-tuple
+containing the array of control qubits as the first element and a tuple of the
+remaining arguments as the second tuple.
 
 For instance, if the base callable expects an argument tuple `{ i64, %Qubit* }`,
 then the `Controlled` version expects `{ %Array*, { i64, %Qubit* }* }`, and the
@@ -287,13 +287,13 @@ This could be stored in the `%Tuple` by `__quantum__rt__tuple_create`, or it
 could be provided by the classical runtime from the length originally provided
 for the heap allocation.
 
-The "ctl" implementation function can't do this manipulation itself because it
-doesn't have access to the controlled count and so can't tell what the actual
+The "ctl" implementation function cannot do this manipulation itself because it
+does not have access to the controlled count and so cannot tell what the actual
 argument tuple's structure is. Similarly, while the calling code knows the exact
-signature, it also doesn't have access to the controlled count, and so can't
-unambiguously determine the expected argument tuple; specifically, it can't tell
-if an inner tuple is the result of an application of `Controlled` or just part
-of the base signature.
+signature, it also does not have access to the controlled count, and so cannot
+unambiguously determine the expected argument tuple; specifically, it cannot
+tell if an inner tuple is the result of an application of `Controlled` or just
+part of the base signature.
 
 ## Implementing Lambdas, Partial Application, and Currying
 
@@ -331,7 +331,7 @@ released. Upon creation, a table with two function pointers for modifying
 reference and alias counts for captured values is hence associated with a
 callable value.
 
-Like the implementation table, the table is defined as global constant with a
+Like the implementation table, the table is defined as a global constant with a
 unique name. It contains two pointers of type `void(%Tuple*, i32)*`; the first
 one points to the function for modifying the reference counts of captured
 values, the second points to the one for modifying the alias counts. Either of
