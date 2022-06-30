@@ -36,7 +36,7 @@ The code below illustrates how a simple program looks like within a Base Profile
 
 ; entry point definition
 
-define void @EntryPointName() #0 {
+define i64 @EntryPointName() #0 {
 entry:
 
   ; calls to QIS functions  
@@ -51,7 +51,7 @@ entry:
   tail call void @__quantum__rt__result_record_output(%Result* null, i8* null)
   tail call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 1 to %Result*), i8* null)
 
-  ret void
+  ret i64 0
 }
 
 ; declarations of QIS functions
@@ -72,7 +72,7 @@ declare void @__quantum__rt__result_record_output(%Result*, i8*)
 
 ; attributes
 
-attributes #0 = { "EntryPoint" "requiredQubits"="2" "requiredResults"="2" }
+attributes #0 = { "entry_point" "required_qubits"="2" "required_results"="2" }
 ```
 
 TODO: do we need to add string constants here (that may be ignored, depending on the output format)?  
@@ -90,7 +90,7 @@ refered to as entry point in the rest of this profile specification.
 The name of this function may be chosen freely, as long as it is a valid 
 [global identifier](https://llvm.org/docs/LangRef.html#identifiers) by LLVM standard. 
 
-The entry point may not take any parameters and must return void. 
+The entry point may not take any parameters and must return an exit code in the form of a 64-bit integer. The exit code 0 must be used to indicate a successful execution of the program. 
 
 ### Attributes
 
@@ -102,12 +102,12 @@ The following custom attributes must be attached to the entry point function:
 
 These attributes will show up as an [attribute group](https://releases.llvm.org/13.0.1/docs/LangRef.html#attrgrp) in the IR.
 Attribute groups are numbered such that they can be easily referenced by multiple function definitions or global variables. 
-Arbitrary custom attributes may be optionally attached to any of the declared functions to convey additional information about that function. Consumers of Base Profile compliant programs should hence not rely on the numbering of the entry point attribute group, but instead look for function to which an attribute with the name `EntryPoint` is attached to determine which one to invoke when the program is launched.
+Arbitrary custom attributes may be optionally attached to any of the declared functions to convey additional information about that function. Consumers of Base Profile compliant programs should hence not rely on the numbering of the entry point attribute group, but instead look for function to which an attribute with the name `entry_point` is attached to determine which one to invoke when the program is launched.
 
-To indicate the total number of qubits required to execute the program, a custom attribute with the name `requiredQubits` is defined and attached to the entry point. To indicate the number of registers/bits needed to store measurement results during program execution, a custom attribute with the name `requiredResults` is defined and attached to the entry point. The value of both of these attributes is the string representation of a 64-bit integer constant.
+To indicate the total number of qubits required to execute the program, a custom attribute with the name `required_qubits` is defined and attached to the entry point. To indicate the number of registers/bits needed to store measurement results during program execution, a custom attribute with the name `required_results` is defined and attached to the entry point. The value of both of these attributes is the string representation of a 64-bit integer constant.
 
 TODO: why the string value, and not an integer?   
-TODO: align naming...
+TODO: no double underscore guard for attributes likely makes sense
 
 ### Function Body
 
@@ -147,7 +147,9 @@ No qpu support needed for measuring individual qubits, but backend would support
 
 ## Quantum Instruction Set
 
-For a Quantum Instruction Set to be compatible with the Base Profile, it needs to satisfy the following requirements: ...
+For a Quantum Instruction Set to be compatible with the Base Profile, it needs to satisfy the following requirements:
+
+- Since the Base Profile doesn't permit to define local variables, all instructions are required to return void. 
 
 ## Output Recording
 
