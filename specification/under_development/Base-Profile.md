@@ -1,6 +1,6 @@
 # Base Profile
 
-This profile defines a subset of the QIR specification to support a coherent set of functionalities and capabilities that might be offered by a system. The Base Profile specifies the minimal requirements for executing quantum programs. Execution of a Base Profile compliant program does, for instance, not require support executing quantum instructions dependent on measurement outcomes. The only requirements for a backend are to be able to perform unitary transformations on the quantum state, as well as measurements at the end of the program.
+This profile defines a subset of the QIR specification to support a coherent set of functionalities and capabilities that might be offered by a system. The Base Profile specifies the minimal requirements for executing quantum programs. Execution of a Base Profile compliant program does not, for instance, require supporting quantum instructions dependent on measurement outcomes. The only requirements for a backend are to be able to perform unitary transformations on the quantum state, as well as measurements at the end of the program.
 
 TODO: table with list of features that need to be supported by hardware, and what it doesn't need to support?  
 
