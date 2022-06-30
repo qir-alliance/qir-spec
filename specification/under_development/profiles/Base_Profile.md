@@ -36,7 +36,7 @@ The code below illustrates how a simple program looks like within a Base Profile
 
 ; entry point definition
 
-define i64 @EntryPointName() #0 {
+define i64 @Entry_Point_Name() #0 {
 entry:
 
   ; calls to QIS functions  
@@ -158,11 +158,10 @@ Log format is a separate spec. What the i8* can be is a separate spec. Default s
 The following functions are declared and used to record the program output: 
 | Function                  | Signature         | Description |
 |---------------------------|-------------------|-------------|
-| __quantum__rt__initialize_record_output    | `void(i8*)`  | ... |
-| __quantum__rt__tuple_record_output    | `void(i64, i8*)`  | Inserts a marker in the output log that indicates the start of a tuple and how many tuple elements are going to be logged. The second parameter reflects and optional label for the tuple and may be null. |
-| __quantum__rt__array_record_output    | `void(i64, i8*)`  | Inserts a marker in the output log that indicates the start of an array and how many array elements are going to be logged. The second parameter reflects and optional label for the array and may be null. |
-| __quantum__rt__result_record_output   | `void(%Result*, i8*)`  | Adds a measurement result to the output log. The second parameter reflects and optional label for the result value and may be null. |
+| __quantum__rt__initialize_record_output    | `void(i8*)`  | Inserts a marker in the output log that contains an identifier for the used labeling scheme. The backend may choose which output format to use, and the label identifier is omitted for output formats that do not support labeling. |
+| __quantum__rt__tuple_record_output    | `void(i64, i8*)`  | Inserts a marker in the output log that indicates the start of a tuple and how many tuple elements are going to be logged. The second parameter reflects an label for the tuple. The backend may choose which output format to use. Depending on the used format, the label will be logged or omitted. |
+| __quantum__rt__array_record_output    | `void(i64, i8*)`  | Inserts a marker in the output log that indicates the start of an array and how many array elements are going to be logged. The second parameter reflects an label for the array. The backend may choose which output format to use. Depending on the used format, the label will be logged or omitted. |
+| __quantum__rt__result_record_output   | `void(%Result*, i8*)`  | Adds a measurement result to the output log. The second parameter reflects an label for the result value. The backend may choose which output format to use. Depending on the used format, the label will be logged or omitted. |
 
-TODO: I *think* it should be sufficient to use the same functions for output recording independent on the output format; i.e. the output format does not need to be reflected in the IR, and it is sufficient to label the format it in the output itself.  
-TODO: Do we need to somehow make room for annotating the used labeling scheme in the IR? Maybe a function initialize record output is appropriate? What about a finalize record output?   
+TODO: It is sufficient to use the same functions for output recording independent on the output format; i.e. the output format does not need to be reflected in the IR, and it is sufficient to label the format it in the output itself. The output itself then needs to contain both the output format identifier (defined by the backend), as well as an identifier for the labeling scheme (as defined in the program IR itself).  
 -> for base profile, no computations (classical or quantum, including calls to rt functions other than record_output* functions) can be performed after the call to __quantum__rt__initialize_record_output
