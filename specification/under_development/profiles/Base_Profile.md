@@ -69,10 +69,10 @@ declare void @__quantum__rt__result_record_output(%Result*, i8*)
 attributes #0 = { "EntryPoint" "requiredQubits"="2" "requiredResults"="2" }
 ```
 
+TODO: do we need to add string constants here (that may be ignored, depending on the output format)?
+
 TODO: a profile identifier and version number within the IR would be good to have (may be needed for correct usage of qubit and result pointers)   
 -> look into custom target triples
-
-TODO: update output recording function signature
 
 ## Entry Point Definition
 
@@ -138,8 +138,7 @@ No qpu support needed for measuring individual qubits, but backend would support
 
 ## Quantum Instruction Set
 
-The QIR specification contains a [table]() of commonly used instructions along with their signatures and a description of their functionality.
-Backends are **not** required to support all of these. Instead, each backend will declare which of these instructions it supports. We encourage to make instructions that are supported by a context independent implementation in terms of other instructions as a library rather than listing them as part of the backend specification. A library provided either in the form of a bitcode file or as a C library can be linked in as part of a QIR compilation stage. 
+For a Quantum Instruction Set to be compatible with the Base Profile, it needs to satisfy the following requirements: ...
 
 ## Output Recording
 
@@ -152,4 +151,6 @@ The following functions are declared and used to record the program output:
 | __quantum__rt__array_record_output    | `void(i64, i8*)`  | Inserts a marker in the output log that indicates the start of an array and how many array elements are going to be logged. The second parameter reflects and optional label for the array and may be null. |
 | __quantum__rt__result_record_output   | `void(%Result*, i8*)`  | Adds a measurement result to the output log. The second parameter reflects and optional label for the result value and may be null. |
 
+TODO: I *think* it should be sufficient to use the same functions for output recording independent on the output format; i.e. the output format does not need to be reflected in the IR, and it is sufficient to label the format it in the output itself.
+TODO: Do we need to somehow make room for annotating the used labeling scheme in the IR? Maybe a function start record output is appropriate?
 TODO: output format that also reflects job info like nr shots?

@@ -1,4 +1,4 @@
-### Quantum Instruction Set
+# Quantum Instruction Set
 
 All quantum instructions are represented by LLVM external functions.
 Quantum instructions may take qubits, doubles, or integers as parameters,
