@@ -9,6 +9,9 @@ To support execution of Base Profile compliant programs, a QPU must have the fol
 2. It supports measuring the state of each qubit at the end of a computation.
 3. It must be able to return the measured value for each qubit in the order requested by the program. This can be done in software as a post processing step after all quantum instructions and the final measurements have been performed; it does not require hardware or runtime support.
 
+TODO: edit the third bullet to just say that it needs to be able to produce one of the define output formats? Are all output formats equivalent (I think so, *if* the labeling scheme is defined)?  
+-> "the order requested by the program" may be somewhat ambiguous in any case, if we want to allow for parallelism/async execution
+
 The second requirement should be taken to mean that a Base Profile compilant program does *not* apply instructions to a qubit after it has been measured; all instructions to transform the quantum state can be applied before performing any measurements. It specifically also means that there is no need for the QPU to be able to measure only a subset of all available qubits at a time.
 
 ## Program Structure
@@ -43,6 +46,7 @@ entry:
   tail call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 1 to %Qubit*), %Result* inttoptr (i64 1 to %Result*))
 
   ; calls to record the program output
+  tail call void @__quantum__rt__initialize_record_output(i8* null)  
   tail call void @__quantum__rt__tuple_record_output(i64 2, i8* null)
   tail call void @__quantum__rt__result_record_output(%Result* null, i8* null)
   tail call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 1 to %Result*), i8* null)
@@ -60,6 +64,8 @@ declare void @__quantum__qis__mz__body(%Qubit*, %Result*)
 
 ; declarations of functions used for output recording
 
+declare void @__quantum__rt__initialize_record_output(i8*)
+
 declare void @__quantum__rt__tuple_record_output(i64, i8*)
 
 declare void @__quantum__rt__result_record_output(%Result*, i8*)
@@ -69,7 +75,10 @@ declare void @__quantum__rt__result_record_output(%Result*, i8*)
 attributes #0 = { "EntryPoint" "requiredQubits"="2" "requiredResults"="2" }
 ```
 
-TODO: do we need to add string constants here (that may be ignored, depending on the output format)?
+TODO: do we need to add string constants here (that may be ignored, depending on the output format)?  
+TODO: do we need additional restrictions for output recording? Like e.g. it needs to be a dedicated block, or output recording functions can only occur in the last block of the entry point?
+
+TODO: do we need a __quantum__rt__initialize and __quantum__rt__finalize?
 
 TODO: a profile identifier and version number within the IR would be good to have (may be needed for correct usage of qubit and result pointers)   
 -> look into custom target triples
@@ -147,10 +156,11 @@ Log format is a separate spec. What the i8* can be is a separate spec. Default s
 The following functions are declared and used to record the program output: 
 | Function                  | Signature         | Description |
 |---------------------------|-------------------|-------------|
+| __quantum__rt__initialize_record_output    | `void(i8*)`  | ... |
 | __quantum__rt__tuple_record_output    | `void(i64, i8*)`  | Inserts a marker in the output log that indicates the start of a tuple and how many tuple elements are going to be logged. The second parameter reflects and optional label for the tuple and may be null. |
 | __quantum__rt__array_record_output    | `void(i64, i8*)`  | Inserts a marker in the output log that indicates the start of an array and how many array elements are going to be logged. The second parameter reflects and optional label for the array and may be null. |
 | __quantum__rt__result_record_output   | `void(%Result*, i8*)`  | Adds a measurement result to the output log. The second parameter reflects and optional label for the result value and may be null. |
 
-TODO: I *think* it should be sufficient to use the same functions for output recording independent on the output format; i.e. the output format does not need to be reflected in the IR, and it is sufficient to label the format it in the output itself.
-TODO: Do we need to somehow make room for annotating the used labeling scheme in the IR? Maybe a function start record output is appropriate?
-TODO: output format that also reflects job info like nr shots?
+TODO: I *think* it should be sufficient to use the same functions for output recording independent on the output format; i.e. the output format does not need to be reflected in the IR, and it is sufficient to label the format it in the output itself.  
+TODO: Do we need to somehow make room for annotating the used labeling scheme in the IR? Maybe a function initialize record output is appropriate? What about a finalize record output?   
+-> for base profile, no computations (classical or quantum, including calls to rt functions other than record_output* functions) can be performed after the call to __quantum__rt__initialize_record_output
