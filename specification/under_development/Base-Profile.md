@@ -43,10 +43,9 @@ entry:
   tail call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 1 to %Qubit*), %Result* inttoptr (i64 1 to %Result*))
 
   ; calls to record the program output
-  tail call void @__quantum__rt__tuple_start_record_output()
-  tail call void @__quantum__rt__result_record_output(%Result* null)
-  tail call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 1 to %Result*))
-  tail call void @__quantum__rt__tuple_end_record_output()
+  tail call void @__quantum__rt__tuple_record_output(i64 2, i8* null)
+  tail call void @__quantum__rt__result_record_output(%Result* null, i8* null)
+  tail call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 1 to %Result*), i8* null)
 
   ret void
 }
@@ -61,11 +60,9 @@ declare void @__quantum__qis__mz__body(%Qubit*, %Result*)
 
 ; declarations of functions used for output recording
 
-declare void @__quantum__rt__tuple_start_record_output()
+declare void @__quantum__rt__tuple_record_output(i64, i8*)
 
-declare void @__quantum__rt__result_record_output(%Result*)
-
-declare void @__quantum__rt__tuple_end_record_output()
+declare void @__quantum__rt__result_record_output(%Result*, i8*)
 
 ; attributes
 
@@ -146,13 +143,13 @@ Backends are **not** required to support all of these. Instead, each backend wil
 
 ## Output Recording
 
+Log format is a separate spec. What the i8* can be is a separate spec. Default spec for front-ends to compile into.
+
 The following functions are declared and used to record the program output: 
 | Function                  | Signature         | Description |
 |---------------------------|-------------------|-------------|
-| __quantum__rt__tuple_start_record_output    | `void()`  | Inserts a marker in the output log that indicates the start of a tuple. |
-| __quantum__rt__tuple_end_record_output    | `void()`  | Inserts a marker in the output log that indicates the end of a tuple. |
-| __quantum__rt__array_start_record_output    | `void()`  | Inserts a marker in the output log that indicates the start of an array. |
-| __quantum__rt__array_end_record_output    | `void()`  | Inserts a marker in the output log that indicates the end of an array. |
-| __quantum__rt__result_record_output   | `void(%Result*)`  | Adds a measurement result to the output log. |
+| __quantum__rt__tuple_record_output    | `void(i64, i8*)`  | Inserts a marker in the output log that indicates the start of a tuple and how many tuple elements are going to be logged. The second parameter reflects and optional label for the tuple and may be null. |
+| __quantum__rt__array_record_output    | `void(i64, i8*)`  | Inserts a marker in the output log that indicates the start of an array and how many array elements are going to be logged. The second parameter reflects and optional label for the array and may be null. |
+| __quantum__rt__result_record_output   | `void(%Result*, i8*)`  | Adds a measurement result to the output log. The second parameter reflects and optional label for the result value and may be null. |
 
 TODO: output format that also reflects job info like nr shots?
