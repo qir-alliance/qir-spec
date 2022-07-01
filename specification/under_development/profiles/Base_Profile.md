@@ -34,6 +34,12 @@ The code below illustrates how a simple program looks like within a Base Profile
 %Result = type opaque
 %Qubit = type opaque
 
+; global constants (labels for output recording)
+
+@0 = internal constant [16 x i8] c"label_schema_id\00"
+@1 = internal constant [3 x i8] c"r1\00"
+@2 = internal constant [3 x i8] c"r2\00"
+
 ; entry point definition
 
 define i64 @Entry_Point_Name() #0 {
@@ -46,10 +52,10 @@ entry:
   tail call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 1 to %Qubit*), %Result* inttoptr (i64 1 to %Result*))
 
   ; calls to record the program output
-  tail call void @__quantum__rt__initialize_record_output(i8* null)  
+  tail call void @__quantum__rt__initialize_record_output(i8* getelementptr inbounds ([16 x i8], [16 x i8]* @0, i32 0, i32 0))  
   tail call void @__quantum__rt__tuple_record_output(i64 2, i8* null)
-  tail call void @__quantum__rt__result_record_output(%Result* null, i8* null)
-  tail call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 1 to %Result*), i8* null)
+  tail call void @__quantum__rt__result_record_output(%Result* null, i8* getelementptr inbounds ([3 x i8], [3 x i8]* @1, i32 0, i32 0))
+  tail call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 1 to %Result*), i8* getelementptr inbounds ([3 x i8], [3 x i8]* @2, i32 0, i32 0))
 
   ret i64 0
 }
@@ -120,11 +126,12 @@ The result of the program execution should be logged using output recording func
 
 The following instructions are the *only* LLVM instructions that are permitted within a Base Profile compliant program:
 
-| LLVM Instruction                  | Context and Purpose         | Restrictions for Usage |
+| LLVM Instruction                  | Context and Purpose         | Rules for Usage |
 |---------------------------|-------------------|-------------|
-| call    | Used within a function block to invoke any one of the declared QIS functions and the output recording functions. | (none) |
-| ret | ... | ... |
-| inttoptr | ... | ... |
+| `call`    | Used within a function block to invoke any one of the declared QIS functions and the output recording functions. | May optionally be preceded by a [`tail` marker](https://llvm.org/docs/LangRef.html#call-instruction). |
+| `ret` | Used to return the exit code of the program. | Must occur (only) as the final instruction of the `entry` block. |
+| `inttoptr` | Used to cast an `i64` integer value to either a `%Qubit*` or a `%Result*`. | May be used as part of a function call only. |
+| `getelementptr inbounds` | Used to create an `i8*` to pass a constant string for the purpose of labeling an output value. | May be used as part of call to an output recording function only. |
 
 ## Data Types and Values
 
@@ -154,6 +161,7 @@ For a Quantum Instruction Set to be compatible with the Base Profile, it needs t
 ## Output Recording
 
 Log format is a separate spec. What the i8* can be is a separate spec. Default spec for front-ends to compile into.
+TODO: do string labels need to be zero terminated?
 
 The following functions are declared and used to record the program output: 
 | Function                  | Signature         | Description |
