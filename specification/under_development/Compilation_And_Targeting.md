@@ -1,5 +1,11 @@
 # Compilation Stages
 
+Requirements:
+- Don't fragment the ecosystem unless there is a clear reason why the split makes sense (not sure about a comprehensive positive phrasing)
+- Allow to make use of backend specific instructions at the end user level (e.g. for experimentation and research purposes) without requiring frontends or other backends to add support on a case-by-case basis
+- Define clear guideance for defining a backend specific instruction sets
+
+Compilation stages
 - Language specific compilation: Compilation of source code to QIR bitcode
 - General optimizations: Optimizations that map QIR -> QIR and that do not limit compatibility in any way
 - General linking: Combines bitcode from different sources and libraries according to [standard linking practices]()
@@ -16,6 +22,8 @@ Considerations:
 - Each frontend tends to have its own naming conventions. Either we assume we can reasonably achieve alignment on naming conventions across all functions used, or we carve out naming conventions for a subset of names (qis and rt functions) to be able to give clear guideance for target packages.
 - How much value is there in keeping front end specific names up to a certain stage, and only then switch naming conventions? -> avoids naming conflicts in general libraries and sources? -> also avoids that each front end needs to implement the name replacement? -> should qis functions always be public?
 - Target package: signatures must match for replacement, failure upon name match but signature mismatch *up to precision resolution* - one direction only; i.e. we can go from unspecified precision to specified precision -> does that work at the IR level? How do I even know precision is unspecified? -> attribute to force exact data type match?
+
+frontend forward declares
 
 - Who should add a function to the list of qis naming conventions and when? -> backend providers, asap; meaning even speculative ones should be added
 
