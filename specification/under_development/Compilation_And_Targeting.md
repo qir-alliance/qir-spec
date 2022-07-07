@@ -3,7 +3,10 @@
 - Language specific compilation: Compilation of source code to QIR bitcode
 - General optimizations: Optimizations that map QIR -> QIR and that do not limit compatibility in any way
 - General linking: Combines bitcode from different sources and libraries according to [standard linking practices]()
-- QIS resolution: Links a library (bitcode) giving strict precedence to the definitions in that library over definitions in the source code, unless otherwise indicated by a function attribute, and resolves precision if needed.
+- QIS resolution: Links a library (bitcode) taking naming conventions into account and giving strict precedence to the definitions in that library over definitions in the source code, unless otherwise indicated by a function attribute, and resolves precision if needed.
+- Targeting and profile/qis specific optimization: maps QIR -> QIR profile
+- Profile Validation: checks whether the compiled code is compliant with the specified profile and fails compilation otherwise
+- Backend specific compilation and optimization, resolution of runtime functions (possibly object level linking, standard LTO), possibly machine code generation
 
 TODO: "Automatic weak attribute" for `__quantum__qis__` functions?  
 -> probably better to just require that `__quantum__qis__` function either are declaration only, or are weak definitions. 
