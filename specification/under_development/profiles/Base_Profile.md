@@ -4,7 +4,7 @@ This profile defines a subset of the QIR specification to support a coherent set
 
 The intention is for frontends to emit programs that comply with the QIR specification, and for a compilation stage to then target this QIR to comply with the Base Profile specification. This targeting is possible in principle if the program doesn't make use of any features that would require hardware support. 
 
-To support execution of Base Profile compliant programs, a QPU must have the following fundamental capabilities:
+To support execution of Base Profile compliant programs, a backend must have the following fundamental capabilities:
 1. It supports executing a sequence of quantum instructions that transforms the quantum state.
 2. It supports measuring the state of each qubit at the end of a computation.
 3. It must be able to return the measured value for each qubit in the order requested by the program. This can be done in software as a post processing step after all quantum instructions and the final measurements have been performed; it does not require hardware or runtime support.
@@ -81,10 +81,10 @@ declare void @__quantum__rt__result_record_output(%Result*, i8*)
 attributes #0 = { "entry_point" "required_qubits"="2" "required_results"="2" }
 ```
 
-TODO: do we need to add string constants here (that may be ignored, depending on the output format)?  
 TODO: do we need additional restrictions for output recording? Like e.g. it needs to be a dedicated block, or output recording functions can only occur in the last block of the entry point?
 
 TODO: do we need a __quantum__rt__initialize and __quantum__rt__finalize?
+TODO: do we need __quantum__rt__read_result and __quantum__rt__write_result?
 
 TODO: a profile identifier and version number within the IR would be good to have (may be needed for correct usage of qubit and result pointers)   
 -> look into custom target triples
