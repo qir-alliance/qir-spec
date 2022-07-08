@@ -84,7 +84,7 @@ attributes #0 = { "entry_point" "required_qubits"="2" "required_results"="2" }
 TODO: do we need additional restrictions for output recording? Like e.g. it needs to be a dedicated block, or output recording functions can only occur in the last block of the entry point?
 
 TODO: do we need a __quantum__rt__initialize and __quantum__rt__finalize?
-TODO: do we need __quantum__rt__read_result and __quantum__rt__write_result?
+TODO: do measurements need to be at the end of the quantum computations, or should the backend take care of deferring them if necessary?
 
 TODO: a profile identifier and version number within the IR would be good to have (may be needed for correct usage of qubit and result pointers)   
 -> look into custom target triples

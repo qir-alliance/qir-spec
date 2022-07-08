@@ -3,7 +3,7 @@
 Requirements:
 - Don't fragment the ecosystem unless there is a clear reason why the split makes sense (not sure about a comprehensive positive phrasing)
 - Allow to make use of backend specific instructions at the end user level (e.g. for experimentation and research purposes) without requiring frontends or other backends to add support on a case-by-case basis
-- Define clear guideance for defining a backend specific instruction sets
+- Define clear guideance for defining backend specific instruction sets
 
 Compilation stages
 - Language specific compilation: Compilation of source code to QIR bitcode
