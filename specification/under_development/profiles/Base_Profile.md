@@ -1,43 +1,72 @@
 # Base Profile
 
 This profile defines a subset of the QIR specification to support a coherent set
-of functionalities and capabilities that might be offered by a system. The Base
-Profile specifies the minimal requirements for executing quantum programs.
-Execution of a Base Profile compliant program does not, for instance, require
-supporting quantum instructions dependent on measurement outcomes. The only
-requirements for a backend are to be able to perform unitary transformations on
-the quantum state, as well as measurements at the end of the program.
+of functionalities and capabilities that might be offered by a quantum backend.
+Like all profile specifications, this document is primarily intended for
+[compiler backend](https://en.wikipedia.org/wiki/Compiler#Back_end) authors as
+well as contributors to the [targeting
+stage](../Compilation_And_Targeting.md#targeting) of the QIR compiler.
 
-The intention is for front ends to emit programs that comply with the QIR
-specification, and for a compilation stage to then target this QIR to comply
-with the Base Profile specification. This targeting is possible in principle if
-the program doesn't make use of any features that would require hardware
-support.
+The Base Profile specifies the minimal requirements for executing a quantum
+program. Specifically, to execute a Base Profile compliant program, a backend
+needs to support the following:
 
-To support execution of Base Profile compliant programs, a backend must have the
-following fundamental capabilities:
+1. It can execute a sequence of quantum instructions that transform the quantum
+   state.
+2. It supports measuring the state of each qubit at the end of the program.
+3. It produces one of the specified [output formats](../output_formats/).
 
-1. It supports executing a sequence of quantum instructions that transforms the
-   quantum state.
-2. It supports measuring the state of each qubit at the end of a computation.
-3. It must be able to return the measured value for each qubit in the order
-   requested by the program. This can be done in software as a post processing
-   step after all quantum instructions and the final measurements have been
-   performed; it does not require hardware or runtime support.
+These functionalities are both necessary and sufficient for computations that
+fundamentally consist of unitary transformations of the quantum state as well as
+measurements at the end of the program. More details about each of the bullets
+are outlined below.
 
-TODO: edit the third bullet to just say that it needs to be able to produce one
-of the define output formats? Are all output formats equivalent (I think so,
-*if* the labeling scheme is defined)? -> "the order requested by the program"
-may be somewhat ambiguous in any case, if we want to allow for parallelism/async
-execution
+**Bullet 1: Quantum transformations** <br/>
+...
+
+**Bullet 2: Measurements** <br/>
 
 The second requirement should be taken to mean that a Base Profile compliant
 program does *not* apply instructions to a qubit after it has been measured; all
 instructions to transform the quantum state can be applied before performing any
-measurements. It specifically also means that there is no need for the QPU to be
-able to measure only a subset of all available qubits at a time.
+measurements. It specifically also implies that
+
+- there is no need for the quantum processor ([QPU](../Execution.md)) to be able
+to measure only a subset of all available qubits at a time, and
+- executing a Base Profile compliant program does not require support for
+applying quantum instructions dependent on measurement outcomes.
+
+**Bullet 3: Program output** <br />
+
+The specification of QIR and all its profiles needs to permit to accurately
+reflect the program intent. This includes being able to define and customize the
+program output. The Base Profile specification hence requires explicitly
+expressing which values/measurements are returned by the program and in which
+order. How to express this is defined in the section on [output
+recording](#output-recording).
+
+While it is sufficient for the QPU to do a final measurement of all qubits in a
+predefined order at the end of the program, only the selected subset will be
+reflected in the produced output format. A suitable output format can be
+generated in a post-processing step after the computation on the quantum
+processor itself has completed; customization of the program output hence does
+not require support on the QPU itself.
+
+The defined [output formats](../output_formats/) provide different options for
+how a backend may express the computed value(s). The exact format can be freely
+chosen by the backend and is identified by a string label in the produced
+format. Each output format contains sufficient information to allow quantum
+programming frameworks to generate a user friendly presentation of the returned
+values in the requested order, such as, e.g., a histogram of all results when
+running the program multiple times.
 
 ## Program Structure
+
+To discuss:
+
+- split into several blocks, and which ones
+- have a rt function to indicate the exit code instead of a return?
+- profile attribute, no attribute for the instruction set
 
 A Base Profile compliant program is defined in the form of a single LLVM bitcode
 file that consists of the following:
@@ -80,11 +109,16 @@ entry:
   ; calls to QIS functions
   tail call void @__quantum__qis__h__body(%Qubit* null)
   tail call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* inttoptr (i64 1 to %Qubit*))
+  br label %measurements
+
+measurements:
   tail call void @__quantum__qis__mz__body(%Qubit* null, %Result* null)
   tail call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 1 to %Qubit*), %Result* inttoptr (i64 1 to %Result*))
+  br label %output
 
+output:
   ; calls to record the program output
-  tail call void @__quantum__rt__initialize_record_output(i8* getelementptr inbounds ([16 x i8], [16 x i8]* @0, i32 0, i32 0))
+  tail call void @__quantum__rt__record_output(i8* getelementptr inbounds ([16 x i8], [16 x i8]* @0, i32 0, i32 0))
   tail call void @__quantum__rt__tuple_record_output(i64 2, i8* null)
   tail call void @__quantum__rt__result_record_output(%Result* null, i8* getelementptr inbounds ([3 x i8], [3 x i8]* @1, i32 0, i32 0))
   tail call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 1 to %Result*), i8* getelementptr inbounds ([3 x i8], [3 x i8]* @2, i32 0, i32 0))
@@ -102,7 +136,7 @@ declare void @__quantum__qis__mz__body(%Qubit*, %Result*)
 
 ; declarations of functions used for output recording
 
-declare void @__quantum__rt__initialize_record_output(i8*)
+declare void @__quantum__rt__record_output(i8*)
 
 declare void @__quantum__rt__tuple_record_output(i64, i8*)
 
@@ -110,20 +144,13 @@ declare void @__quantum__rt__result_record_output(%Result*, i8*)
 
 ; attributes
 
-attributes #0 = { "entry_point" "required_qubits"="2" "required_results"="2" }
+attributes #0 = { "entry_point" "qir_profile"="base_profile" "required_qubits"="2" "required_results"="2" }
 ```
 
-TODO: do we need additional restrictions for output recording? Like e.g. it
-needs to be a dedicated block, or output recording functions can only occur in
-the last block of the entry point?
-
-TODO: do we need a `__quantum__rt__initialize` and `__quantum__rt__finalize`?
-TODO: do measurements need to be at the end of the quantum computations, or
-should the backend take care of deferring them if necessary?
+TODO: adjust text to reflect the split into different blocks
 
 TODO: a profile identifier and version number within the IR would be good to
-have (may be needed for correct usage of qubit and result pointers) -> look into
-custom target triples
+have (may be needed for correct usage of qubit and result pointers)
 
 ## Entry Point Definition
 
@@ -163,18 +190,20 @@ results during program execution, a custom attribute with the name
 `required_results` is defined and attached to the entry point. The value of both
 of these attributes is the string representation of a 64-bit integer constant.
 
-TODO: why the string value, and not an integer? TODO: no double underscore guard
-for attributes likely makes sense
+TODO: why the string value, and not an integer? Naming convention for attributes
+like for qis?
+
+TODO: profile attribute
 
 ### Function Body
 
-The function body consists of a single block named `entry`. This implies in
-particular that no branching is permitted inside a function's body. In the
-`entry` block, any number of calls to QIS functions may be performed. To be
-compatible with the Base Profile these functions must return void. Any arguments
-to invoke them must be inlined into the call itself; they hence must be
-constants or a pointer to a [qubit or result]() The result of the program
-execution should be logged using output recording functions.
+The function body consists of three blocks; ...  Only trivial branching is
+permitted inside a function's body. In the `entry` block, any number of calls to
+QIS functions may be performed. To be compatible with the Base Profile these
+functions must return void. Any arguments to invoke them must be inlined into
+the call itself; they hence must be constants or a pointer to a [qubit or
+result](#qubit-and-result-usage) The result of the program execution should be
+logged using output recording functions.
 
 The following instructions are the *only* LLVM instructions that are permitted
 within a Base Profile compliant program:
@@ -213,8 +242,8 @@ runtime is the only entity that needs to know how to interpret the opaque
 pointers (deref or not). that info is captured in the target triple/duo.
 
 Qubits may not be used after they have been measured. Qubits and results need to
-be numbered consecutively, starting at 0. No qpu support needed for measuring
-individual qubits, but backend would support output selection?
+be numbered consecutively, starting at 0. Measurements may only be followed by
+other measurements or output recording functions.
 
 ## Quantum Instruction Set
 
@@ -227,16 +256,16 @@ to satisfy the following requirements:
 ## Output Recording
 
 Log format is a separate spec. What the i8* can be is a separate spec. Default
-spec for front-ends to compile into. TODO: do string labels need to be zero
-terminated?
+spec for [frontends](https://en.wikipedia.org/wiki/Compiler#Front_end) to
+compile into. String labels are zero terminated.
 
 The following functions are declared and used to record the program output: |
 Function                  | Signature         | Description |
 |---------------------------|-------------------|-------------| |
-__quantum__rt__initialize_record_output    | `void(i8*)`  | Inserts a marker in
-the output log that contains an identifier for the used labeling scheme. The
-backend may choose which output format to use, and the label identifier is
-omitted for output formats that do not support labeling. | |
+__quantum__rt__record_output    | `void(i8*)`  | Inserts a marker in the output
+log that contains an identifier for the used labeling scheme. The backend may
+choose which output format to use, and the label identifier is omitted for
+output formats that do not support labeling. | |
 __quantum__rt__tuple_record_output    | `void(i64, i8*)`  | Inserts a marker in
 the output log that indicates the start of a tuple and how many tuple elements
 are going to be logged. The second parameter reflects an label for the tuple.
@@ -251,12 +280,11 @@ Adds a measurement result to the output log. The second parameter reflects an
 label for the result value. The backend may choose which output format to use.
 Depending on the used format, the label will be logged or omitted. |
 
-TODO: It is sufficient to use the same functions for output recording
-independent on the output format; i.e. the output format does not need to be
-reflected in the IR, and it is sufficient to label the format it in the output
-itself. The output itself then needs to contain both the output format
-identifier (defined by the backend), as well as an identifier for the labeling
-scheme (as defined in the program IR itself). -> for base profile, no
-computations (classical or quantum, including calls to rt functions other than
-record_output* functions) can be performed after the call to
-__quantum__rt__initialize_record_output
+It is sufficient to use the same functions for output recording independent on
+the output format; i.e. the output format does not need to be reflected in the
+IR, and it is sufficient to label the format it in the output itself. The output
+itself then needs to contain both the output format identifier (defined by the
+backend), as well as an identifier for the labeling scheme (as defined in the
+program IR itself). -> for base profile, no computations (classical or quantum,
+including calls to rt functions other than record_output* functions) can be
+performed after the call to __quantum__rt__record_output
