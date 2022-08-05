@@ -22,18 +22,30 @@ measurements at the end of the program. More details about each of the bullets
 are outlined below.
 
 **Bullet 1: Quantum transformations** <br/>
-...
+
+The set of available instructions that transform the quantum state may vary
+depending on the targeted backend. The profile specification defines how to
+leverage and combine the available instructions to express a program, but does
+not dictate which quantum instructions may be used. Targeting a program to a
+specific backend requires choosing a suitable profile and quantum instruction
+set (QIS). Both can be chosen largely independently, though certain instruction
+sets may be incompatible with this (or other) profile(s). The section on the
+[quantum instruction set](#quantum-instruction-set) below defines the criterion
+for a QIS to be compatible with the Base Profile. More information about the
+role of the QIS, recommendations for front- and backend providers, as well as
+the distinction between runtime functions and quantum instructions can be found
+in [Instruction_Set.md](../Instruction_Set.md).
 
 **Bullet 2: Measurements** <br/>
 
 The second requirement should be taken to mean that a Base Profile compliant
 program does *not* apply instructions to a qubit after it has been measured; all
 instructions to transform the quantum state can be applied before performing any
-measurements. It specifically also implies that
+measurements. It specifically also implies the following:
 
-- there is no need for the quantum processor ([QPU](../Execution.md)) to be able
-to measure only a subset of all available qubits at a time, and
-- executing a Base Profile compliant program does not require support for
+- There is no need for the quantum processor ([QPU](../Execution.md)) to be able
+to measure only a subset of all available qubits at a time.
+- Executing a Base Profile compliant program does not require support for
 applying quantum instructions dependent on measurement outcomes.
 
 **Bullet 3: Program output** <br />
@@ -62,20 +74,22 @@ running the program multiple times.
 
 ## Program Structure
 
-To discuss:
-
-- split into several blocks, and which ones
-- have a rt function to indicate the exit code instead of a return?
-- profile attribute, no attribute for the instruction set
-
 A Base Profile compliant program is defined in the form of a single LLVM bitcode
-file that consists of the following:
+file that contains the following:
 
-- definition of the opaque `Qubit` and `Result` types
-- [entry point definition](#entry-point-definition)
-- declarations of [QIS functions](#quantum-instruction-set)
+- the definitions of the opaque `Qubit` and `Result` types
+- global constants that store [string
+  labels](#string-labels-for-output-recording) needed for certain output formats
+  that may be ignored if the [output format](../output_formats/) does not make
+  use of them
+- the [entry point definition](#entry-point-definition) that contains the
+  program logic
+- declarations of the [QIS functions](#quantum-instruction-set) used by the
+  program
 - declarations of functions used for [output recording](#output-recording)
-- [attributes](#attributes)
+- one or more [attribute groups](#attributes) used to store information about
+  the entry point, and optionally additional information about other function
+  declarations.
 
 The human readable LLVM IR for the bitcode can be obtained using standard [LLVM
 tools](https://llvm.org/docs/CommandGuide/llvm-dis.html). For the purpose of
@@ -109,9 +123,6 @@ entry:
   ; calls to QIS functions
   tail call void @__quantum__qis__h__body(%Qubit* null)
   tail call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* inttoptr (i64 1 to %Qubit*))
-  br label %measurements
-
-measurements:
   tail call void @__quantum__qis__mz__body(%Qubit* null, %Result* null)
   tail call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 1 to %Qubit*), %Result* inttoptr (i64 1 to %Result*))
   br label %output
@@ -147,12 +158,23 @@ declare void @__quantum__rt__result_record_output(%Result*, i8*)
 attributes #0 = { "entry_point" "qir_profile"="base_profile" "required_qubits"="2" "required_results"="2" }
 ```
 
-TODO: adjust text to reflect the split into different blocks
+For the sake of clarity, the code above does not contain any [debug
+symbols](https://releases.llvm.org/13.0.0/docs/tutorial/MyFirstLanguageFrontend/LangImpl09.html?highlight=debug%20symbols).
+Debug symbols contain information that is used by a debugger to related failures
+during execution back to the original source code. While we expect this to be
+primarily useful for execution on simulators, debug symbols are both easy to
+ignore and may be useful to generate helpful error messages for compilation
+failures that happen only late in the process. We hence see no reason to
+explicitly disallow them from occurring in the bitcode but will not detail their
+use any further. We defer to existing resources for more information about how
+to generate and use debug symbols.
 
 TODO: a profile identifier and version number within the IR would be good to
 have (may be needed for correct usage of qubit and result pointers)
 
 ## Entry Point Definition
+
+TODO: adjust text to reflect the split into different blocks
 
 The bitcode contains the definition of the LLVM function that should be invoked
 when the program is executed, referred to as entry point in the rest of this
@@ -168,7 +190,7 @@ execution of the program.
 
 The following custom attributes must be attached to the entry point function:
 
-- An attribute named "EntryPoint" that does not
+- An attribute named "entry_point" that does not
 - An attribute indicating the total number of qubits used by the program
 - An attribute indicating the total number of classical bits required throughout
   the program to store measurement outcomes
@@ -288,3 +310,5 @@ backend), as well as an identifier for the labeling scheme (as defined in the
 program IR itself). -> for base profile, no computations (classical or quantum,
 including calls to rt functions other than record_output* functions) can be
 performed after the call to __quantum__rt__record_output
+
+### String Labels for Output Recording
