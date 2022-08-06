@@ -323,17 +323,50 @@ where last here means no successor
 
 ### String Labels for Output Recording
 
-can be chosen freely by the frontend
+can be chosen freely by the frontend backends may fail if a label is missing
+that it needs
 
 LLVM get blocks with no successors:
 <https://llvm.org/docs/ProgrammersManual.html#iterating-over-predecessors-successors-of-blocks>
 
 ## Module Flags Metadata
 
-backends may fail if a label is missing that it needs major version needs to
-agree, minor version is taken the max of both
+The following [module
+flags](https://llvm.org/docs/LangRef.html#module-flags-metadata) must be added
+to the QIR bitcode:
 
-see also <https://llvm.org/docs/LangRef.html#module-flags-metadata>
+- a flag with the string identifier `"qir_major_version"` that contains a
+  constant value of type `i32`
+- a flag with the string identifier `"qir_minor_version"` that contains a
+  constant value of type `i32`
+- a flag with the string identifier `"dynamic_qubit_management"` that contains a
+  constant `true` or `false` value of type `i1`
+- a flag with the string identifier `"dynamic_result_management"` that contains
+  a constant `true` or `false` value of type `i1`
+
+These flags are attached as `llvm.module.flags` metadata to the module. They can
+be queried using the standard LLVM tools and follow the LLVM specification in
+behavior and purpose. Since module flags impact whether different modules can be
+merged and how, additional module flags may be added to the bitcode only if
+their behavior is set to `Warning`, `Append`, `AppendUnique`, `Max`, or `Min`.
+It is at the discretion of the maintainers for various components in the QIR
+stack to discard module flags that are not explicitly required or listed as
+optional flags in the QIR specification.
+
+### Specification Version
+
+The required flags `"qir_major_version"` and `"qir_minor_version"` identify the
+major and minor version of the specification that the QIR bitcode adheres to.
+
+- Since the QIR specification may introduce breaking changes when updating to a
+  new major version, the behavior of the `"qir_major_version"` flag must be set to
+  `Error`; merging two modules that adhere to different major versions must fail.
+
+- The QIR specification is intended to be backwards compatible within the same
+  major version, but may introduce additional features as part of newer minor
+  versions. The behavior of the `"qir_minor_version"` flag must hence be `Max`,
+  such that merging two modules compiled for different minor versions results in a
+  module that adheres to the newer of the two versions.
 
 ### Memory Management
 
