@@ -14,7 +14,7 @@ needs to support the following:
 1. It can execute a sequence of quantum instructions that transform the quantum
    state.
 2. It supports measuring the state of each qubit at the end of the program.
-3. It produces one of the specified [output formats](../output_formats/).
+3. It produces one of the specified [output schemas](../output_schemas/).
 
 These functionalities are both necessary and sufficient for computations that
 fundamentally consist of unitary transformations of the quantum state as well as
@@ -59,15 +59,15 @@ recording](#output-recording).
 
 While it is sufficient for the QPU to do a final measurement of all qubits in a
 predefined order at the end of the program, only the selected subset will be
-reflected in the produced output format. A suitable output format can be
+reflected in the produced output schema. A suitable output schema can be
 generated in a post-processing step after the computation on the quantum
 processor itself has completed; customization of the program output hence does
 not require support on the QPU itself.
 
-The defined [output formats](../output_formats/) provide different options for
-how a backend may express the computed value(s). The exact format can be freely
+The defined [output schemas](../output_schemas/) provide different options for
+how a backend may express the computed value(s). The exact schema can be freely
 chosen by the backend and is identified by a string label in the produced
-format. Each output format contains sufficient information to allow quantum
+schema. Each output schema contains sufficient information to allow quantum
 programming frameworks to generate a user friendly presentation of the returned
 values in the requested order, such as, e.g., a histogram of all results when
 running the program multiple times.
@@ -80,7 +80,7 @@ file that contains the following:
 - the definitions of the opaque `Qubit` and `Result` types
 - global constants that store [string
   labels](#string-labels-for-output-recording) needed for certain output formats
-  that may be ignored if the [output format](../output_formats/) does not make
+  that may be ignored if the [output schema](../output_schemas/) does not make
   use of them
 - the [entry point definition](#entry-point-definition) that contains the
   program logic
@@ -99,7 +99,7 @@ clarity, this specification contains examples of the human readable IR emitted
 by [LLVM 13](https://releases.llvm.org/13.0.1/docs/LangRef.html). While the
 bitcode representation is portable and usually backward compatible, there may be
 visual differences in the human readable format depending on the LLVM version.
-This differences are irrelevant when using standard tools to load, manipulate,
+These differences are irrelevant when using standard tools to load, manipulate,
 and/or execute bitcode.
 
 The code below illustrates how a simple program looks like within a Base Profile
@@ -153,7 +153,7 @@ declare void @__quantum__rt__result_record_output(%Result*, i8*)
 
 ; attributes
 
-attributes #0 = { "entry_point" "qir_profile"="base_profile" "output_tags"="schema_id" "required_qubits"="2" "required_results"="2" }
+attributes #0 = { "entry_point" "qir_profile"="base_profile" "output_labels"="schema_id" "required_qubits"="2" "required_results"="2" }
 
 ; module flags
 
@@ -161,8 +161,8 @@ attributes #0 = { "entry_point" "qir_profile"="base_profile" "output_tags"="sche
 
 !0 = !{i32 1, !"qir_major_version", i32 1}
 !1 = !{i32 7, !"qir_minor_version", i32 0}
-!2 = !{i32 1, !"dynamic_qubit_allocation", i1 false}
-!3 = !{i32 1, !"dynamic_result_allocation", i1 false}
+!2 = !{i32 1, !"dynamic_qubit_management", i1 false}
+!3 = !{i32 1, !"dynamic_result_management", i1 false}
 ```
 
 The program entangles two qubits, measures them, and returns a tuple with the
@@ -170,18 +170,16 @@ two measurement results.
 
 For the sake of clarity, the code above does not contain any [debug
 symbols](https://releases.llvm.org/13.0.0/docs/tutorial/MyFirstLanguageFrontend/LangImpl09.html?highlight=debug%20symbols).
-Debug symbols contain information that is used by a debugger to related failures
+Debug symbols contain information that is used by a debugger to relate failures
 during execution back to the original source code. While we expect this to be
 primarily useful for execution on simulators, debug symbols are both easy to
 ignore and may be useful to generate helpful error messages for compilation
 failures that happen only late in the process. We hence see no reason to
-explicitly disallow them from occurring in the bitcode but will not detail their
-use any further. We defer to existing resources for more information about how
-to generate and use debug symbols.
+disallow them from occurring in the bitcode but will not detail their use any
+further. We defer to existing resources for more information about how to
+generate and use debug symbols.
 
 ## Entry Point Definition
-
-TODO: adjust text to reflect the split into different blocks
 
 The bitcode contains the definition of the LLVM function that should be invoked
 when the program is executed, referred to as entry point in the rest of this
@@ -190,42 +188,53 @@ as it is a valid [global
 identifier](https://llvm.org/docs/LangRef.html#identifiers) by LLVM standard.
 
 The entry point may not take any parameters and must return an exit code in the
-form of a 64-bit integer. The exit code 0 must be used to indicate a successful
-execution of the program.
-
-LLVM get blocks with no successors:
-<https://llvm.org/docs/ProgrammersManual.html#iterating-over-predecessors-successors-of-blocks>
+form of a 64-bit integer. The exit code `0` must be used to indicate a
+successful execution of the program.
 
 ### Attributes
 
 The following custom attributes must be attached to the entry point function:
 
-- An attribute named "entry_point" that does not
-- An attribute indicating the total number of qubits used by the program
-- An attribute indicating the total number of classical bits required throughout
-  the program to store measurement outcomes
+- An attribute named `"entry_point"` identifying the function as the starting
+  point of a quantum program
+- An attribute name `"qir_profile"` with the value `"base_profile"` identifying
+  the profile the entry point has been compiled for
+- An attribute name `"output_labels"` with an arbitrary string value that
+  identifies the schema used by the frontend that produced the IR to label the
+  recorded output
+- An attribute named `"required_qubits"` indicating the number of qubits used by
+  the entry point
+- An attribute named `"required_results"` indicating the maximal number of
+  measurement results that need to be stored while executing the entry point
+  function
 
-These attributes will show up as an [attribute
+Optionally, additional attributes may be attached to the entry point. Any custom
+function attributes attached to the entry point will be reflected as metadata in
+the program output; this includes both mandatory and optional attributes but not
+parameter attributes or return value attributes. This in particular implies that
+the [labeling schema](#string-labels-for-output-recording) used in the recorded
+output can be identified by looking at the metadata in the produced output. See
+the specification of the [output schemas](../output_schemas/) for more
+information about how metadata is represented in the output schema.
+
+Custom function attributes will show up as part of an [attribute
 group](https://releases.llvm.org/13.0.1/docs/LangRef.html#attrgrp) in the IR.
 Attribute groups are numbered such that they can be easily referenced by
-multiple function definitions or global variables. Arbitrary custom attributes
-may be optionally attached to any of the declared functions to convey additional
+multiple function definitions or global variables. Arbitrary attributes may
+optionally be attached to any of the declared functions to convey additional
 information about that function. Consumers of Base Profile compliant programs
 should hence not rely on the numbering of the entry point attribute group, but
-instead look for function to which an attribute with the name `entry_point` is
+instead look for function to which an attribute with the name `"entry_point"` is
 attached to determine which one to invoke when the program is launched.
 
-To indicate the total number of qubits required to execute the program, a custom
-attribute with the name `required_qubits` is defined and attached to the entry
-point. To indicate the number of registers/bits needed to store measurement
-results during program execution, a custom attribute with the name
-`required_results` is defined and attached to the entry point. The value of both
-of these attributes is the string representation of a 64-bit integer constant.
-
-TODO: why the string value, and not an integer? Naming convention for attributes
-like for qis?
-
-TODO: profile attribute TODO: output tags schema id
+To indicate the total number of qubits required to execute the entry point
+function, a custom attribute with the name `"required_qubits"` is defined and
+attached to the entry point. To indicate the number of registers/bits needed to
+store measurement results during its execution, a custom attribute with the name
+`"required_results"` is defined and attached to the entry point. The value of
+both of these attributes is the string representation of a 64-bit integer
+constant. More details can be found in the section on [qubits and result
+usage](#qubit-and-result-usage).
 
 ### Function Body
 
@@ -295,28 +304,63 @@ The following functions are declared and used to record the program output:
 
 | Function                            | Signature             | Description                                                                                                                                                                                                                                                                                             |
 | :---------------------------------- | :-------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| __quantum__rt__record_output        | `void(i8*)`           | Inserts a marker in the output log that contains an identifier for the used labeling scheme. The backend may choose which output format to use, and the label identifier is omitted for output formats that do not support labeling.                                                                    |
 | __quantum__rt__tuple_record_output  | `void(i64, i8*)`      | Inserts a marker in the output log that indicates the start of a tuple and how many tuple elements are going to be logged. The second parameter reflects an label for the tuple. The backend may choose which output format to use. Depending on the used format, the label will be logged or omitted.  |
 | __quantum__rt__array_record_output  | `void(i64, i8*)`      | Inserts a marker in the output log that indicates the start of an array and how many array elements are going to be logged. The second parameter reflects an label for the array. The backend may choose which output format to use. Depending on the used format, the label will be logged or omitted. |
 | __quantum__rt__result_record_output | `void(%Result*, i8*)` | Adds a measurement result to the output log. The second parameter reflects an label for the result value. The backend may choose which output format to use. Depending on the used format, the label will be logged or omitted.                                                                         |
 
 It is sufficient to use the same functions for output recording independent on
-the output format; i.e. the output format does not need to be reflected in the
-IR, and it is sufficient to label the format it in the output itself. The output
-itself then needs to contain both the output format identifier (defined by the
-backend), as well as an identifier for the labeling scheme (as defined in the
-program IR itself). -> for base profile, no computations (classical or quantum,
-including calls to rt functions other than record_output* functions) can be
-performed after the call to __quantum__rt__record_output
+the output schema; i.e. the choice of the output schema does not need to be
+reflected in the IR, and it is sufficient to label the schema it in the output
+itself. The output itself then needs to contain both the output schema
+identifier (defined by the backend), as well as an identifier for the labeling
+scheme (as defined in the program IR itself). -> for base profile, no
+computations (classical or quantum, including calls to rt functions other than
+record_output* functions) can be performed after the call to
+__quantum__rt__record_output
 
 record output functions may only occur in the last block of an entry point,
 where last here means no successor
 
 ### String Labels for Output Recording
 
+can be chosen freely by the frontend
+
+LLVM get blocks with no successors:
+<https://llvm.org/docs/ProgrammersManual.html#iterating-over-predecessors-successors-of-blocks>
+
 ## Module Flags Metadata
 
-backends may fail if a label is missing that it needs
-major version needs to agree, minor version is taken the max of both
+backends may fail if a label is missing that it needs major version needs to
+agree, minor version is taken the max of both
 
 see also <https://llvm.org/docs/LangRef.html#module-flags-metadata>
+
+### Memory Management
+
+The amount of available memory on a QPU both with regards to qubits and
+potentially also with regards to classical memory for (temporarily) storing
+measurement results before they are read out and transmitted to another
+classical processor is commonly still fairly limited. Any memory - quantum or
+classical - that is used during quantum execution is not usually managed
+dynamically at runtime. Instead, operations are scheduled and resources are
+bound as part of compilation. How early in the process this happens varies, and
+QIR permits to express programs in a form that either defers allocation and
+management of such resources to later compilation stages/the executing runtime,
+or to ...
+
+Since a backend may choose how to represent a qubit or result...
+
+To .., a QIR program may never dereference a qubit or result pointer,
+independent on wether memory is managed dynamically or not. However, the
+executing backend still needs to know how to interpret qubit and result pointers
+used by a program. Each bitcode file hence contains the information regarding
+whether ... This information is represented as [module
+flags](https://llvm.org/docs/LangRef.html#module-flags-metadata) such that there
+is never a mixture of pointers that are indeed pointing to a valid memory
+location and pointers that merely identify which qubit or result the value
+refers to.
+
+To be compliant with the Base Profile specification, the program must not make
+use of dynamic qubit or result management. Instead, qubits and results are
+identified by a constant integer value that is bitcast to a pointer to match the
+expected type.
