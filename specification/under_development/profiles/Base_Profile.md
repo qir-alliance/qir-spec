@@ -157,11 +157,12 @@ attributes #0 = { "entry_point" "qir_profile"="base_profile" "output_tags"="sche
 
 ; module flags
 
-!llvm.module.flags = !{!0, !1, !2}
+!llvm.module.flags = !{!0, !1, !2, !3}
 
 !0 = !{i32 1, !"qir_major_version", i32 1}
 !1 = !{i32 7, !"qir_minor_version", i32 0}
-!2 = !{i32 1, !"manage_quantum_memory", i1 false}
+!2 = !{i32 1, !"dynamic_qubit_allocation", i1 false}
+!3 = !{i32 1, !"dynamic_result_allocation", i1 false}
 ```
 
 The program entangles two qubits, measures them, and returns a tuple with the
