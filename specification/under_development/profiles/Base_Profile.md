@@ -89,7 +89,9 @@ file that contains the following:
 - declarations of functions used for [output recording](#output-recording)
 - one or more [attribute groups](#attributes) used to store information about
   the entry point, and optionally additional information about other function
-  declarations.
+  declarations
+- [module flags](#module-flags-metadata) that contain information that a
+  compiler or backend may need to process the bitcode.
 
 The human readable LLVM IR for the bitcode can be obtained using standard [LLVM
 tools](https://llvm.org/docs/CommandGuide/llvm-dis.html). For the purpose of
@@ -111,9 +113,8 @@ representation:
 
 ; global constants (labels for output recording)
 
-@0 = internal constant [16 x i8] c"label_schema_id\00"
-@1 = internal constant [3 x i8] c"r1\00"
-@2 = internal constant [3 x i8] c"r2\00"
+@0 = internal constant [3 x i8] c"r1\00"
+@1 = internal constant [3 x i8] c"r2\00"
 
 ; entry point definition
 
@@ -127,12 +128,11 @@ entry:
   tail call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 1 to %Qubit*), %Result* inttoptr (i64 1 to %Result*))
   br label %output
 
-output:
+output:                                   ; preds = %entry
   ; calls to record the program output
-  tail call void @__quantum__rt__record_output(i8* getelementptr inbounds ([16 x i8], [16 x i8]* @0, i32 0, i32 0))
   tail call void @__quantum__rt__tuple_record_output(i64 2, i8* null)
-  tail call void @__quantum__rt__result_record_output(%Result* null, i8* getelementptr inbounds ([3 x i8], [3 x i8]* @1, i32 0, i32 0))
-  tail call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 1 to %Result*), i8* getelementptr inbounds ([3 x i8], [3 x i8]* @2, i32 0, i32 0))
+  tail call void @__quantum__rt__result_record_output(%Result* null, i8* getelementptr inbounds ([3 x i8], [3 x i8]* @0, i32 0, i32 0))
+  tail call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 1 to %Result*), i8* getelementptr inbounds ([3 x i8], [3 x i8]* @1, i32 0, i32 0))
 
   ret i64 0
 }
@@ -147,16 +147,25 @@ declare void @__quantum__qis__mz__body(%Qubit*, %Result*)
 
 ; declarations of functions used for output recording
 
-declare void @__quantum__rt__record_output(i8*)
-
 declare void @__quantum__rt__tuple_record_output(i64, i8*)
 
 declare void @__quantum__rt__result_record_output(%Result*, i8*)
 
 ; attributes
 
-attributes #0 = { "entry_point" "qir_profile"="base_profile" "required_qubits"="2" "required_results"="2" }
+attributes #0 = { "entry_point" "qir_profile"="base_profile" "output_tags"="schema_id" "required_qubits"="2" "required_results"="2" }
+
+; module flags
+
+!llvm.module.flags = !{!0, !1, !2}
+
+!0 = !{i32 1, !"qir_major_version", i32 1}
+!1 = !{i32 7, !"qir_minor_version", i32 0}
+!2 = !{i32 1, !"manage_quantum_memory", i1 false}
 ```
+
+The program entangles two qubits, measures them, and returns a tuple with the
+two measurement results.
 
 For the sake of clarity, the code above does not contain any [debug
 symbols](https://releases.llvm.org/13.0.0/docs/tutorial/MyFirstLanguageFrontend/LangImpl09.html?highlight=debug%20symbols).
@@ -168,9 +177,6 @@ failures that happen only late in the process. We hence see no reason to
 explicitly disallow them from occurring in the bitcode but will not detail their
 use any further. We defer to existing resources for more information about how
 to generate and use debug symbols.
-
-TODO: a profile identifier and version number within the IR would be good to
-have (may be needed for correct usage of qubit and result pointers)
 
 ## Entry Point Definition
 
@@ -185,6 +191,9 @@ identifier](https://llvm.org/docs/LangRef.html#identifiers) by LLVM standard.
 The entry point may not take any parameters and must return an exit code in the
 form of a 64-bit integer. The exit code 0 must be used to indicate a successful
 execution of the program.
+
+LLVM get blocks with no successors:
+<https://llvm.org/docs/ProgrammersManual.html#iterating-over-predecessors-successors-of-blocks>
 
 ### Attributes
 
@@ -215,7 +224,7 @@ of these attributes is the string representation of a 64-bit integer constant.
 TODO: why the string value, and not an integer? Naming convention for attributes
 like for qis?
 
-TODO: profile attribute
+TODO: profile attribute TODO: output tags schema id
 
 ### Function Body
 
@@ -281,26 +290,14 @@ Log format is a separate spec. What the i8* can be is a separate spec. Default
 spec for [frontends](https://en.wikipedia.org/wiki/Compiler#Front_end) to
 compile into. String labels are zero terminated.
 
-The following functions are declared and used to record the program output: |
-Function                  | Signature         | Description |
-|---------------------------|-------------------|-------------| |
-__quantum__rt__record_output    | `void(i8*)`  | Inserts a marker in the output
-log that contains an identifier for the used labeling scheme. The backend may
-choose which output format to use, and the label identifier is omitted for
-output formats that do not support labeling. | |
-__quantum__rt__tuple_record_output    | `void(i64, i8*)`  | Inserts a marker in
-the output log that indicates the start of a tuple and how many tuple elements
-are going to be logged. The second parameter reflects an label for the tuple.
-The backend may choose which output format to use. Depending on the used format,
-the label will be logged or omitted. | | __quantum__rt__array_record_output    |
-`void(i64, i8*)`  | Inserts a marker in the output log that indicates the start
-of an array and how many array elements are going to be logged. The second
-parameter reflects an label for the array. The backend may choose which output
-format to use. Depending on the used format, the label will be logged or
-omitted. | |__quantum__rt__result_record_output   | `void(%Result*, i8*)`  |
-Adds a measurement result to the output log. The second parameter reflects an
-label for the result value. The backend may choose which output format to use.
-Depending on the used format, the label will be logged or omitted. |
+The following functions are declared and used to record the program output:
+
+| Function                            | Signature             | Description                                                                                                                                                                                                                                                                                             |
+| :---------------------------------- | :-------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| __quantum__rt__record_output        | `void(i8*)`           | Inserts a marker in the output log that contains an identifier for the used labeling scheme. The backend may choose which output format to use, and the label identifier is omitted for output formats that do not support labeling.                                                                    |
+| __quantum__rt__tuple_record_output  | `void(i64, i8*)`      | Inserts a marker in the output log that indicates the start of a tuple and how many tuple elements are going to be logged. The second parameter reflects an label for the tuple. The backend may choose which output format to use. Depending on the used format, the label will be logged or omitted.  |
+| __quantum__rt__array_record_output  | `void(i64, i8*)`      | Inserts a marker in the output log that indicates the start of an array and how many array elements are going to be logged. The second parameter reflects an label for the array. The backend may choose which output format to use. Depending on the used format, the label will be logged or omitted. |
+| __quantum__rt__result_record_output | `void(%Result*, i8*)` | Adds a measurement result to the output log. The second parameter reflects an label for the result value. The backend may choose which output format to use. Depending on the used format, the label will be logged or omitted.                                                                         |
 
 It is sufficient to use the same functions for output recording independent on
 the output format; i.e. the output format does not need to be reflected in the
@@ -311,4 +308,14 @@ program IR itself). -> for base profile, no computations (classical or quantum,
 including calls to rt functions other than record_output* functions) can be
 performed after the call to __quantum__rt__record_output
 
+record output functions may only occur in the last block of an entry point,
+where last here means no successor
+
 ### String Labels for Output Recording
+
+## Module Flags Metadata
+
+backends may fail if a label is missing that it needs
+major version needs to agree, minor version is taken the max of both
+
+see also <https://llvm.org/docs/LangRef.html#module-flags-metadata>
