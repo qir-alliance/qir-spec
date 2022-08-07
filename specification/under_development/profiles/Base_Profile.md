@@ -34,7 +34,7 @@ sets may be incompatible with this (or other) profile(s). The section on the
 for a QIS to be compatible with the Base Profile. More information about the
 role of the QIS, recommendations for front- and backend providers, as well as
 the distinction between runtime functions and quantum instructions can be found
-in [Instruction_Set.md](../Instruction_Set.md).
+in [this document](../Instruction_Set.md).
 
 **Bullet 2: Measurements** <br/>
 
@@ -124,8 +124,8 @@ entry:
   ; calls to QIS functions
   tail call void @__quantum__qis__h__body(%Qubit* null)
   tail call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* inttoptr (i64 1 to %Qubit*))
-  tail call void @__quantum__qis__mz__body(%Qubit* null, %Result* null)
-  tail call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 1 to %Qubit*), %Result* inttoptr (i64 1 to %Result*))
+  tail call void @__quantum__qis__mz__body(%Qubit* null, writeonly %Result* null)
+  tail call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 1 to %Qubit*), writeonly %Result* inttoptr (i64 1 to %Result*))
   br label %output
 
 output:                                   ; preds = %entry
@@ -143,7 +143,7 @@ declare void @__quantum__qis__h__body(%Qubit*)
 
 declare void @__quantum__qis__cnot__body(%Qubit*, %Qubit*)
 
-declare void @__quantum__qis__mz__body(%Qubit*, %Result*)
+declare void @__quantum__qis__mz__body(%Qubit*, writeonly %Result*)
 
 ; declarations of functions used for output recording
 
@@ -246,13 +246,28 @@ sections below.
 
 ### Function Body
 
-The function body consists of three blocks; ...  Only trivial branching is
-permitted inside a function's body. In the `entry` block, any number of calls to
-QIS functions may be performed. To be compatible with the Base Profile these
-functions must return void. Any arguments to invoke them must be inlined into
-the call itself; they hence must be constants or a pointer to a [qubit or
-result](#qubit-and-result-usage) The result of the program execution should be
-logged using output recording functions.
+The function body consists of two blocks, connected by an unconditional
+branching into the second block at the end of the first block.
+
+The first block contains only calls to QIS functions. The first block consists
+(only) of a sequence of calls
+
+In the `entry` block, any number of calls to QIS functions may be performed. To
+be compatible with the Base Profile these functions must return void. Any
+arguments to invoke them must be inlined into the call itself; they hence must
+be constants or a pointer to a [qubit or result](#qubit-and-result-usage) value.
+
+measurements must occur at the end of the first block. Qubits may not be used
+after they have been measured.  Measurements may only be followed by other
+measurements or output recording functions.
+
+The second and last block contains (only) the necessary calls to record the
+program output. The logic of the second block can be done as part of
+post-processing after the computation on the QPU has completed, provided the
+results of the performed measurements is made available to the processor
+generating the requested output. More information about the [output
+recording](#output-recording) and the corresponding runtime functions is
+detailed below.
 
 The following instructions are the *only* LLVM instructions that are permitted
 within a Base Profile compliant program:
@@ -264,43 +279,107 @@ within a Base Profile compliant program:
 | `inttoptr`               | Used to cast an `i64` integer value to either a `%Qubit*` or a `%Result*`.                                       | May be used as part of a function call only.                                                          |
 | `getelementptr inbounds` | Used to create an `i8*` to pass a constant string for the purpose of labeling an output value.                   | May be used as part of call to an output recording function only.                                     |
 
+TODO: writeonly readonly attributes, and double check the given code above
+
 ## Data Types and Values
 
-Within the base profile, defining local variables is not supported. Arguments to
-calls correspondingly are expected to be constant values.
+Within the Base Profile, defining local variables is not supported; instructions
+cannot be nested and constant expressions are fully evaluated. This implies the
+following:
 
-Qubits and results are passes as a pointer of type `%Qubit*` and `%Result*`
-respectively, where the pointer itself rather than the memory location
-identifies the qubit or result: For the purpose of passing them as arguments in
-function calls, a 64-bit signed integer value is cast to the appropriate pointer
-type. The signed integer that is case must be in the interval `[0, nrQubits)`
-for `%Qubit*` and `[0, nrResults)` for `%Result*`, where `nrQubits` and
-`nrResults` are the required number of qubits and results defined by entry point
-attributes.
+- Call arguments must be constant values, and `inttoptr` casts as well as
+  `getelementptr` instructions must be inlined into a call instruction.
+- It is not possible to express classical computations as part of a Base Profile
+  compliant program.
 
-Only the `%Qubit` and `%Result` data types are required to be supported by all
-backends.
+Constants of any type are permitted as part of a function call. What data types
+occur in the program hence depends entirely on the used QIS functions, as well
+as the runtime functions used for output recording. Constant values of type
+`i64` in particular may be used as part of calls to output recording functions;
+see the section on [output recording](#output-recording) for more details.
 
-Integers and double-precision floating point numbers are available as in full
-QIR; however, computations using these numeric types are not available.
+For a program to be considered valid, it must make use of at least one qubit and
+perform at least one measurement. The `%Qubit` and `%Result` data types hence
+must be supported by all backends. Qubits and results can occur only as
+arguments in function calls and are represented as a pointer of type `%Qubit*`
+and `%Result*` respectively, where the pointer itself identifies the qubit or
+result value rather than a memory location where the value is stored: a 64-bit
+integer constant is cast to the appropriate pointer type. A more detailed
+elaboration on the purpose of this representation is given in the next
+subsection. The integer constant that is cast must be in the interval `[0,
+nrQubits)` for `%Qubit*` and `[0, nrResults)` for `%Result*`, where `nrQubits`
+and `nrResults` are the required number of qubits and results defined by the
+corresponding [entry point attributes](#attributes). Since backends may look at
+the values of the `required_qubits` and `required_results` attributes to
+determine whether a program can be executed, it is recommended to index qubits
+and results consecutively such that there are no unused values within these
+ranges.
 
 ### Qubit and Result Usage
 
-runtime has autonomy over how to represent qubits. also for base profile, the
-runtime is the only entity that needs to know how to interpret the opaque
-pointers (deref or not). that info is captured in the target triple/duo.
+The amount of available memory on a QPU both with regards to qubits and
+potentially also with regards to classical memory for storing measurement
+results before they are read out and transmitted to another classical processor
+is commonly still fairly limited. Any memory - quantum or classical - that is
+used during quantum execution is not usually managed dynamically. Instead,
+operations are scheduled and resources are bound as part of compilation. How
+early in the process this happens varies, and QIR permits to express programs in
+a form that either defers allocation and management of such resources to later
+stages, or to directly identify individual qubits and results by a constant
+integer value as outlined above. This permits to accurately reflect application
+intent for a variety of frontends.
 
-Qubits may not be used after they have been measured. Qubits and results need to
-be numbered consecutively, starting at 0. Measurements may only be followed by
-other measurements or output recording functions.
+Ultimately, it is up to the executing backend what data structure is associated
+with a qubit or result value. This gives a backend the freedom to, e.g., process
+measurement results asynchronously, or attach additional device data to qubits.
+Qubit and result values are correspondingly represented as opaque pointers in
+the bitcode, and a QIR program must not dereference such pointers, independent
+on whether they are merely bitcasts of integer constants as they are in the Base
+Profile program above, or whether they are created dynamically, meaning the
+value is managed by the executing backend.
+
+To execute a given bitcode, the backend needs to know how to process qubit and
+result pointers used by a program. This is achieved by storing metadata in the
+form of [module flags](#module-flags-metadata) in the bitcode. QIR does not make
+a type distinction or for example uses a different address space for the two
+kinds of pointers. This ensures that libraries and optimization passes that map
+between different instruction sets do not need to distinguish whether the
+compiled application code makes use of dynamic qubit and result management or
+not.
+
+To be compliant with the Base Profile specification, the program must not make
+use of dynamic qubit or result management; instead, qubits and results must be
+identified by a constant integer value that is bitcast to a pointer to match the
+expected type. How such an integer value is interpreted and specifically how it
+relates to hardware resources is ultimately up to the executing backend.
+
+Additionally, the Base Profile imposes the following restrictions on qubit and
+result usage:
+
+- Qubits must not be used after they have been measured. Which quantum
+  instructions perform measurements is defined in the specification for known
+  [quantum instructions](../Instruction_Set.md). For quantum instructions that
+  are not listed there, we refer to the documentation provided by the targeted
+  backend that supports them.
+
+- Results can only be used either as `writeonly` arguments, or as arguments to
+  [output recording functions](#output-recording). We refer to the [LLVM
+  documentation](https://llvm.org/docs/LangRef.html#function-attributes)
+  regarding how to use the `writeonly` attribute.
 
 ## Quantum Instruction Set
 
-For a Quantum Instruction Set to be compatible with the Base Profile, it needs
-to satisfy the following requirements:
+For a quantum instruction set to be fully compatible with the Base Profile, all
+functions must return void; the Base Profile does not permit to call functions
+that return a value. Functions that measure qubits must take the qubit
+pointer(s) as well as the result point(s) as arguments.
 
-- Since the Base Profile doesn't permit to define local variables, all
-  instructions are required to return void.
+For more information about the relation between a profile specification and the
+quantum instruction set we refer to the paragraph on [Bullet 1](#base-profile)
+in the introduction of this document. For more information about how and when
+the QIS is resolved, as well as recommendations for front- and backend
+developers, we refer to the document on [compilation stages and
+targeting](../Compilation_And_Targeting.md).
 
 ## Output Recording
 
@@ -321,7 +400,7 @@ the output schema; i.e. the choice of the output schema does not need to be
 reflected in the IR, and it is sufficient to label the schema it in the output
 itself. The output itself then needs to contain both the output schema
 identifier (defined by the backend), as well as an identifier for the labeling
-scheme (as defined in the program IR itself). -> for base profile, no
+scheme (as defined in the program IR itself). -> for Base Profile, no
 computations (classical or quantum, including calls to rt functions other than
 record_output* functions) can be performed after the call to
 __quantum__rt__record_output
@@ -379,45 +458,14 @@ major and minor version of the specification that the QIR bitcode adheres to.
 
 ### Memory Management
 
-The amount of available memory on a QPU both with regards to qubits and
-potentially also with regards to classical memory for storing measurement
-results before they are read out and transmitted to another classical processor
-is commonly still fairly limited. Any memory - quantum or classical - that is
-used during quantum execution is not usually managed dynamically. Instead,
-operations are scheduled and resources are bound as part of compilation. How
-early in the process this happens varies, and QIR permits to express programs in
-a form that either defers allocation and management of such resources to later
-stages, or to directly identify individual qubits and results by a constant
-integer value. This permits to accurately reflect application intent for a
-variety of frontends.
-
-Ultimately, it is up to the executing backend what data structure is associated
-with a qubit or result value. This gives a backend the freedom to, e.g., process
-measurement results asynchronously, or attach additional device data to qubits.
-Qubit and result values are correspondingly represented as opaque pointers in
-the bitcode, and a QIR program must not dereference such pointers, independent
-on whether they are merely bitcasts of integer constants as they are in the Base
-Profile program above, or whether they are created dynamically, meaning the
-value is managed by the executing backend.
-
-To execute a given bitcode, the backend needs to know how to process qubit and
-result pointers used by a program. At the same time, QIR does not make a type
-distinction or for example uses a different address space for the two kinds of
-pointers. This ensures that libraries and optimization passes that map between
-different instruction sets do not need to distinguish whether the compiled
-application code makes use of dynamic qubit and result management or not.
-
-Each bitcode file instead contains the information whether the pointers point to
-a valid memory location, or whether a pointer merely encodes an integer constant
-that identifies which qubit or result the value refers to. This information is
-represented in the form of the two module flags named
-`"dynamic_qubit_management"` and `"dynamic_result_management"`. Within the same
-bitcode module, there can never be a mixture of the two different kinds of
+Each bitcode file contains the information whether pointers of type `%Qubit*`
+and `%Result*` point to a valid memory location, or whether a pointer merely
+encodes an integer constant that identifies which qubit or result the value
+refers to. This information is represented in the form of the two module flags
+named `"dynamic_qubit_management"` and `"dynamic_result_management"`. Within the
+same bitcode module, there can never be a mixture of the two different kinds of
 pointers. The behavior of both module flags correspondingly must be set to
-`Error`.
-
-To be compliant with the Base Profile specification, the program must not make
-use of dynamic qubit or result management; instead, qubits and results must be
-identified by a constant integer value that is bitcast to a pointer to match the
-expected type. How such an integer value is interpreted and specifically how it
-relates to hardware resources is ultimately up to the executing backend.
+`Error`. As detailed in the section on [qubit and result
+usage](#qubit-and-result-usage), a Base Profile compliant program must not make
+use of dynamic qubit or result management. The value of both module flags hence
+must be set to `false`.

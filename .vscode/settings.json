@@ -2,6 +2,8 @@
     "cSpell.words": [
         "getelementptr",
         "inttoptr",
-        "preds"
+        "preds",
+        "writeonly",
+        "readonly"
     ]
 }
