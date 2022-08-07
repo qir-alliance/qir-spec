@@ -78,10 +78,9 @@ A Base Profile compliant program is defined in the form of a single LLVM bitcode
 file that contains the following:
 
 - the definitions of the opaque `Qubit` and `Result` types
-- global constants that store [string
-  labels](#string-labels-for-output-recording) needed for certain output formats
-  that may be ignored if the [output schema](../output_schemas/) does not make
-  use of them
+- global constants that store [string labels](#output-recording) needed for
+  certain output formats that may be ignored if the [output
+  schema](../output_schemas/) does not make use of them
 - the [entry point definition](#entry-point-definition) that contains the
   program logic
 - declarations of the [QIS functions](#quantum-instruction-set) used by the
@@ -200,8 +199,9 @@ The following custom attributes must be attached to the entry point function:
 - An attribute name `"qir_profile"` with the value `"base_profile"` identifying
   the profile the entry point has been compiled for
 - An attribute name `"output_labels"` with an arbitrary string value that
-  identifies the schema used by the frontend that produced the IR to label the
-  recorded output
+  identifies the schema used by a [compiler
+  frontend](https://en.wikipedia.org/wiki/Compiler#Front_end) that produced the
+  IR to label the recorded output
 - An attribute named `"required_qubits"` indicating the number of qubits used by
   the entry point
 - An attribute named `"required_results"` indicating the maximal number of
@@ -212,10 +212,10 @@ Optionally, additional attributes may be attached to the entry point. Any custom
 function attributes attached to the entry point will be reflected as metadata in
 the program output; this includes both mandatory and optional attributes but not
 parameter attributes or return value attributes. This in particular implies that
-the [labeling schema](#string-labels-for-output-recording) used in the recorded
-output can be identified by looking at the metadata in the produced output. See
-the specification of the [output schemas](../output_schemas/) for more
-information about how metadata is represented in the output schema.
+the [labeling schema](#output-recording) used in the recorded output can be
+identified by looking at the metadata in the produced output. See the
+specification of the [output schemas](../output_schemas/) for more information
+about how metadata is represented in the output schema.
 
 Custom function attributes will show up as part of an [attribute
 group](https://releases.llvm.org/13.0.1/docs/LangRef.html#attrgrp) in the IR.
@@ -268,6 +268,10 @@ results of the performed measurements is made available to the processor
 generating the requested output. More information about the [output
 recording](#output-recording) and the corresponding runtime functions is
 detailed below.
+
+no computations (classical or quantum, including calls to rt functions other
+than record_output* functions) can be performed after the call to
+__quantum__rt__record_output
 
 The following instructions are the *only* LLVM instructions that are permitted
 within a Base Profile compliant program:
@@ -383,38 +387,40 @@ targeting](../Compilation_And_Targeting.md).
 
 ## Output Recording
 
-Log format is a separate spec. What the i8* can be is a separate spec. Default
-spec for [frontends](https://en.wikipedia.org/wiki/Compiler#Front_end) to
-compile into. String labels are zero terminated.
+The program output of a quantum application is defined by a sequence of calls to
+runtime functions that return values produced by the computation. In the case of
+the Base Profile, these calls are contained within the last block of the entry
+point function. LLVM provides a convenient set of tools to walk and visualize
+the control flow graph of a program. The last block(s) in a function are easy to
+find by looking for blocks without a
+[successor](https://releases.llvm.org/13.0.1/docs/ProgrammersManual.html#iterating-over-predecessors-successors-of-blocks).
 
-The following functions are declared and used to record the program output:
+The following functions are can be used to record the program output:
 
-| Function                            | Signature             | Description                                                                                                                                                                                                                                                                                             |
-| :---------------------------------- | :-------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| __quantum__rt__tuple_record_output  | `void(i64, i8*)`      | Inserts a marker in the output log that indicates the start of a tuple and how many tuple elements are going to be logged. The second parameter reflects an label for the tuple. The backend may choose which output format to use. Depending on the used format, the label will be logged or omitted.  |
-| __quantum__rt__array_record_output  | `void(i64, i8*)`      | Inserts a marker in the output log that indicates the start of an array and how many array elements are going to be logged. The second parameter reflects an label for the array. The backend may choose which output format to use. Depending on the used format, the label will be logged or omitted. |
-| __quantum__rt__result_record_output | `void(%Result*, i8*)` | Adds a measurement result to the output log. The second parameter reflects an label for the result value. The backend may choose which output format to use. Depending on the used format, the label will be logged or omitted.                                                                         |
+| Function                            | Signature             | Description                                                                                                                                                                                                                                |
+| :---------------------------------- | :-------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| __quantum__rt__tuple_record_output  | `void(i64,i8*)`      | Inserts a marker in the output log that indicates the start of a tuple and how many tuple elements are logged. The second parameter defines a string label for the tuple. Depending on the output schema, the label is logged or omitted.  |
+| __quantum__rt__array_record_output  | `void(i64,i8*)`      | Inserts a marker in the output log that indicates the start of an array and how many array elements are logged. The second parameter defines a string label for the array. Depending on the output schema, the label is logged or omitted. |
+| __quantum__rt__result_record_output | `void(%Result*,i8*)` | Adds a measurement result to the output log. The second parameter defines a string label for the result value. Depending on the output schema, the label is logged or omitted.                                                             |
 
-It is sufficient to use the same functions for output recording independent on
-the output schema; i.e. the choice of the output schema does not need to be
-reflected in the IR, and it is sufficient to label the schema it in the output
-itself. The output itself then needs to contain both the output schema
-identifier (defined by the backend), as well as an identifier for the labeling
-scheme (as defined in the program IR itself). -> for Base Profile, no
-computations (classical or quantum, including calls to rt functions other than
-record_output* functions) can be performed after the call to
-__quantum__rt__record_output
+For all output recording functions, the `i8*` argument must be a non-null
+pointer to a global constant that contains a null-terminated string. A backend
+may ignore that argument if it guarantees that the order of the recorded output
+matches the order defined by the entry point. Conversely, certain output schemas
+do not require that the recorded output is listed in a particular order. For
+those schemas, the `i8*` argument serves as a label that permits to reconstruct
+the order intended by the program. [Compiler
+frontends](https://en.wikipedia.org/wiki/Compiler#Front_end) must always
+generate these labels such that the bitcode does not depend on the output
+schema; while choosing how to best label the program output is up to the
+frontend, the choice of output schema on the other hand is up to the backend. A
+backend may reject a program as invalid or fail execution if a label is missing.
 
-record output functions may only occur in the last block of an entry point,
-where last here means no successor
-
-### String Labels for Output Recording
-
-can be chosen freely by the frontend backends may fail if a label is missing
-that it needs
-
-LLVM get blocks with no successors:
-<https://llvm.org/docs/ProgrammersManual.html#iterating-over-predecessors-successors-of-blocks>
+Both the labeling schema and the output schema are identified by a metadata
+entry in the produced output. For the [output schema](../output_schemas/), that
+identifier matches the one listed in the corresponding specification. The
+identifier for the labeling schema, on the other hand, is defined by the value
+of the `"output_labels"` attribute attached to the entry point.
 
 ## Module Flags Metadata
 
