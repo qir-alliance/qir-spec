@@ -16,7 +16,7 @@ needs to support the following:
 2. It supports measuring the state of each qubit at the end of the program.
 3. It produces one of the specified [output schemas](../output_schemas/).
 
-These functionalities are both necessary and sufficient for computations that
+These functionalities are necessary and sufficient for computations that
 fundamentally consist of unitary transformations of the quantum state as well as
 measurements at the end of the program. More details about each of the bullets
 are outlined below.
@@ -30,18 +30,18 @@ not dictate which quantum instructions may be used. Targeting a program to a
 specific backend requires choosing a suitable profile and quantum instruction
 set (QIS). Both can be chosen largely independently, though certain instruction
 sets may be incompatible with this (or other) profile(s). The section on the
-[quantum instruction set](#quantum-instruction-set) below defines the criterion
-for a QIS to be compatible with the Base Profile. More information about the
-role of the QIS, recommendations for front- and backend providers, as well as
-the distinction between runtime functions and quantum instructions can be found
-in [this document](../Instruction_Set.md).
+[quantum instruction set](#quantum-instruction-set) below defines the
+requirements for a QIS to be compatible with the Base Profile. More information
+about the role of the QIS, recommendations for front- and backend providers, as
+well as the distinction between runtime functions and quantum instructions can
+be found in [this document](../Instruction_Set.md).
 
 **Bullet 2: Measurements** <br/>
 
 The second requirement should be taken to mean that a Base Profile compliant
 program does *not* apply instructions to a qubit after it has been measured; all
-instructions to transform the quantum state can be applied before performing any
-measurements. It specifically also implies the following:
+instructions to transform the quantum state must be applied before performing
+any measurements. It specifically also implies the following:
 
 - There is no need for the quantum processor ([QPU](../Execution.md)) to be able
 to measure only a subset of all available qubits at a time.
@@ -68,7 +68,7 @@ The defined [output schemas](../output_schemas/) provide different options for
 how a backend may express the computed value(s). The exact schema can be freely
 chosen by the backend and is identified by a string label in the produced
 schema. Each output schema contains sufficient information to allow quantum
-programming frameworks to generate a user friendly presentation of the returned
+programming frameworks to generate a user-friendly presentation of the returned
 values in the requested order, such as, e.g., a histogram of all results when
 running the program multiple times.
 
@@ -196,9 +196,9 @@ The following custom attributes must be attached to the entry point function:
 
 - An attribute named `"entry_point"` identifying the function as the starting
   point of a quantum program
-- An attribute name `"qir_profile"` with the value `"base_profile"` identifying
+- An attribute named `"qir_profile"` with the value `"base_profile"` identifying
   the profile the entry point has been compiled for
-- An attribute name `"output_labels"` with an arbitrary string value that
+- An attribute named `"output_labels"` with an arbitrary string value that
   identifies the schema used by a [compiler
   frontend](https://en.wikipedia.org/wiki/Compiler#Front_end) that produced the
   IR to label the recorded output
@@ -222,7 +222,7 @@ group](https://releases.llvm.org/13.0.1/docs/LangRef.html#attrgrp) in the IR.
 Attribute groups are numbered such that they can be easily referenced by
 multiple function definitions or global variables. Consumers of Base Profile
 compliant programs must not rely on a particular numbering, but instead look for
-function to which an attribute with the name `"entry_point"` is attached to
+the function to which an attribute with the name `"entry_point"` is attached to
 determine which one to invoke when the program is launched.
 
 Within the restrictions imposed by the Base Profile, the number of qubits that

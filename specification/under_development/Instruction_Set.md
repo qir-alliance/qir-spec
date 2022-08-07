@@ -29,7 +29,7 @@ Most backends do not support the full set of runtime functions but merely a
 subset that is sufficient for the supported QIR profile(s). The [Base
 Profile](profiles/Base_Profile.md) defines the minimal set of runtime functions
 that need to be supported for by a backend to permit computations that make use
-of qubits and measurements of qubits.Additional functions may be needed to
+of qubits and measurements of qubits. Additional functions may be needed to
 support the use of data types beyond those for qubit and measurement result
 values.
 
