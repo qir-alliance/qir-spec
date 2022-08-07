@@ -227,14 +227,22 @@ should hence not rely on the numbering of the entry point attribute group, but
 instead look for function to which an attribute with the name `"entry_point"` is
 attached to determine which one to invoke when the program is launched.
 
-To indicate the total number of qubits required to execute the entry point
-function, a custom attribute with the name `"required_qubits"` is defined and
-attached to the entry point. To indicate the number of registers/bits needed to
-store measurement results during its execution, a custom attribute with the name
-`"required_results"` is defined and attached to the entry point. The value of
-both of these attributes is the string representation of a 64-bit integer
-constant. More details can be found in the section on [qubits and result
-usage](#qubit-and-result-usage).
+Within the restrictions imposed by the Base Profile, the number of qubits that
+are needed to execute the quantum program must be known at compile time. This
+number is captured in the form of the `"required_qubits"` attribute attached to
+the entry point. The value of the attribute must be the string representation of
+a 64-bit integer constant.
+
+Similarly, the number of measurement results that need to be stored when
+executing the entry point function is captured by the `"required_results"`
+attribute. Since qubits cannot be used after measurement, in the case of the
+Base Profile, this value is equal to the number of measurement results in the
+program output.
+
+For a program to be valid, both the number of qubits used and the number of
+measurements to store must be strictly positive. More details on the usage of
+[qubits and results](#qubit-and-result-usage) in general can be found in the
+sections below.
 
 ### Function Body
 
