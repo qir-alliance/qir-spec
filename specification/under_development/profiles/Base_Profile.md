@@ -359,41 +359,57 @@ The required flags `"qir_major_version"` and `"qir_minor_version"` identify the
 major and minor version of the specification that the QIR bitcode adheres to.
 
 - Since the QIR specification may introduce breaking changes when updating to a
-  new major version, the behavior of the `"qir_major_version"` flag must be set to
-  `Error`; merging two modules that adhere to different major versions must fail.
+  new major version, the behavior of the `"qir_major_version"` flag must be set
+  to `Error`; merging two modules that adhere to different major versions must
+  fail.
 
 - The QIR specification is intended to be backwards compatible within the same
   major version, but may introduce additional features as part of newer minor
   versions. The behavior of the `"qir_minor_version"` flag must hence be `Max`,
-  such that merging two modules compiled for different minor versions results in a
-  module that adheres to the newer of the two versions.
+  such that merging two modules compiled for different minor versions results in
+  a module that adheres to the newer of the two versions.
 
 ### Memory Management
 
 The amount of available memory on a QPU both with regards to qubits and
-potentially also with regards to classical memory for (temporarily) storing
-measurement results before they are read out and transmitted to another
-classical processor is commonly still fairly limited. Any memory - quantum or
-classical - that is used during quantum execution is not usually managed
-dynamically at runtime. Instead, operations are scheduled and resources are
-bound as part of compilation. How early in the process this happens varies, and
-QIR permits to express programs in a form that either defers allocation and
-management of such resources to later compilation stages/the executing runtime,
-or to ...
+potentially also with regards to classical memory for storing measurement
+results before they are read out and transmitted to another classical processor
+is commonly still fairly limited. Any memory - quantum or classical - that is
+used during quantum execution is not usually managed dynamically. Instead,
+operations are scheduled and resources are bound as part of compilation. How
+early in the process this happens varies, and QIR permits to express programs in
+a form that either defers allocation and management of such resources to later
+stages, or to directly identify individual qubits and results by a constant
+integer value. This permits to accurately reflect application intent for a
+variety of frontends.
 
-Since a backend may choose how to represent a qubit or result...
+Ultimately, it is up to the executing backend what data structure is associated
+with a qubit or result value. This gives a backend the freedom to, e.g., process
+measurement results asynchronously, or attach additional device data to qubits.
+Qubit and result values are correspondingly represented as opaque pointers in
+the bitcode, and a QIR program must not dereference such pointers, independent
+on whether they are merely bitcasts of integer constants as they are in the Base
+Profile program above, or whether they are created dynamically, meaning the
+value is managed by the executing backend.
 
-To .., a QIR program may never dereference a qubit or result pointer,
-independent on wether memory is managed dynamically or not. However, the
-executing backend still needs to know how to interpret qubit and result pointers
-used by a program. Each bitcode file hence contains the information regarding
-whether ... This information is represented as [module
-flags](https://llvm.org/docs/LangRef.html#module-flags-metadata) such that there
-is never a mixture of pointers that are indeed pointing to a valid memory
-location and pointers that merely identify which qubit or result the value
-refers to.
+To execute a given bitcode, the backend needs to know how to process qubit and
+result pointers used by a program. At the same time, QIR does not make a type
+distinction or for example uses a different address space for the two kinds of
+pointers. This ensures that libraries and optimization passes that map between
+different instruction sets do not need to distinguish whether the compiled
+application code makes use of dynamic qubit and result management or not.
+
+Each bitcode file instead contains the information whether the pointers point to
+a valid memory location, or whether a pointer merely encodes an integer constant
+that identifies which qubit or result the value refers to. This information is
+represented in the form of the two module flags named
+`"dynamic_qubit_management"` and `"dynamic_result_management"`. Within the same
+bitcode module, there can never be a mixture of the two different kinds of
+pointers. The behavior of both module flags correspondingly must be set to
+`Error`.
 
 To be compliant with the Base Profile specification, the program must not make
-use of dynamic qubit or result management. Instead, qubits and results are
+use of dynamic qubit or result management; instead, qubits and results must be
 identified by a constant integer value that is bitcast to a pointer to match the
-expected type.
+expected type. How such an integer value is interpreted and specifically how it
+relates to hardware resources is ultimately up to the executing backend.
