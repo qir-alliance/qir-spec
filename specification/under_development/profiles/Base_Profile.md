@@ -304,7 +304,7 @@ as the runtime functions used for output recording. Constant values of type
 see the section on [output recording](#output-recording) for more details.
 
 For a program to be considered valid, it must make use of at least one qubit and
-perform at least one measurement. The `%Qubit` and `%Result` data types hence
+perform at least one measurement. The `%Qubit*` and `%Result*` data types hence
 must be supported by all backends. Qubits and results can occur only as
 arguments in function calls and are represented as a pointer of type `%Qubit*`
 and `%Result*` respectively, where the pointer itself identifies the qubit or
