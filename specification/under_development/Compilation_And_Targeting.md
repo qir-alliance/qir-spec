@@ -3,7 +3,7 @@
 QIR serves as an integrating layer on top of which a shared compilation stage is
 built to connect a variety of front- and backends. To accelerate progress,
 quantum programming frameworks often choose to expose tools and APIs to
-facilitate reseach and development efforts across the entire stack rather than
+facilitate research and development efforts across the entire stack rather than
 just at the application level. Efforts to develop and evaluate the performance
 of different error correction schemes, for example, illustrate that compilation
 logic may initially be expressed as application code before it is automated and
@@ -23,21 +23,21 @@ hence define the following goals for the compiler infrastructure around it:
   fragmentation of the ecosystem of quantum application, libraries, and
   compilation tools, making it harder to leverage existing work in a new
   context. For example, requiring application code to be expressed in terms of a
-  backend specific set of quantum instructions impedes portability of that code
+  backend-specific set of quantum instructions impedes portability of that code
   and hampers the development of shared application libraries.
 
-- Allow to make use of backend specific instructions at the application level;
-  <br /> Exposing access to backend specific instructions is a valuable tool for
+- Allow making use of backend-specific instructions at the application level;
+  <br /> Exposing access to backend-specific instructions is a valuable tool for
   research purposes. While we encourage libraries to be built against a hardware
   agnostic default set of instructions ([Default
   QIS](./quantum_instruction_sets/Default_QIS.md)), we aim for a simple
   mechanism for deviating from that default for the purpose of experimenting
-  with new hardware intrinsics and developing backend specific compiler
+  with new hardware intrinsics and developing backend-specific compiler
   optimizations. These development in turn inform what abstractions are
   beneficial to expose in the Default QIS, and permit to ultimately incorporate
   fruitful optimizations into a target specific compilation stage.
 
-- Define (and follow clear) guidance for defining backend specific instruction
+- Define (and follow clear) guidance for defining backend-specific instruction
   sets; <br /> ...
 
 TODO: the same as what is mentioned under bullet 1 applies to profiles
@@ -56,7 +56,7 @@ TODO: the same as what is mentioned under bullet 1 applies to profiles
 - Targeting and profile/qis specific optimization: maps QIR -> QIR profile
 - Profile Validation: checks whether the compiled code is compliant with the
   specified profile and fails compilation otherwise
-- Backend specific compilation and optimization, resolution of runtime functions
+- Backend-specific compilation and optimization, resolution of runtime functions
   (possibly object level linking, standard LTO), possibly machine code
   generation
 
@@ -70,7 +70,7 @@ Considerations:
 - Each frontend tends to have its own naming conventions. Either we assume we
   can reasonably achieve alignment on naming conventions across all functions
   used, or we carve out naming conventions for a subset of names (qis and rt
-  functions) to be able to give clear guideance for target packages.
+  functions) to be able to give clear guidance for target packages.
 - How much value is there in keeping front end specific names up to a certain
   stage, and only then switch naming conventions? -> avoids naming conflicts in
   general libraries and sources? -> also avoids that each front end needs to
@@ -102,7 +102,7 @@ However, to enable research scenarios it needs to be possible, for example, to
 easily prototype simulation specific optimizations that rely on direct access to
 the quantum state, and leverage them to accelerate the simulation of quantum
 subroutines defined in a library without modifying the source code of that
-libary.
+library.
 
 This can be achieve by a custom compiler pass (QIR -> QIR) that takes a config
 file of IR function names and the qis name as arguments and retroactively adds
