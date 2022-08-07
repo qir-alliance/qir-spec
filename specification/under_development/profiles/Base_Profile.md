@@ -220,12 +220,10 @@ about how metadata is represented in the output schema.
 Custom function attributes will show up as part of an [attribute
 group](https://releases.llvm.org/13.0.1/docs/LangRef.html#attrgrp) in the IR.
 Attribute groups are numbered such that they can be easily referenced by
-multiple function definitions or global variables. Arbitrary attributes may
-optionally be attached to any of the declared functions to convey additional
-information about that function. Consumers of Base Profile compliant programs
-should hence not rely on the numbering of the entry point attribute group, but
-instead look for function to which an attribute with the name `"entry_point"` is
-attached to determine which one to invoke when the program is launched.
+multiple function definitions or global variables. Consumers of Base Profile
+compliant programs must not rely on a particular numbering, but instead look for
+function to which an attribute with the name `"entry_point"` is attached to
+determine which one to invoke when the program is launched.
 
 Within the restrictions imposed by the Base Profile, the number of qubits that
 are needed to execute the quantum program must be known at compile time. This
@@ -244,34 +242,39 @@ measurements to store must be strictly positive. More details on the usage of
 [qubits and results](#qubit-and-result-usage) in general can be found in the
 sections below.
 
+Beyond the entry point specific requirements related to attributes, custom
+attributes may optionally be attached to any of the declared functions.
+Furthermore, the following [LLVM
+attributes](https://llvm.org/docs/LangRef.html#function-attributes) may be used
+according to their intended purpose on function declarations and call sites:
+`inlinehint`, `nofree`, `norecurse`, `readnone`, `readonly`, `writeonly`, and
+`argmemonly`.
+
 ### Function Body
 
 The function body consists of two blocks, connected by an unconditional
 branching into the second block at the end of the first block.
 
-The first block contains only calls to QIS functions. The first block consists
-(only) of a sequence of calls
-
-In the `entry` block, any number of calls to QIS functions may be performed. To
-be compatible with the Base Profile these functions must return void. Any
-arguments to invoke them must be inlined into the call itself; they hence must
-be constants or a pointer to a [qubit or result](#qubit-and-result-usage) value.
-
-measurements must occur at the end of the first block. Qubits may not be used
-after they have been measured.  Measurements may only be followed by other
-measurements or output recording functions.
+The first block contains only calls to QIS functions. Any number of calls to QIS
+functions may be performed. To be compatible with the Base Profile these
+functions must return void. Any arguments to invoke them must be inlined into
+the call itself; they must be constants or a pointer representing a [qubit or
+result](#data-types-and-values) value. All function calls leading to a unitary
+transformation of the quantum state must precede any measurements; any calls
+that perform a measurement of one or more qubit(s) can only be followed by other
+such calls or the block terminating branching into the second block. The section
+detailing [qubit and result usage](#qubit-and-result-usage) outlines which
+instructions qualify as performing measurements, and defines additional
+restrictions for using qubit and result values.
 
 The second and last block contains (only) the necessary calls to record the
-program output. The logic of the second block can be done as part of
+program output, as well as the block terminating return instruction that return
+the exit code. The logic of the second block can be done as part of
 post-processing after the computation on the QPU has completed, provided the
 results of the performed measurements is made available to the processor
 generating the requested output. More information about the [output
 recording](#output-recording) and the corresponding runtime functions is
 detailed below.
-
-no computations (classical or quantum, including calls to rt functions other
-than record_output* functions) can be performed after the call to
-__quantum__rt__record_output
 
 The following instructions are the *only* LLVM instructions that are permitted
 within a Base Profile compliant program:
@@ -279,11 +282,9 @@ within a Base Profile compliant program:
 | LLVM Instruction         | Context and Purpose                                                                                              | Rules for Usage                                                                                       |
 | :----------------------- | :--------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------- |
 | `call`                   | Used within a function block to invoke any one of the declared QIS functions and the output recording functions. | May optionally be preceded by a [`tail` marker](https://llvm.org/docs/LangRef.html#call-instruction). |
-| `ret`                    | Used to return the exit code of the program.                                                                     | Must occur (only) as the final instruction of the `entry` block.                                      |
+| `ret`                    | Used to return the exit code of the program.                                                                     | Must occur (only) as the final instruction of the second (and last) block in the entry point.         |
 | `inttoptr`               | Used to cast an `i64` integer value to either a `%Qubit*` or a `%Result*`.                                       | May be used as part of a function call only.                                                          |
 | `getelementptr inbounds` | Used to create an `i8*` to pass a constant string for the purpose of labeling an output value.                   | May be used as part of call to an output recording function only.                                     |
-
-TODO: writeonly readonly attributes, and double check the given code above
 
 ## Data Types and Values
 
@@ -373,10 +374,16 @@ result usage:
 
 ## Quantum Instruction Set
 
-For a quantum instruction set to be fully compatible with the Base Profile, all
-functions must return void; the Base Profile does not permit to call functions
-that return a value. Functions that measure qubits must take the qubit
-pointer(s) as well as the result point(s) as arguments.
+For a quantum instruction set to be fully compatible with the Base Profile, it
+must satisfy the following two requirements:
+
+- All functions must return void; the Base Profile does not permit to call
+  functions that return a value. Functions that measure qubits must take the
+  qubit pointer(s) as well as the result point(s) as arguments.
+
+- Parameters of type `%Result*` must be `writeonly` parameters; only the runtime
+  function `__quantum__rt__result_record_output` used for [output
+  recording](#output-recording) may read a measurement result.
 
 For more information about the relation between a profile specification and the
 quantum instruction set we refer to the paragraph on [Bullet 1](#base-profile)
