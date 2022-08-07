@@ -294,8 +294,8 @@ following:
 
 - Call arguments must be constant values, and `inttoptr` casts as well as
   `getelementptr` instructions must be inlined into a call instruction.
-- It is not possible to express classical computations as part of a Base Profile
-  compliant program.
+- It is not possible to express classical computations, such as, e.g., adding
+  two double values, as part of a Base Profile compliant program.
 
 Constants of any type are permitted as part of a function call. What data types
 occur in the program hence depends entirely on the used QIS functions, as well
@@ -404,11 +404,11 @@ find by looking for blocks without a
 
 The following functions are can be used to record the program output:
 
-| Function                            | Signature             | Description                                                                                                                                                                                                                                |
-| :---------------------------------- | :-------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__tuple_record_output  | `void(i64,i8*)`      | Inserts a marker in the output log that indicates the start of a tuple and how many tuple elements are logged. The second parameter defines a string label for the tuple. Depending on the output schema, the label is logged or omitted.  |
-| __quantum__rt__array_record_output  | `void(i64,i8*)`      | Inserts a marker in the output log that indicates the start of an array and how many array elements are logged. The second parameter defines a string label for the array. Depending on the output schema, the label is logged or omitted. |
-| __quantum__rt__result_record_output | `void(%Result*,i8*)` | Adds a measurement result to the output log. The second parameter defines a string label for the result value. Depending on the output schema, the label is logged or omitted.                                                             |
+| Function                            | Signature             | Description                                                                                                                                                                                                                                                 |
+| :---------------------------------- | :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| __quantum__rt__tuple_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of a tuple and how many tuple elements it has. The second parameter defines a string label for the tuple. Depending on the output schema, the label is included in the output or omitted.  |
+| __quantum__rt__array_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of an array and how many array elements it has. The second parameter defines a string label for the array. Depending on the output schema, the label is included in the output or omitted. |
+| __quantum__rt__result_record_output | `void(%Result*,i8*)` | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
 
 For all output recording functions, the `i8*` argument must be a non-null
 pointer to a global constant that contains a null-terminated string. A backend

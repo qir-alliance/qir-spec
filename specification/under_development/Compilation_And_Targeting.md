@@ -33,8 +33,8 @@ hence define the following goals for the compiler infrastructure around it:
   QIS](./quantum_instruction_sets/Default_QIS.md)), we aim for a simple
   mechanism for deviating from that default for the purpose of experimenting
   with new hardware intrinsics and developing backend-specific compiler
-  optimizations. These development in turn inform what abstractions are
-  beneficial to expose in the Default QIS, and permit to ultimately incorporate
+  optimizations. These developments, in turn, inform what abstractions are
+  beneficial to expose in the Default QIS, and ultimately permit incorporating
   fruitful optimizations into a target specific compilation stage.
 
 - Define (and follow clear) guidance for defining backend-specific instruction
@@ -133,15 +133,15 @@ specific backend. Compiling a program in a way that maximizes compatibility with
 different backends means that the program representation facilitates that
 further compilation steps can largely eliminate constructs that are not
 supported by the backend. This targeting process to meet backend requirements
-compiles QIR into a QIR profile. It may result in a compilation failure if
-certain constructs are not supported by the backend and cannot reasonably be
-eliminated/replaced as part of targeting. For example, suppose the targeted
-backend requires measurements to be performed only as a final instruction on a
-QPU, i.e. all quantum resources are released after measurement. If the program
-contains branching based on measurements, i.e. subsequent quantum computations
-depend on a prior measurement result, then this construct (meaning the
-branching) can be eliminate by replacing it with a coherent version according to
-the [Deferred Measurement
+compiles QIR into a form that is compatible with a QIR profile. It may result in
+a compilation failure if certain constructs are not supported by the backend and
+cannot reasonably be eliminated/replaced as part of targeting. For example,
+suppose the targeted backend requires measurements to be performed only as a
+final instruction on a QPU, i.e. all quantum resources are released after
+measurement. If the program contains branching based on measurements, i.e.
+subsequent quantum computations depend on a prior measurement result, then this
+construct (meaning the branching) can be eliminate by replacing it with a
+coherent version according to the [Deferred Measurement
 Principle](https://en.wikipedia.org/wiki/Deferred_Measurement_Principle).
 However, this may be impractical since it may require a (potentially
 significantly) larger number of qubits to perform the computation, such that the
