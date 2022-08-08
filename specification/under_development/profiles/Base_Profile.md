@@ -279,12 +279,13 @@ detailed below.
 The following instructions are the *only* LLVM instructions that are permitted
 within a Base Profile compliant program:
 
-| LLVM Instruction         | Context and Purpose                                                                                              | Rules for Usage                                                                                       |
-| :----------------------- | :--------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------- |
-| `call`                   | Used within a function block to invoke any one of the declared QIS functions and the output recording functions. | May optionally be preceded by a [`tail` marker](https://llvm.org/docs/LangRef.html#call-instruction). |
-| `ret`                    | Used to return the exit code of the program.                                                                     | Must occur (only) as the final instruction of the second (and last) block in the entry point.         |
-| `inttoptr`               | Used to cast an `i64` integer value to either a `%Qubit*` or a `%Result*`.                                       | May be used as part of a function call only.                                                          |
-| `getelementptr inbounds` | Used to create an `i8*` to pass a constant string for the purpose of labeling an output value.                   | May be used as part of call to an output recording function only.                                     |
+| LLVM Instruction         | Context and Purpose                                                                                              | Rules for Usage                                                                                             |
+| :----------------------- | :--------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
+| `call`                   | Used within a function block to invoke any one of the declared QIS functions and the output recording functions. | May optionally be preceded by a [`tail` marker](https://llvm.org/docs/LangRef.html#call-instruction).       |
+| `br`                     | Used to branch from one block to another in the entry point function.                                            | The branching must be unconditional and occurs as the final instruction of a block to jump to the next one. |
+| `ret`                    | Used to return the exit code of the program.                                                                     | Must occur (only) as the final instruction of the second (and last) block in the entry point.               |
+| `inttoptr`               | Used to cast an `i64` integer value to either a `%Qubit*` or a `%Result*`.                                       | May be used as part of a function call only.                                                                |
+| `getelementptr inbounds` | Used to create an `i8*` to pass a constant string for the purpose of labeling an output value.                   | May be used as part of call to an output recording function only.                                           |
 
 ## Data Types and Values
 
@@ -322,17 +323,17 @@ ranges.
 
 ### Qubit and Result Usage
 
-The amount of available memory on a QPU both with regards to qubits and
-potentially also with regards to classical memory for storing measurement
-results before they are read out and transmitted to another classical processor
-is commonly still fairly limited. Any memory - quantum or classical - that is
-used during quantum execution is not usually managed dynamically. Instead,
-operations are scheduled and resources are bound as part of compilation. How
-early in the process this happens varies, and QIR permits to express programs in
-a form that either defers allocation and management of such resources to later
-stages, or to directly identify individual qubits and results by a constant
-integer value as outlined above. This permits to accurately reflect application
-intent for a variety of frontends.
+The amount of available memory on a QPU is commonly still fairly limited, with
+regards to qubits as well as with regards to classical memory for storing
+measurement results before they are read out and transmitted to another
+classical processor. Any memory - quantum or classical - that is used during
+quantum execution is not usually managed dynamically. Instead, operations are
+scheduled and resources are bound as part of compilation. How early in the
+process this happens varies, and QIR permits to express programs in a form that
+either defers allocation and management of such resources to later stages, or to
+directly identify individual qubits and results by a constant integer value as
+outlined above. This permits to accurately reflect application intent for a
+variety of frontends.
 
 Ultimately, it is up to the executing backend what data structure is associated
 with a qubit or result value. This gives a backend the freedom to, e.g., process
@@ -346,9 +347,9 @@ value is managed by the executing backend.
 To execute a given bitcode, the backend needs to know how to process qubit and
 result pointers used by a program. This is achieved by storing metadata in the
 form of [module flags](#module-flags-metadata) in the bitcode. QIR does not make
-a type distinction or for example uses a different address space for the two
-kinds of pointers. This ensures that libraries and optimization passes that map
-between different instruction sets do not need to distinguish whether the
+a type distinction for the two kinds of pointers, nor does it use a different
+address space for them. This ensures that libraries and optimization passes that
+map between different instruction sets do not need to distinguish whether the
 compiled application code makes use of dynamic qubit and result management or
 not.
 
@@ -379,7 +380,7 @@ must satisfy the following two requirements:
 
 - All functions must return void; the Base Profile does not permit to call
   functions that return a value. Functions that measure qubits must take the
-  qubit pointer(s) as well as the result point(s) as arguments.
+  qubit pointer(s) as well as the result pointer(s) as arguments.
 
 - Parameters of type `%Result*` must be `writeonly` parameters; only the runtime
   function `__quantum__rt__result_record_output` used for [output
@@ -402,7 +403,7 @@ the control flow graph of a program. The last block(s) in a function are easy to
 find by looking for blocks without a
 [successor](https://releases.llvm.org/13.0.1/docs/ProgrammersManual.html#iterating-over-predecessors-successors-of-blocks).
 
-The following functions are can be used to record the program output:
+The following functions can be used to record the program output:
 
 | Function                            | Signature             | Description                                                                                                                                                                                                                                                 |
 | :---------------------------------- | :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -414,9 +415,9 @@ For all output recording functions, the `i8*` argument must be a non-null
 pointer to a global constant that contains a null-terminated string. A backend
 may ignore that argument if it guarantees that the order of the recorded output
 matches the order defined by the entry point. Conversely, certain output schemas
-do not require that the recorded output is listed in a particular order. For
-those schemas, the `i8*` argument serves as a label that permits to reconstruct
-the order intended by the program. [Compiler
+do not require the recorded output to be listed in a particular order. For those
+schemas, the `i8*` argument serves as a label that permits to reconstruct the
+order intended by the program. [Compiler
 frontends](https://en.wikipedia.org/wiki/Compiler#Front_end) must always
 generate these labels such that the bitcode does not depend on the output
 schema; while choosing how to best label the program output is up to the
@@ -463,7 +464,7 @@ major and minor version of the specification that the QIR bitcode adheres to.
   to `Error`; merging two modules that adhere to different major versions must
   fail.
 
-- The QIR specification is intended to be backwards compatible within the same
+- The QIR specification is intended to be backward compatible within the same
   major version, but may introduce additional features as part of newer minor
   versions. The behavior of the `"qir_minor_version"` flag must hence be `Max`,
   such that merging two modules compiled for different minor versions results in
