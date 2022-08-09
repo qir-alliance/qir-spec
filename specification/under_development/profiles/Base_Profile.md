@@ -285,7 +285,7 @@ within a Base Profile compliant program:
 | `br`                     | Used to branch from one block to another in the entry point function.                                            | The branching must be unconditional and occurs as the final instruction of a block to jump to the next one. |
 | `ret`                    | Used to return the exit code of the program.                                                                     | Must occur (only) as the final instruction of the second (and last) block in the entry point.               |
 | `inttoptr`               | Used to cast an `i64` integer value to either a `%Qubit*` or a `%Result*`.                                       | May be used as part of a function call only.                                                                |
-| `getelementptr inbounds` | Used to create an `i8*` to pass a constant string for the purpose of labeling an output value.                   | May be used as part of call to an output recording function only.                                           |
+| `getelementptr inbounds` | Used to create an `i8*` to pass a constant string for the purpose of labeling an output value.                   | May be used as part of a call to an output recording function only.                                           |
 
 ## Data Types and Values
 
