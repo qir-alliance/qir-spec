@@ -467,7 +467,7 @@ major and minor version of the specification that the QIR bitcode adheres to.
 - The QIR specification is intended to be backward compatible within the same
   major version, but may introduce additional features as part of newer minor
   versions. The behavior of the `"qir_minor_version"` flag must hence be `Max`,
-  such that merging two modules compiled for different minor versions results in
+  so that merging two modules compiled for different minor versions results in
   a module that adheres to the newer of the two versions.
 
 ### Memory Management
