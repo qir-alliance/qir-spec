@@ -318,7 +318,7 @@ and `nrResults` are the required number of qubits and results defined by the
 corresponding [entry point attributes](#attributes). Since backends may look at
 the values of the `required_qubits` and `required_results` attributes to
 determine whether a program can be executed, it is recommended to index qubits
-and results consecutively such that there are no unused values within these
+and results consecutively so that there are no unused values within these
 ranges.
 
 ### Qubit and Result Usage
