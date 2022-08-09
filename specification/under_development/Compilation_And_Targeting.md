@@ -47,44 +47,16 @@ TODO: the same as what is mentioned under bullet 1 applies to profiles
 - Language specific compilation: Compilation of source code to QIR bitcode
 - General optimizations: Optimizations that map QIR -> QIR and that do not limit
   compatibility in any way
-- General linking: Combines bitcode from different sources and libraries
-  according to [standard linking practices]()
-- QIS resolution: Links a library (bitcode) taking naming conventions into
-  account and giving strict precedence to the definitions in that library over
-  definitions in the source code, unless otherwise indicated by a function
-  attribute, and resolves precision if needed.
+- Linking of application code: Combines bitcode from different sources and
+  libraries; this stage also resolves the quantum instruction set - meaning the
+  QIS the application/library code uses will be replaced by a target specific
+  instruction set.
 - Targeting and profile/qis specific optimization: maps QIR -> QIR profile
 - Profile Validation: checks whether the compiled code is compliant with the
   specified profile and fails compilation otherwise
 - Backend-specific compilation and optimization, resolution of runtime functions
   (possibly object level linking, standard LTO), possibly machine code
   generation
-
-TODO: "Automatic weak attribute" for `__quantum__qis__` functions? -> probably
-better to just require that `__quantum__qis__` function either are declaration
-only, or are weak definitions. -> Or allow for front end specific names with an
-attribute marking the compiled name that follows naming convention?
-
-Considerations:
-
-- Each frontend tends to have its own naming conventions. Either we assume we
-  can reasonably achieve alignment on naming conventions across all functions
-  used, or we carve out naming conventions for a subset of names (qis and rt
-  functions) to be able to give clear guidance for target packages.
-- How much value is there in keeping front end specific names up to a certain
-  stage, and only then switch naming conventions? -> avoids naming conflicts in
-  general libraries and sources? -> also avoids that each front end needs to
-  implement the name replacement? -> should qis functions always be public?
-- Target package: signatures must match for replacement, failure upon name match
-  but signature mismatch *up to precision resolution* - one direction only; i.e.
-  we can go from unspecified precision to specified precision -> does that work
-  at the IR level? How do I even know precision is unspecified? -> attribute to
-  force exact data type match?
-
-frontend forward declares
-
-- Who should add a function to the list of qis naming conventions and when? ->
-  backend providers, asap; meaning even speculative ones should be added
 
 ### Linking
 

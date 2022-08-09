@@ -35,29 +35,21 @@ values.
 
 ## Quantum Instruction Set (QIS)
 
-The QIR specification contains a [table](../QuantumInstructions.md) of commonly
-used instructions along with their signatures and a description of their
-functionality. Backends are **not** required to support all of these. Instead,
-each backend will declare which of these instructions it supports. We encourage
-to make instructions that are supported by a context independent implementation
-in terms of other instructions as a library rather than listing them as part of
-the backend specification. A library provided either in the form of a bitcode
-file can be linked in as part of a QIR compilation stage.
-
-All quantum instructions are represented by LLVM external functions. Quantum
-instructions may take qubits, doubles, or integers as parameters, and should all
-have no return; that is, they should be void.
-
-Measurements should take an offset into the `ClassicalStorage` global as a
-parameter. The measurement result should be stored into the corresponding bit in
-`ClassicalStorage`.
-
-The LLVM functions that implement the quantum instruction set should all have
-names that start with `__quantum__qis__`.
+The table below lists known quantum instructions along with their signatures and
+a description of their functionality. Backends are **not** required to support
+all of these. Instead, each backend will declare which of these instructions it
+supports. We encourage to make instructions that are supported by a context
+independent implementation in terms of other instructions as a library rather
+than listing them as part of the backend specification. A library provided
+either in the form of a bitcode file can be linked in as part of a QIR
+compilation stage.
 
 QIR does not specify the contents of the quantum instruction set. However, in
 order to ensure some amount of uniformity, implementations that provide any of
 the following quantum instructions must match the specified definition:
+
+Who should add a function to the list of qis naming conventions and when?
+-> backend providers, asap; meaning even speculative ones should be added.
 
 | Operation Name | LLVM Function Declaration  | Description | Matrix |
 |----------------|----------------------------|-------------|--------|
