@@ -219,7 +219,7 @@ about how metadata is represented in the output schema.
 
 Custom function attributes will show up as part of an [attribute
 group](https://releases.llvm.org/13.0.1/docs/LangRef.html#attrgrp) in the IR.
-Attribute groups are numbered such that they can be easily referenced by
+Attribute groups are numbered in such a way that they can be easily referenced by
 multiple function definitions or global variables. Consumers of Base Profile
 compliant programs must not rely on a particular numbering, but instead look for
 the function to which an attribute with the name `"entry_point"` is attached to
