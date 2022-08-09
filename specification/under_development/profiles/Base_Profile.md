@@ -271,7 +271,7 @@ The second and last block contains (only) the necessary calls to record the
 program output, as well as the block terminating return instruction that return
 the exit code. The logic of the second block can be done as part of
 post-processing after the computation on the QPU has completed, provided the
-results of the performed measurements is made available to the processor
+results of the performed measurements are made available to the processor
 generating the requested output. More information about the [output
 recording](#output-recording) and the corresponding runtime functions is
 detailed below.
