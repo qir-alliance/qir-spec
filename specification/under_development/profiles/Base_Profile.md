@@ -335,7 +335,7 @@ directly identify individual qubits and results by a constant integer value as
 outlined above. This permits to accurately reflect application intent for a
 variety of frontends.
 
-Ultimately, it is up to the executing backend what data structure is associated
+Ultimately, it is up to the executing backend which data structure is associated
 with a qubit or result value. This gives a backend the freedom to, e.g., process
 measurement results asynchronously, or attach additional device data to qubits.
 Qubit and result values are correspondingly represented as opaque pointers in
@@ -398,10 +398,7 @@ targeting](../Compilation_And_Targeting.md).
 The program output of a quantum application is defined by a sequence of calls to
 runtime functions that return values produced by the computation. In the case of
 the Base Profile, these calls are contained within the last block of the entry
-point function. LLVM provides a convenient set of tools to walk and visualize
-the control flow graph of a program. The last block(s) in a function are easy to
-find by looking for blocks without a
-[successor](https://releases.llvm.org/13.0.1/docs/ProgrammersManual.html#iterating-over-predecessors-successors-of-blocks).
+point function.
 
 The following functions can be used to record the program output:
 
