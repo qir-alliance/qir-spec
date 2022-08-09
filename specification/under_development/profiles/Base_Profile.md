@@ -184,7 +184,7 @@ The bitcode contains the definition of the LLVM function that should be invoked
 when the program is executed, referred to as "entry point" in the rest of this
 profile specification. The name of this function may be chosen freely, as long
 as it is a valid [global
-identifier](https://llvm.org/docs/LangRef.html#identifiers) by LLVM standard.
+identifier](https://llvm.org/docs/LangRef.html#identifiers) according to the LLVM standard.
 
 The entry point may not take any parameters and must return an exit code in the
 form of a 64-bit integer. The exit code `0` must be used to indicate a
