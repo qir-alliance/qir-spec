@@ -416,7 +416,7 @@ do not require the recorded output to be listed in a particular order. For those
 schemas, the `i8*` argument serves as a label that permits to reconstruct the
 order intended by the program. [Compiler
 frontends](https://en.wikipedia.org/wiki/Compiler#Front_end) must always
-generate these labels such that the bitcode does not depend on the output
+generate these labels in such a way that the bitcode does not depend on the output
 schema; while choosing how to best label the program output is up to the
 frontend, the choice of output schema on the other hand is up to the backend. A
 backend may reject a program as invalid or fail execution if a label is missing.
