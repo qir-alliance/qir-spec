@@ -344,7 +344,7 @@ on whether they are merely bitcasts of integer constants as they are in the Base
 Profile program above, or whether they are created dynamically, meaning the
 value is managed by the executing backend.
 
-To execute a given bitcode, the backend needs to know how to process qubit and
+To execute a given bitcode file, the backend needs to know how to process qubit and
 result pointers used by a program. This is achieved by storing metadata in the
 form of [module flags](#module-flags-metadata) in the bitcode. QIR does not make
 a type distinction for the two kinds of pointers, nor does it use a different
