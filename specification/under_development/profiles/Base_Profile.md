@@ -101,7 +101,7 @@ visual differences in the human readable format depending on the LLVM version.
 These differences are irrelevant when using standard tools to load, manipulate,
 and/or execute bitcode.
 
-The code below illustrates how a simple program looks like within a Base Profile
+The code below illustrates how a simple program looks within a Base Profile
 representation:
 
 ```llvm
@@ -184,7 +184,8 @@ The bitcode contains the definition of the LLVM function that should be invoked
 when the program is executed, referred to as "entry point" in the rest of this
 profile specification. The name of this function may be chosen freely, as long
 as it is a valid [global
-identifier](https://llvm.org/docs/LangRef.html#identifiers) according to the LLVM standard.
+identifier](https://llvm.org/docs/LangRef.html#identifiers) according to the
+LLVM standard.
 
 The entry point may not take any parameters and must return an exit code in the
 form of a 64-bit integer. The exit code `0` must be used to indicate a
@@ -219,11 +220,16 @@ about how metadata is represented in the output schema.
 
 Custom function attributes will show up as part of an [attribute
 group](https://releases.llvm.org/13.0.1/docs/LangRef.html#attrgrp) in the IR.
-Attribute groups are numbered in such a way that they can be easily referenced by
-multiple function definitions or global variables. Consumers of Base Profile
+Attribute groups are numbered in such a way that they can be easily referenced
+by multiple function definitions or global variables. Consumers of Base Profile
 compliant programs must not rely on a particular numbering, but instead look for
 the function to which an attribute with the name `"entry_point"` is attached to
 determine which one to invoke when the program is launched.
+
+Both the `"entry_point"` attribute and the `"output_labels"` attribute can only
+be attached to a function definition; they are invalid on a function that is
+declared but not defined. For the Base Profile, this implies that they can occur
+only in one place.
 
 Within the restrictions imposed by the Base Profile, the number of qubits that
 are needed to execute the quantum program must be known at compile time. This
@@ -262,14 +268,15 @@ the call itself; they must be constants or a pointer representing a [qubit or
 result](#data-types-and-values) value. All function calls leading to a unitary
 transformation of the quantum state must precede any measurements; any calls
 that perform a measurement of one or more qubit(s) can only be followed by other
-such calls or the block terminating branching into the second block. The section
-detailing [qubit and result usage](#qubit-and-result-usage) outlines which
-instructions qualify as performing measurements, and defines additional
-restrictions for using qubit and result values.
+such calls or the unconditional branching into the second block that terminates
+the first block. The section detailing [qubit and result
+usage](#qubit-and-result-usage) outlines which instructions qualify as
+performing measurements, and defines additional restrictions for using qubits
+and result values.
 
 The second and last block contains (only) the necessary calls to record the
-program output, as well as the block terminating return instruction that return
-the exit code. The logic of the second block can be done as part of
+program output, as well as the `ret` instruction that terminates the block and
+returns the exit code. The logic of the second block can be done as part of
 post-processing after the computation on the QPU has completed, provided the
 results of the performed measurements are made available to the processor
 generating the requested output. More information about the [output
@@ -338,20 +345,20 @@ variety of frontends.
 Ultimately, it is up to the executing backend which data structure is associated
 with a qubit or result value. This gives a backend the freedom to, e.g., process
 measurement results asynchronously, or attach additional device data to qubits.
-Qubit and result values are correspondingly represented as opaque pointers in
+Qubits and result values are correspondingly represented as opaque pointers in
 the bitcode, and a QIR program must not dereference such pointers, independent
 on whether they are merely bitcasts of integer constants as they are in the Base
 Profile program above, or whether they are created dynamically, meaning the
 value is managed by the executing backend.
 
-To execute a given bitcode file, the backend needs to know how to process qubit and
-result pointers used by a program. This is achieved by storing metadata in the
-form of [module flags](#module-flags-metadata) in the bitcode. QIR does not make
-a type distinction for the two kinds of pointers, nor does it use a different
-address space for them. This ensures that libraries and optimization passes that
-map between different instruction sets do not need to distinguish whether the
-compiled application code makes use of dynamic qubit and result management or
-not.
+To execute a given bitcode file, the backend needs to know how to process qubit
+and result pointers used by a program. This is achieved by storing metadata in
+the form of [module flags](#module-flags-metadata) in the bitcode. QIR does not
+make a type distinction for the two kinds of pointers, nor does it use a
+different address space for them. This ensures that libraries and optimization
+passes that map between different instruction sets do not need to distinguish
+whether the compiled application code makes use of dynamic qubit and result
+management or not.
 
 To be compliant with the Base Profile specification, the program must not make
 use of dynamic qubit or result management; instead, qubits and results must be
@@ -416,8 +423,8 @@ do not require the recorded output to be listed in a particular order. For those
 schemas, the `i8*` argument serves as a label that permits to reconstruct the
 order intended by the program. [Compiler
 frontends](https://en.wikipedia.org/wiki/Compiler#Front_end) must always
-generate these labels in such a way that the bitcode does not depend on the output
-schema; while choosing how to best label the program output is up to the
+generate these labels in such a way that the bitcode does not depend on the
+output schema; while choosing how to best label the program output is up to the
 frontend, the choice of output schema on the other hand is up to the backend. A
 backend may reject a program as invalid or fail execution if a label is missing.
 
@@ -464,8 +471,8 @@ major and minor version of the specification that the QIR bitcode adheres to.
 - The QIR specification is intended to be backward compatible within the same
   major version, but may introduce additional features as part of newer minor
   versions. The behavior of the `"qir_minor_version"` flag must hence be `Max`,
-  so that merging two modules compiled for different minor versions results in
-  a module that adheres to the newer of the two versions.
+  so that merging two modules compiled for different minor versions results in a
+  module that adheres to the newer of the two versions.
 
 ### Memory Management
 

@@ -1,7 +1,7 @@
 # Instruction Set
 
 A backend that supports quantum computations is composed of multiple processing
-units that include one or more quantum chips as well as classic computing
+units that include one or more quantum processors as well as classic computing
 resources. A quantum program is a combination of instructions that execute on a
 quantum processor, instructions that execute on an adjacent classical processor,
 and data transfer between processors.
