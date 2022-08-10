@@ -164,7 +164,7 @@ attributes #0 = { "entry_point" "qir_profile"="base_profile" "output_labels"="sc
 !3 = !{i32 1, !"dynamic_result_management", i1 false}
 ```
 
-The program entangles two qubits, measures them, and returns a tuple with the
+The program entangles two qubits, measures them, and records a tuple with the
 two measurement results.
 
 For the sake of clarity, the code above does not contain any [debug
@@ -339,8 +339,8 @@ scheduled and resources are bound as part of compilation. How early in the
 process this happens varies, and QIR permits to express programs in a form that
 either defers allocation and management of such resources to later stages, or to
 directly identify individual qubits and results by a constant integer value as
-outlined above. This permits to accurately reflect application intent for a
-variety of frontends.
+outlined above. This permits various frontends to accurately reflect application
+intent.
 
 Ultimately, it is up to the executing backend which data structure is associated
 with a qubit or result value. This gives a backend the freedom to, e.g., process
@@ -420,13 +420,14 @@ pointer to a global constant that contains a null-terminated string. A backend
 may ignore that argument if it guarantees that the order of the recorded output
 matches the order defined by the entry point. Conversely, certain output schemas
 do not require the recorded output to be listed in a particular order. For those
-schemas, the `i8*` argument serves as a label that permits to reconstruct the
-order intended by the program. [Compiler
-frontends](https://en.wikipedia.org/wiki/Compiler#Front_end) must always
-generate these labels in such a way that the bitcode does not depend on the
-output schema; while choosing how to best label the program output is up to the
-frontend, the choice of output schema on the other hand is up to the backend. A
-backend may reject a program as invalid or fail execution if a label is missing.
+schemas, the `i8*` argument serves as a label that permits the compiler or tool
+that generated the labels to reconstruct the order intended by the program.
+[Compiler frontends](https://en.wikipedia.org/wiki/Compiler#Front_end) must
+always generate these labels in such a way that the bitcode does not depend on
+the output schema; while choosing how to best label the program output is up to
+the frontend, the choice of output schema on the other hand is up to the
+backend. A backend may reject a program as invalid or fail execution if a label
+is missing.
 
 Both the labeling schema and the output schema are identified by a metadata
 entry in the produced output. For the [output schema](../output_schemas/), that
