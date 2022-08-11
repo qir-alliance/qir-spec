@@ -97,8 +97,8 @@ and QIS functions, are sufficient to support arbitrary computations that make
 use of both quantum and classical resources, and gives recommendations for how
 to leverage and combine these building blocks in a way that ensures maximal
 compatibility with different backends. Most or possibly all backends today do
-not support arbitrary computations. A common requirement for a program to be
-executable on a quantum backend is, for example, that it is possible to ensure
+not support arbitrary computations. For example, a common requirement for a program to be
+executable on a quantum backend is the ability to ensure
 during compilation that the quantum computation terminates. Such requirements
 poses fundamental limitations for which programs can or cannot be executed on a
 specific backend. Compiling a program in a way that maximizes compatibility with
