@@ -121,17 +121,17 @@ define i64 @Entry_Point_Name() #0 {
 entry:
 
   ; calls to QIS functions
-  tail call void @__quantum__qis__h__body(%Qubit* null)
-  tail call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* inttoptr (i64 1 to %Qubit*))
-  tail call void @__quantum__qis__mz__body(%Qubit* null, writeonly %Result* null)
-  tail call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 1 to %Qubit*), writeonly %Result* inttoptr (i64 1 to %Result*))
+  call void @__quantum__qis__h__body(%Qubit* null)
+  call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* inttoptr (i64 1 to %Qubit*))
+  call void @__quantum__qis__mz__body(%Qubit* null, writeonly %Result* null)
+  call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 1 to %Qubit*), writeonly %Result* inttoptr (i64 1 to %Result*))
   br label %output
 
 output:                                   ; preds = %entry
   ; calls to record the program output
-  tail call void @__quantum__rt__tuple_record_output(i64 2, i8* null)
-  tail call void @__quantum__rt__result_record_output(%Result* null, i8* getelementptr inbounds ([3 x i8], [3 x i8]* @0, i32 0, i32 0))
-  tail call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 1 to %Result*), i8* getelementptr inbounds ([3 x i8], [3 x i8]* @1, i32 0, i32 0))
+  call void @__quantum__rt__tuple_record_output(i64 2, i8* null)
+  call void @__quantum__rt__result_record_output(%Result* null, i8* getelementptr inbounds ([3 x i8], [3 x i8]* @0, i32 0, i32 0))
+  call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 1 to %Result*), i8* getelementptr inbounds ([3 x i8], [3 x i8]* @1, i32 0, i32 0))
 
   ret i64 0
 }
@@ -152,7 +152,7 @@ declare void @__quantum__rt__result_record_output(%Result*, i8*)
 
 ; attributes
 
-attributes #0 = { "entry_point" "qir_profile"="base_profile" "output_labels"="schema_id" "required_qubits"="2" "required_results"="2" }
+attributes #0 = { "entry_point" "qir_profile"="base_profile" "output_labeling_schema"="schema_id" "required_num_qubits"="2" "required_num_results"="2" }
 
 ; module flags
 
@@ -199,21 +199,21 @@ The following custom attributes must be attached to the entry point function:
   point of a quantum program
 - An attribute named `"qir_profile"` with the value `"base_profile"` identifying
   the profile the entry point has been compiled for
-- An attribute named `"output_labels"` with an arbitrary string value that
-  identifies the schema used by a [compiler
+- An attribute named `"output_labeling_schema"` with an arbitrary string value
+  that identifies the schema used by a [compiler
   frontend](https://en.wikipedia.org/wiki/Compiler#Front_end) that produced the
   IR to label the recorded output
-- An attribute named `"required_qubits"` indicating the number of qubits used by
-  the entry point
-- An attribute named `"required_results"` indicating the maximal number of
+- An attribute named `"required_num_qubits"` indicating the number of qubits
+  used by the entry point
+- An attribute named `"required_num_results"` indicating the maximal number of
   measurement results that need to be stored while executing the entry point
   function
 
 Optionally, additional attributes may be attached to the entry point. Any custom
-function attributes attached to the entry point will be reflected as metadata in
-the program output; this includes both mandatory and optional attributes but not
-parameter attributes or return value attributes. This in particular implies that
-the [labeling schema](#output-recording) used in the recorded output can be
+function attributes attached to the entry point should be reflected as metadata
+in the program output; this includes both mandatory and optional attributes but
+not parameter attributes or return value attributes. This in particular implies
+that the [labeling schema](#output-recording) used in the recorded output can be
 identified by looking at the metadata in the produced output. See the
 specification of the [output schemas](../output_schemas/) for more information
 about how metadata is represented in the output schema.
@@ -226,27 +226,22 @@ compliant programs must not rely on a particular numbering, but instead look for
 the function to which an attribute with the name `"entry_point"` is attached to
 determine which one to invoke when the program is launched.
 
-Both the `"entry_point"` attribute and the `"output_labels"` attribute can only
-be attached to a function definition; they are invalid on a function that is
-declared but not defined. For the Base Profile, this implies that they can occur
-only in one place.
+Both the `"entry_point"` attribute and the `"output_labeling_schema"` attribute
+can only be attached to a function definition; they are invalid on a function
+that is declared but not defined. For the Base Profile, this implies that they
+can occur only in one place.
 
 Within the restrictions imposed by the Base Profile, the number of qubits that
 are needed to execute the quantum program must be known at compile time. This
-number is captured in the form of the `"required_qubits"` attribute attached to
-the entry point. The value of the attribute must be the string representation of
-a 64-bit integer constant.
+number is captured in the form of the `"required_num_qubits"` attribute attached
+to the entry point. The value of the attribute must be the string representation
+of a non-negative 64-bit integer constant.
 
 Similarly, the number of measurement results that need to be stored when
-executing the entry point function is captured by the `"required_results"`
+executing the entry point function is captured by the `"required_num_results"`
 attribute. Since qubits cannot be used after measurement, in the case of the
 Base Profile, this value is equal to the number of measurement results in the
 program output.
-
-For a program to be valid, both the number of qubits used and the number of
-measurements to store must be strictly positive. More details on the usage of
-[qubits and results](#qubit-and-result-usage) in general can be found in the
-sections below.
 
 Beyond the entry point specific requirements related to attributes, custom
 attributes may optionally be attached to any of the declared functions.
@@ -311,22 +306,20 @@ as the runtime functions used for output recording. Constant values of type
 `i64` in particular may be used as part of calls to output recording functions;
 see the section on [output recording](#output-recording) for more details.
 
-For a program to be considered valid, it must make use of at least one qubit and
-perform at least one measurement. The `%Qubit*` and `%Result*` data types hence
-must be supported by all backends. Qubits and results can occur only as
-arguments in function calls and are represented as a pointer of type `%Qubit*`
-and `%Result*` respectively, where the pointer itself identifies the qubit or
-result value rather than a memory location where the value is stored: a 64-bit
-integer constant is cast to the appropriate pointer type. A more detailed
-elaboration on the purpose of this representation is given in the next
-subsection. The integer constant that is cast must be in the interval `[0,
-nrQubits)` for `%Qubit*` and `[0, nrResults)` for `%Result*`, where `nrQubits`
-and `nrResults` are the required number of qubits and results defined by the
-corresponding [entry point attributes](#attributes). Since backends may look at
-the values of the `required_qubits` and `required_results` attributes to
-determine whether a program can be executed, it is recommended to index qubits
-and results consecutively so that there are no unused values within these
-ranges.
+The `%Qubit*` and `%Result*` data types must be supported by all backends.
+Qubits and results can occur only as arguments in function calls and are
+represented as a pointer of type `%Qubit*` and `%Result*` respectively, where
+the pointer itself identifies the qubit or result value rather than a memory
+location where the value is stored: a 64-bit integer constant is cast to the
+appropriate pointer type. A more detailed elaboration on the purpose of this
+representation is given in the next subsection. The integer constant that is
+cast must be in the interval `[0, numQubits)` for `%Qubit*` and `[0,
+numResults)` for `%Result*`, where `numQubits` and `numResults` are the required
+number of qubits and results defined by the corresponding [entry point
+attributes](#attributes). Since backends may look at the values of the
+`required_num_qubits` and `required_num_results` attributes to determine whether
+a program can be executed, it is recommended to index qubits and results
+consecutively so that there are no unused values within these ranges.
 
 ### Qubit and Result Usage
 
@@ -433,7 +426,7 @@ Both the labeling schema and the output schema are identified by a metadata
 entry in the produced output. For the [output schema](../output_schemas/), that
 identifier matches the one listed in the corresponding specification. The
 identifier for the labeling schema, on the other hand, is defined by the value
-of the `"output_labels"` attribute attached to the entry point.
+of the `"output_labeling_schema"` attribute attached to the entry point.
 
 ## Module Flags Metadata
 
