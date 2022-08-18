@@ -79,7 +79,7 @@ file that contains the following:
 
 - the definitions of the opaque `Qubit` and `Result` types
 - global constants that store [string labels](#output-recording) needed for
-  certain output formats that may be ignored if the [output
+  certain output schemas that may be ignored if the [output
   schema](../output_schemas/) does not make use of them
 - the [entry point definition](#entry-point-definition) that contains the
   program logic
@@ -119,7 +119,11 @@ representation:
 
 define i64 @Entry_Point_Name() #0 {
 entry:
+  ; calls to initialize the execution environment
+  call void @__quantum__rt__initialize(i8* null)
+  br label %body
 
+body:
   ; calls to QIS functions
   call void @__quantum__qis__h__body(%Qubit* null)
   call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* inttoptr (i64 1 to %Qubit*))
@@ -144,7 +148,9 @@ declare void @__quantum__qis__cnot__body(%Qubit*, %Qubit*)
 
 declare void @__quantum__qis__mz__body(%Qubit*, writeonly %Result*)
 
-; declarations of functions used for output recording
+; declarations of runtime functions for initialization and output recording
+
+declare void @__quantum__rt__initialize(i8*)
 
 declare void @__quantum__rt__tuple_record_output(i64, i8*)
 
@@ -152,7 +158,7 @@ declare void @__quantum__rt__result_record_output(%Result*, i8*)
 
 ; attributes
 
-attributes #0 = { "entry_point" "qir_profile"="base_profile" "output_labeling_schema"="schema_id" "required_num_qubits"="2" "required_num_results"="2" }
+attributes #0 = { "entry_point" "qir_profiles"="base_profile" "output_labeling_schema"="schema_id" "required_num_qubits"="2" "required_num_results"="2" }
 
 ; module flags
 
@@ -197,8 +203,8 @@ The following custom attributes must be attached to the entry point function:
 
 - An attribute named `"entry_point"` identifying the function as the starting
   point of a quantum program
-- An attribute named `"qir_profile"` with the value `"base_profile"` identifying
-  the profile the entry point has been compiled for
+- An attribute named `"qir_profiles"` with the value `"base_profile"`
+  identifying the profile the entry point has been compiled for
 - An attribute named `"output_labeling_schema"` with an arbitrary string value
   that identifies the schema used by a [compiler
   frontend](https://en.wikipedia.org/wiki/Compiler#Front_end) that produced the
@@ -240,8 +246,8 @@ of a non-negative 64-bit integer constant.
 Similarly, the number of measurement results that need to be stored when
 executing the entry point function is captured by the `"required_num_results"`
 attribute. Since qubits cannot be used after measurement, in the case of the
-Base Profile, this value is equal to the number of measurement results in the
-program output.
+Base Profile, this value is usually equal to the number of measurement results
+in the program output.
 
 Beyond the entry point specific requirements related to attributes, custom
 attributes may optionally be attached to any of the declared functions.
@@ -253,28 +259,40 @@ according to their intended purpose on function declarations and call sites:
 
 ### Function Body
 
-The function body consists of two blocks, connected by an unconditional
-branching into the second block at the end of the first block.
+The function body consists of three [basic
+blocks](https://en.wikipedia.org/wiki/Basic_block), connected by an
+unconditional branching that terminates a block and defines the next block to
+execute, i.e., its successor. Execution starts at the entry block and follows
+the [control flow graph](https://en.wikipedia.org/wiki/Control-flow_graph)
+defined by the block terminators; block names/block identifiers may be chosen
+arbitrarily. The final block is terminated by a `ret` instruction to exit the
+function and return the exit code.
 
-The first block contains only calls to QIS functions. Any number of calls to QIS
-functions may be performed. To be compatible with the Base Profile these
-functions must return void. Any arguments to invoke them must be inlined into
-the call itself; they must be constants or a pointer representing a [qubit or
-result](#data-types-and-values) value. All function calls leading to a unitary
-transformation of the quantum state must precede any measurements; any calls
-that perform a measurement of one or more qubit(s) can only be followed by other
-such calls or the unconditional branching into the second block that terminates
-the first block. The section detailing [qubit and result
+The entry block contains the necessary call(s) to initialize the execution
+environment. In particular, it must ensure that all used qubits are set to a
+zero-state. The section on [initialization functions](#initialization) defines
+how to do that.
+
+The successor of the entry block consists (only) of calls to QIS functions. Any
+number of calls to QIS functions may be performed. To be compatible with the
+Base Profile these functions must return void. Any arguments to invoke them must
+be inlined into the call itself; they must be constants or a pointer
+representing a [qubit or result](#data-types-and-values) value.
+
+All function calls leading to a unitary transformation of the quantum state must
+precede any measurements; any calls that perform a measurement of one or more
+qubit(s) can only be followed by other such calls or the unconditional branching
+into the next (and final) block. The section detailing [qubit and result
 usage](#qubit-and-result-usage) outlines which instructions qualify as
 performing measurements, and defines additional restrictions for using qubits
 and result values.
 
-The second and last block contains (only) the necessary calls to record the
-program output, as well as the `ret` instruction that terminates the block and
-returns the exit code. The logic of the second block can be done as part of
-post-processing after the computation on the QPU has completed, provided the
-results of the performed measurements are made available to the processor
-generating the requested output. More information about the [output
+The final block contains (only) the necessary calls to record the program
+output, as well as the `ret` instruction that terminates the block and returns
+the exit code. The logic of this block can be done as part of post-processing
+after the computation on the QPU has completed, provided the results of the
+performed measurements are made available to the processor generating the
+requested output. More information about the [output
 recording](#output-recording) and the corresponding runtime functions is
 detailed below.
 
@@ -285,7 +303,7 @@ within a Base Profile compliant program:
 | :----------------------- | :--------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
 | `call`                   | Used within a function block to invoke any one of the declared QIS functions and the output recording functions. | May optionally be preceded by a [`tail` marker](https://llvm.org/docs/LangRef.html#call-instruction).       |
 | `br`                     | Used to branch from one block to another in the entry point function.                                            | The branching must be unconditional and occurs as the final instruction of a block to jump to the next one. |
-| `ret`                    | Used to return the exit code of the program.                                                                     | Must occur (only) as the final instruction of the second (and last) block in the entry point.               |
+| `ret`                    | Used to return the exit code of the program.                                                                     | Must occur (only) as the final instruction of the last block in the entry point.               |
 | `inttoptr`               | Used to cast an `i64` integer value to either a `%Qubit*` or a `%Result*`.                                       | May be used as part of a function call only.                                                                |
 | `getelementptr inbounds` | Used to create an `i8*` to pass a constant string for the purpose of labeling an output value.                   | May be used as part of a call to an output recording function only.                                           |
 
@@ -301,10 +319,11 @@ following:
   two double values, as part of a Base Profile compliant program.
 
 Constants of any type are permitted as part of a function call. What data types
-occur in the program hence depends entirely on the used QIS functions, as well
-as the runtime functions used for output recording. Constant values of type
-`i64` in particular may be used as part of calls to output recording functions;
-see the section on [output recording](#output-recording) for more details.
+occur in the program hence depends on what QIS functions are used in addition to
+the runtime functions for initialization and output recording. Constant values
+of type `i64` in particular may be used as part of calls to output recording
+functions; see the section on [output recording](#output-recording) for more
+details.
 
 The `%Qubit*` and `%Result*` data types must be supported by all backends.
 Qubits and results can occur only as arguments in function calls and are
@@ -323,41 +342,25 @@ consecutively so that there are no unused values within these ranges.
 
 ### Qubit and Result Usage
 
-The amount of available memory on a QPU is commonly still fairly limited, with
-regards to qubits as well as with regards to classical memory for storing
-measurement results before they are read out and transmitted to another
-classical processor. Any memory - quantum or classical - that is used during
-quantum execution is not usually managed dynamically. Instead, operations are
-scheduled and resources are bound as part of compilation. How early in the
-process this happens varies, and QIR permits to express programs in a form that
-either defers allocation and management of such resources to later stages, or to
-directly identify individual qubits and results by a constant integer value as
-outlined above. This permits various frontends to accurately reflect application
-intent.
+Qubits and result values are represented as opaque pointers in the bitcode,
+which may only ever be dereferenced as part a runtime function implementation.
+In general, the QIR specification distinguishes between two kinds of pointers
+for representing a qubit or result value, as explained in more detail
+[here](../Execution.md), and either one, thought not both, may be used
+throughout a bitcode file. A [module flag](#module-flags-metadata) in the
+bitcode indicates which kinds of pointers are used to represent qubits and
+result values.
 
-Ultimately, it is up to the executing backend which data structure is associated
-with a qubit or result value. This gives a backend the freedom to, e.g., process
-measurement results asynchronously, or attach additional device data to qubits.
-Qubits and result values are correspondingly represented as opaque pointers in
-the bitcode, and a QIR program must not dereference such pointers, independent
-on whether they are merely bitcasts of integer constants as they are in the Base
-Profile program above, or whether they are created dynamically, meaning the
-value is managed by the executing backend.
-
-To execute a given bitcode file, the backend needs to know how to process qubit
-and result pointers used by a program. This is achieved by storing metadata in
-the form of [module flags](#module-flags-metadata) in the bitcode. QIR does not
-make a type distinction for the two kinds of pointers, nor does it use a
-different address space for them. This ensures that libraries and optimization
-passes that map between different instruction sets do not need to distinguish
-whether the compiled application code makes use of dynamic qubit and result
-management or not.
-
-To be compliant with the Base Profile specification, the program must not make
-use of dynamic qubit or result management; instead, qubits and results must be
-identified by a constant integer value that is bitcast to a pointer to match the
-expected type. How such an integer value is interpreted and specifically how it
-relates to hardware resources is ultimately up to the executing backend.
+The first kind of pointer points to a valid memory location that is managed
+dynamically during program execution, meaning the necessary memory is allocated
+and freed by the runtime. The second kind of pointer merely identifies a qubit
+or result value by a constant integer encoded in the pointer itself. To be
+compliant with the Base Profile specification, the program must not make use of
+dynamic qubit or result management, meaning it must use only the second kind of
+pointer; qubits and results must be identified by a constant integer value that
+is bitcast to a pointer to match the expected type. How such an integer value is
+interpreted and specifically how it relates to hardware resources is ultimately
+up to the executing backend.
 
 Additionally, the Base Profile imposes the following restrictions on qubit and
 result usage:
@@ -393,20 +396,32 @@ the QIS is resolved, as well as recommendations for front- and backend
 developers, we refer to the document on [compilation stages and
 targeting](../Compilation_And_Targeting.md).
 
-## Output Recording
+## Runtime Functions
 
-The program output of a quantum application is defined by a sequence of calls to
-runtime functions that return values produced by the computation. In the case of
-the Base Profile, these calls are contained within the last block of the entry
-point function.
+The following runtime functions must be supported by all backends, and are the
+only runtime functions that may be used as part of a Base Profile compliant
+program:
 
-The following functions can be used to record the program output:
-
-| Function                            | Signature             | Description                                                                                                                                                                                                                                                 |
-| :---------------------------------- | :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Function                            | Signature            | Description                                                                                                                                                                                                                                                  |
+| :---------------------------------- | :------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| __quantum__rt__initialize           | `void(i8*)`          | Initializes the execution environment. Sets all qubits to a zero-state if they are not dynamically managed.                                                                                                                                                  |
 | __quantum__rt__tuple_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of a tuple and how many tuple elements it has. The second parameter defines a string label for the tuple. Depending on the output schema, the label is included in the output or omitted.  |
 | __quantum__rt__array_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of an array and how many array elements it has. The second parameter defines a string label for the array. Depending on the output schema, the label is included in the output or omitted. |
 | __quantum__rt__result_record_output | `void(%Result*,i8*)` | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
+
+### Initialization
+
+A workstream to specify how to initialize the execution environment is currently
+in progress. As part of that workstream, this paragraph and the listed
+initialization function(s) will be updated.
+
+### Output Recording
+
+The program output of a quantum application is defined by a sequence of calls to
+runtime functions that record the values produced by the computation,
+specifically calls to the runtime functions ending in `record_output` listed in
+the table [above](#runtime-functions). In the case of the Base Profile, these
+calls are contained within the last block of the entry point function.
 
 For all output recording functions, the `i8*` argument must be a non-null
 pointer to a global constant that contains a null-terminated string. A backend
