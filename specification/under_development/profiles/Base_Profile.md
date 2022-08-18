@@ -297,9 +297,9 @@ calls to functions that are *not* marked as irreversible by an attribute on the
 respective function declaration, whereas the second one contains only calls to
 functions that perform irreversible actions, i.e. measurements of the quantum
 state. The section on the [quantum instruction set](#quantum-instruction-set)
-explains the use of the `irreversible` attribute in more detail, and the section
-on [qubit and result usage](#qubit-and-result-usage) defines additional
-restrictions for using qubits and result values.
+defines the requirement(s) regarding the use of the `irreversible` attribute,
+and the section on [qubit and result usage](#qubit-and-result-usage) details
+additional restrictions for using qubits and result values.
 
 The final block contains (only) the necessary calls to record the program
 output, as well as the `ret` instruction that terminates the block and returns
