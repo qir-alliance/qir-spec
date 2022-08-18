@@ -39,9 +39,10 @@ be found in [this document](../Instruction_Set.md).
 **Bullet 2: Measurements** <br/>
 
 The second requirement should be taken to mean that a Base Profile compliant
-program does *not* apply instructions to a qubit after it has been measured; all
-instructions to transform the quantum state must be applied before performing
-any measurements. It specifically also implies the following:
+program does *not* apply instructions to a qubit after it has been measured;
+instructions that result in a unitary transformation of the quantum state must
+be applied before performing any irreversible actions such as measurements. It
+specifically also implies the following:
 
 - There is no need for the quantum processor ([QPU](../Execution.md)) to be able
 to measure only a subset of all available qubits at a time.
@@ -124,14 +125,18 @@ entry:
   br label %body
 
 body:                                     ; preds = %entry
-  ; calls to QIS functions
+  ; calls to QIS functions that are not irreversible
   call void @__quantum__qis__h__body(%Qubit* null)
   call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* inttoptr (i64 1 to %Qubit*))
+  br label %measurements
+
+measurements:                             ; preds = %body
+  ; calls to QIS functions that are irreversible
   call void @__quantum__qis__mz__body(%Qubit* null, writeonly %Result* null)
   call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 1 to %Qubit*), writeonly %Result* inttoptr (i64 1 to %Result*))
   br label %output
 
-output:                                   ; preds = %body
+output:                                   ; preds = %measurements
   ; calls to record the program output
   call void @__quantum__rt__tuple_record_output(i64 2, i8* null)
   call void @__quantum__rt__result_record_output(%Result* null, i8* getelementptr inbounds ([3 x i8], [3 x i8]* @0, i32 0, i32 0))
@@ -146,7 +151,7 @@ declare void @__quantum__qis__h__body(%Qubit*)
 
 declare void @__quantum__qis__cnot__body(%Qubit*, %Qubit*)
 
-declare void @__quantum__qis__mz__body(%Qubit*, writeonly %Result*)
+declare void @__quantum__qis__mz__body(%Qubit*, writeonly %Result*) #1
 
 ; declarations of runtime functions for initialization and output recording
 
@@ -159,6 +164,8 @@ declare void @__quantum__rt__result_record_output(%Result*, i8*)
 ; attributes
 
 attributes #0 = { "entry_point" "qir_profiles"="base_profile" "output_labeling_schema"="schema_id" "required_num_qubits"="2" "required_num_results"="2" }
+
+attributes #1 = { "irreversible" }
 
 ; module flags
 
@@ -250,8 +257,10 @@ Base Profile, this value is usually equal to the number of measurement results
 in the program output.
 
 Beyond the entry point specific requirements related to attributes, custom
-attributes may optionally be attached to any of the declared functions.
-Furthermore, the following [LLVM
+attributes may optionally be attached to any of the declared functions. The
+`irreversible` attribute in particular impacts how the program logic in the
+entry point is structured, as detailed [below](#function-body). Furthermore, the
+following [LLVM
 attributes](https://llvm.org/docs/LangRef.html#function-attributes) may be used
 according to their intended purpose on function declarations and call sites:
 `inlinehint`, `nofree`, `norecurse`, `readnone`, `readonly`, `writeonly`, and
@@ -259,33 +268,38 @@ according to their intended purpose on function declarations and call sites:
 
 ### Function Body
 
-The function body consists of three [basic
+The function body consists of four [basic
 blocks](https://en.wikipedia.org/wiki/Basic_block), connected by an
 unconditional branching that terminates a block and defines the next block to
 execute, i.e., its successor. Execution starts at the entry block and follows
 the [control flow graph](https://en.wikipedia.org/wiki/Control-flow_graph)
 defined by the block terminators; block names/block identifiers may be chosen
-arbitrarily. The final block is terminated by a `ret` instruction to exit the
-function and return the exit code.
+arbitrarily, and the order in which blocks are listed in the function definition
+may deviate from the [example above](#program-structure). The final block is
+terminated by a `ret` instruction to exit the function and return the exit code.
 
 The entry block contains the necessary call(s) to initialize the execution
 environment. In particular, it must ensure that all used qubits are set to a
 zero-state. The section on [initialization functions](#initialization) defines
 how to do that.
 
-The successor of the entry block consists (only) of calls to QIS functions. Any
-number of calls to QIS functions may be performed. To be compatible with the
-Base Profile these functions must return void. Any arguments to invoke them must
-be inlined into the call itself; they must be constants or a pointer
-representing a [qubit or result](#data-types-and-values) value.
+The successor of the entry block continues with the main program logic. This
+logic is split into two blocks, separated again by an unconditional branch from
+one to the other. Both blocks consist (only) of calls to QIS functions. Any
+number of calls to such QIS functions may be performed. To be compatible with
+the Base Profile all called [QIS functions](#quantum-instruction-set) must
+return void. Any arguments to invoke them must be inlined into the call itself;
+they must be constants or a pointer representing a [qubit or
+result](#data-types-and-values) value.
 
-All function calls leading to a unitary transformation of the quantum state must
-precede any measurements; any calls that perform a measurement of one or more
-qubit(s) can only be followed by other such calls or the unconditional branching
-into the next (and final) block. The section detailing [qubit and result
-usage](#qubit-and-result-usage) outlines which instructions qualify as
-performing measurements, and defines additional restrictions for using qubits
-and result values.
+The only difference between these two blocks is that the first one contains only
+calls to functions that are *not* marked as irreversible by an attribute on the
+respective function declaration, whereas the second one contains only calls to
+functions that perform irreversible actions, i.e. measurements of the quantum
+state. The section on the [quantum instruction set](#quantum-instruction-set)
+explains the use of the `irreversible` attribute in more detail, and the section
+on [qubit and result usage](#qubit-and-result-usage) defines additional
+restrictions for using qubits and result values.
 
 The final block contains (only) the necessary calls to record the program
 output, as well as the `ret` instruction that terminates the block and returns
@@ -303,7 +317,7 @@ within a Base Profile compliant program:
 | :----------------------- | :--------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
 | `call`                   | Used within a function block to invoke any one of the declared QIS functions and the output recording functions. | May optionally be preceded by a [`tail` marker](https://llvm.org/docs/LangRef.html#call-instruction).       |
 | `br`                     | Used to branch from one block to another in the entry point function.                                            | The branching must be unconditional and occurs as the final instruction of a block to jump to the next one. |
-| `ret`                    | Used to return the exit code of the program.                                                                     | Must occur (only) as the final instruction of the last block in the entry point.               |
+| `ret`                    | Used to return the exit code of the program.                                                                     | Must occur (only) as the last instruction of the final block in the entry point.               |
 | `inttoptr`               | Used to cast an `i64` integer value to either a `%Qubit*` or a `%Result*`.                                       | May be used as part of a function call only.                                                                |
 | `getelementptr inbounds` | Used to create an `i8*` to pass a constant string for the purpose of labeling an output value.                   | May be used as part of a call to an output recording function only.                                           |
 
@@ -365,11 +379,9 @@ up to the executing backend.
 Additionally, the Base Profile imposes the following restrictions on qubit and
 result usage:
 
-- Qubits must not be used after they have been measured. Which quantum
-  instructions perform measurements is defined in the specification for known
-  [quantum instructions](../Instruction_Set.md). For quantum instructions that
-  are not listed there, we refer to the documentation provided by the targeted
-  backend that supports them.
+- Qubits must not be used after they have been passed as arguments to a function
+  that performs an irreversible action. Such functions are marked with the
+  `irreversible` attribute in their declaration.
 
 - Results can only be used either as `writeonly` arguments, or as arguments to
   [output recording functions](#output-recording). We refer to the [LLVM
@@ -384,6 +396,9 @@ must satisfy the following two requirements:
 - All functions must return void; the Base Profile does not permit to call
   functions that return a value. Functions that measure qubits must take the
   qubit pointer(s) as well as the result pointer(s) as arguments.
+
+- Functions that perform a measurement of one or more qubit(s) must be marked
+  with an custom attribute named `irreversible`.
 
 - Parameters of type `%Result*` must be `writeonly` parameters; only the runtime
   function `__quantum__rt__result_record_output` used for [output
@@ -421,7 +436,8 @@ The program output of a quantum application is defined by a sequence of calls to
 runtime functions that record the values produced by the computation,
 specifically calls to the runtime functions ending in `record_output` listed in
 the table [above](#runtime-functions). In the case of the Base Profile, these
-calls are contained within the last block of the entry point function.
+calls are contained within the final block of the entry point function, i.e. the
+block that terminates in a return instruction.
 
 For all output recording functions, the `i8*` argument must be a non-null
 pointer to a global constant that contains a null-terminated string. A backend
