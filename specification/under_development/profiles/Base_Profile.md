@@ -123,7 +123,7 @@ entry:
   call void @__quantum__rt__initialize(i8* null)
   br label %body
 
-body:
+body:                                     ; preds = %entry
   ; calls to QIS functions
   call void @__quantum__qis__h__body(%Qubit* null)
   call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* inttoptr (i64 1 to %Qubit*))
@@ -131,7 +131,7 @@ body:
   call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 1 to %Qubit*), writeonly %Result* inttoptr (i64 1 to %Result*))
   br label %output
 
-output:                                   ; preds = %entry
+output:                                   ; preds = %body
   ; calls to record the program output
   call void @__quantum__rt__tuple_record_output(i64 2, i8* null)
   call void @__quantum__rt__result_record_output(%Result* null, i8* getelementptr inbounds ([3 x i8], [3 x i8]* @0, i32 0, i32 0))
