@@ -86,7 +86,8 @@ file that contains the following:
   program logic
 - declarations of the [QIS functions](#quantum-instruction-set) used by the
   program
-- declarations of functions used for [output recording](#output-recording)
+- declarations of [runtime functions](#runtime-functions) used for
+  initialization and output recording
 - one or more [attribute groups](#attributes) used to store information about
   the entry point, and optionally additional information about other function
   declarations
@@ -398,7 +399,7 @@ must satisfy the following two requirements:
   qubit pointer(s) as well as the result pointer(s) as arguments.
 
 - Functions that perform a measurement of one or more qubit(s) must be marked
-  with an custom attribute named `irreversible`.
+  with an custom function attribute named `irreversible`.
 
 - Parameters of type `%Result*` must be `writeonly` parameters; only the runtime
   function `__quantum__rt__result_record_output` used for [output
