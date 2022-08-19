@@ -30,11 +30,11 @@ not dictate which quantum instructions may be used. Targeting a program to a
 specific backend requires choosing a suitable profile and quantum instruction
 set (QIS). Both can be chosen largely independently, though certain instruction
 sets may be incompatible with this (or other) profile(s). The section on the
-[quantum instruction set](#quantum-instruction-set) below defines the
-requirements for a QIS to be compatible with the Base Profile. More information
-about the role of the QIS, recommendations for front- and backend providers, as
-well as the distinction between runtime functions and quantum instructions can
-be found in [this document](../Instruction_Set.md).
+[quantum instruction set](#quantum-instruction-set) defines the requirements for
+a QIS to be compatible with the Base Profile. More information about the role of
+the QIS, recommendations for front- and backend providers, as well as the
+distinction between runtime functions and quantum instructions can be found in
+[this document](../Instruction_Set.md).
 
 **Bullet 2: Measurements** <br/>
 
@@ -199,75 +199,13 @@ when the program is executed, referred to as "entry point" in the rest of this
 profile specification. The name of this function may be chosen freely, as long
 as it is a valid [global
 identifier](https://llvm.org/docs/LangRef.html#identifiers) according to the
-LLVM standard.
+LLVM standard. The entry point is identified by a custom function attribute; the
+section on [attributes](#attributes) defines which attributes must be attached
+to the entry point function.
 
 The entry point may not take any parameters and must return an exit code in the
 form of a 64-bit integer. The exit code `0` must be used to indicate a
 successful execution of the program.
-
-### Attributes
-
-The following custom attributes must be attached to the entry point function:
-
-- An attribute named `"entry_point"` identifying the function as the starting
-  point of a quantum program
-- An attribute named `"qir_profiles"` with the value `"base_profile"`
-  identifying the profile the entry point has been compiled for
-- An attribute named `"output_labeling_schema"` with an arbitrary string value
-  that identifies the schema used by a [compiler
-  frontend](https://en.wikipedia.org/wiki/Compiler#Front_end) that produced the
-  IR to label the recorded output
-- An attribute named `"required_num_qubits"` indicating the number of qubits
-  used by the entry point
-- An attribute named `"required_num_results"` indicating the maximal number of
-  measurement results that need to be stored while executing the entry point
-  function
-
-Optionally, additional attributes may be attached to the entry point. Any custom
-function attributes attached to the entry point should be reflected as metadata
-in the program output; this includes both mandatory and optional attributes but
-not parameter attributes or return value attributes. This in particular implies
-that the [labeling schema](#output-recording) used in the recorded output can be
-identified by looking at the metadata in the produced output. See the
-specification of the [output schemas](../output_schemas/) for more information
-about how metadata is represented in the output schema.
-
-Custom function attributes will show up as part of an [attribute
-group](https://releases.llvm.org/13.0.1/docs/LangRef.html#attrgrp) in the IR.
-Attribute groups are numbered in such a way that they can be easily referenced
-by multiple function definitions or global variables. Consumers of Base Profile
-compliant programs must not rely on a particular numbering, but instead look for
-the function to which an attribute with the name `"entry_point"` is attached to
-determine which one to invoke when the program is launched.
-
-Both the `"entry_point"` attribute and the `"output_labeling_schema"` attribute
-can only be attached to a function definition; they are invalid on a function
-that is declared but not defined. For the Base Profile, this implies that they
-can occur only in one place.
-
-Within the restrictions imposed by the Base Profile, the number of qubits that
-are needed to execute the quantum program must be known at compile time. This
-number is captured in the form of the `"required_num_qubits"` attribute attached
-to the entry point. The value of the attribute must be the string representation
-of a non-negative 64-bit integer constant.
-
-Similarly, the number of measurement results that need to be stored when
-executing the entry point function is captured by the `"required_num_results"`
-attribute. Since qubits cannot be used after measurement, in the case of the
-Base Profile, this value is usually equal to the number of measurement results
-in the program output.
-
-Beyond the entry point specific requirements related to attributes, custom
-attributes may optionally be attached to any of the declared functions. The
-`irreversible` attribute in particular impacts how the program logic in the
-entry point is structured, as detailed [below](#function-body). Furthermore, the
-following [LLVM
-attributes](https://llvm.org/docs/LangRef.html#function-attributes) may be used
-according to their intended purpose on function declarations and call sites:
-`inlinehint`, `nofree`, `norecurse`, `readnone`, `readonly`, `writeonly`, and
-`argmemonly`.
-
-### Function Body
 
 The function body consists of four [basic
 blocks](https://en.wikipedia.org/wiki/Basic_block), connected by an
@@ -286,12 +224,12 @@ how to do that.
 
 The successor of the entry block continues with the main program logic. This
 logic is split into two blocks, separated again by an unconditional branch from
-one to the other. Both blocks consist (only) of calls to QIS functions. Any
-number of calls to such QIS functions may be performed. To be compatible with
-the Base Profile all called [QIS functions](#quantum-instruction-set) must
-return void. Any arguments to invoke them must be inlined into the call itself;
-they must be constants or a pointer representing a [qubit or
-result](#data-types-and-values) value.
+one to the other. Both blocks consist (only) of calls to [QIS
+functions](#quantum-instruction-set). Any number of such calls may be performed.
+To be compatible with the Base Profile the called functions must return void.
+Any arguments to invoke them must be inlined into the call itself; they must be
+constants or a pointer representing a [qubit or result
+value](#data-types-and-values).
 
 The only difference between these two blocks is that the first one contains only
 calls to functions that are *not* marked as irreversible by an attribute on the
@@ -308,19 +246,97 @@ the exit code. The logic of this block can be done as part of post-processing
 after the computation on the QPU has completed, provided the results of the
 performed measurements are made available to the processor generating the
 requested output. More information about the [output
-recording](#output-recording) and the corresponding runtime functions is
-detailed below.
+recording](#output-recording) is detailed in the corresponding section about
+[runtime functions](#runtime-functions).
+
+## Quantum Instruction Set
+
+For a quantum instruction set to be fully compatible with the Base Profile, it
+must satisfy the following three requirements:
+
+- All functions must return void; the Base Profile does not permit to call
+  functions that return a value. Functions that measure qubits must take the
+  qubit pointer(s) as well as the result pointer(s) as arguments.
+
+- Functions that perform a measurement of one or more qubit(s) must be marked
+  with an custom function attribute named `irreversible`. The use of
+  [attributes](#attributes) in general is outlined in the corresponding section.
+
+- Parameters of type `%Result*` must be `writeonly` parameters; only the runtime
+  function `__quantum__rt__result_record_output` used for [output
+  recording](#output-recording) may read a measurement result.
+
+For more information about the relation between a profile specification and the
+quantum instruction set we refer to the paragraph on [Bullet 1](#base-profile)
+in the introduction of this document. For more information about how and when
+the QIS is resolved, as well as recommendations for front- and backend
+developers, we refer to the document on [compilation stages and
+targeting](../Compilation_And_Targeting.md).
+
+## Classical Instructions
 
 The following instructions are the *only* LLVM instructions that are permitted
 within a Base Profile compliant program:
 
-| LLVM Instruction         | Context and Purpose                                                                                              | Rules for Usage                                                                                             |
-| :----------------------- | :--------------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
-| `call`                   | Used within a function block to invoke any one of the declared QIS functions and the output recording functions. | May optionally be preceded by a [`tail` marker](https://llvm.org/docs/LangRef.html#call-instruction).       |
-| `br`                     | Used to branch from one block to another in the entry point function.                                            | The branching must be unconditional and occurs as the final instruction of a block to jump to the next one. |
-| `ret`                    | Used to return the exit code of the program.                                                                     | Must occur (only) as the last instruction of the final block in the entry point.               |
-| `inttoptr`               | Used to cast an `i64` integer value to either a `%Qubit*` or a `%Result*`.                                       | May be used as part of a function call only.                                                                |
-| `getelementptr inbounds` | Used to create an `i8*` to pass a constant string for the purpose of labeling an output value.                   | May be used as part of a call to an output recording function only.                                           |
+| LLVM Instruction         | Context and Purpose                                                                              | Rules for Usage                                                                                             |
+| :----------------------- | :----------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
+| `call`                   | Used within a basic block to invoke any one of the declared QIS functions and runtime functions. | May optionally be preceded by a [`tail` marker](https://llvm.org/docs/LangRef.html#call-instruction).       |
+| `br`                     | Used to branch from one block to another in the entry point function.                            | The branching must be unconditional and occurs as the final instruction of a block to jump to the next one. |
+| `ret`                    | Used to return the exit code of the program.                                                     | Must occur (only) as the last instruction of the final block in the entry point.                            |
+| `inttoptr`               | Used to cast an `i64` integer value to either a `%Qubit*` or a `%Result*`.                       | May be used as part of a function call only.                                                                |
+| `getelementptr inbounds` | Used to create an `i8*` to pass a constant string for the purpose of labeling an output value.   | May be used as part of a call to an output recording function only.                                         |
+
+See also the section on [data types and values](#data-types-and-values) for more
+information about the creation and usage of LLVM values.
+
+## Runtime Functions
+
+The following runtime functions must be supported by all backends, and are the
+only runtime functions that may be used as part of a Base Profile compliant
+program:
+
+| Function                            | Signature            | Description                                                                                                                                                                                                                                                  |
+| :---------------------------------- | :------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| __quantum__rt__initialize           | `void(i8*)`          | Initializes the execution environment. Sets all qubits to a zero-state if they are not dynamically managed.                                                                                                                                                  |
+| __quantum__rt__tuple_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of a tuple and how many tuple elements it has. The second parameter defines a string label for the tuple. Depending on the output schema, the label is included in the output or omitted.  |
+| __quantum__rt__array_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of an array and how many array elements it has. The second parameter defines a string label for the array. Depending on the output schema, the label is included in the output or omitted. |
+| __quantum__rt__result_record_output | `void(%Result*,i8*)` | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
+
+### Initialization
+
+*A [workstream](https://github.com/qir-alliance/qir-spec/issues/11) to specify
+how to initialize the execution environment is currently in progress. As part of
+that workstream, this paragraph and the listed initialization function(s) will
+be updated.*
+
+### Output Recording
+
+The program output of a quantum application is defined by a sequence of calls to
+runtime functions that record the values produced by the computation,
+specifically calls to the runtime functions ending in `record_output` listed in
+the table [above](#runtime-functions). In the case of the Base Profile, these
+calls are contained within the final block of the entry point function, i.e. the
+block that terminates in a return instruction.
+
+For all output recording functions, the `i8*` argument must be a non-null
+pointer to a global constant that contains a null-terminated string. A backend
+may ignore that argument if it guarantees that the order of the recorded output
+matches the order defined by the entry point. Conversely, certain output schemas
+do not require the recorded output to be listed in a particular order. For those
+schemas, the `i8*` argument serves as a label that permits the compiler or tool
+that generated the labels to reconstruct the order intended by the program.
+[Compiler frontends](https://en.wikipedia.org/wiki/Compiler#Front_end) must
+always generate these labels in such a way that the bitcode does not depend on
+the output schema; while choosing how to best label the program output is up to
+the frontend, the choice of output schema on the other hand is up to the
+backend. A backend may reject a program as invalid or fail execution if a label
+is missing.
+
+Both the labeling schema and the output schema are identified by a metadata
+entry in the produced output. For the [output schema](../output_schemas/), that
+identifier matches the one listed in the corresponding specification. The
+identifier for the labeling schema, on the other hand, is defined by the value
+of the `"output_labeling_schema"` attribute attached to the entry point.
 
 ## Data Types and Values
 
@@ -389,76 +405,67 @@ result usage:
   documentation](https://llvm.org/docs/LangRef.html#function-attributes)
   regarding how to use the `writeonly` attribute.
 
-## Quantum Instruction Set
+## Attributes
 
-For a quantum instruction set to be fully compatible with the Base Profile, it
-must satisfy the following two requirements:
+The following custom attributes must be attached to the entry point function:
 
-- All functions must return void; the Base Profile does not permit to call
-  functions that return a value. Functions that measure qubits must take the
-  qubit pointer(s) as well as the result pointer(s) as arguments.
+- An attribute named `"entry_point"` identifying the function as the starting
+  point of a quantum program
+- An attribute named `"qir_profiles"` with the value `"base_profile"`
+  identifying the profile the entry point has been compiled for
+- An attribute named `"output_labeling_schema"` with an arbitrary string value
+  that identifies the schema used by a [compiler
+  frontend](https://en.wikipedia.org/wiki/Compiler#Front_end) that produced the
+  IR to label the recorded output
+- An attribute named `"required_num_qubits"` indicating the number of qubits
+  used by the entry point
+- An attribute named `"required_num_results"` indicating the maximal number of
+  measurement results that need to be stored while executing the entry point
+  function
 
-- Functions that perform a measurement of one or more qubit(s) must be marked
-  with an custom function attribute named `irreversible`.
+Optionally, additional attributes may be attached to the entry point. Any custom
+function attributes attached to the entry point should be reflected as metadata
+in the program output; this includes both mandatory and optional attributes but
+not parameter attributes or return value attributes. This in particular implies
+that the [labeling schema](#output-recording) used in the recorded output can be
+identified by looking at the metadata in the produced output. See the
+specification of the [output schemas](../output_schemas/) for more information
+about how metadata is represented in the output schema.
 
-- Parameters of type `%Result*` must be `writeonly` parameters; only the runtime
-  function `__quantum__rt__result_record_output` used for [output
-  recording](#output-recording) may read a measurement result.
+Custom function attributes will show up as part of an [attribute
+group](https://releases.llvm.org/13.0.1/docs/LangRef.html#attrgrp) in the IR.
+Attribute groups are numbered in such a way that they can be easily referenced
+by multiple function definitions or global variables. Consumers of Base Profile
+compliant programs must not rely on a particular numbering, but instead look for
+the function to which an attribute with the name `"entry_point"` is attached to
+determine which one to invoke when the program is launched.
 
-For more information about the relation between a profile specification and the
-quantum instruction set we refer to the paragraph on [Bullet 1](#base-profile)
-in the introduction of this document. For more information about how and when
-the QIS is resolved, as well as recommendations for front- and backend
-developers, we refer to the document on [compilation stages and
-targeting](../Compilation_And_Targeting.md).
+Both the `"entry_point"` attribute and the `"output_labeling_schema"` attribute
+can only be attached to a function definition; they are invalid on a function
+that is declared but not defined. For the Base Profile, this implies that they
+can occur only in one place.
 
-## Runtime Functions
+Within the restrictions imposed by the Base Profile, the number of qubits that
+are needed to execute the quantum program must be known at compile time. This
+number is captured in the form of the `"required_num_qubits"` attribute attached
+to the entry point. The value of the attribute must be the string representation
+of a non-negative 64-bit integer constant.
 
-The following runtime functions must be supported by all backends, and are the
-only runtime functions that may be used as part of a Base Profile compliant
-program:
+Similarly, the number of measurement results that need to be stored when
+executing the entry point function is captured by the `"required_num_results"`
+attribute. Since qubits cannot be used after measurement, in the case of the
+Base Profile, this value is usually equal to the number of measurement results
+in the program output.
 
-| Function                            | Signature            | Description                                                                                                                                                                                                                                                  |
-| :---------------------------------- | :------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__initialize           | `void(i8*)`          | Initializes the execution environment. Sets all qubits to a zero-state if they are not dynamically managed.                                                                                                                                                  |
-| __quantum__rt__tuple_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of a tuple and how many tuple elements it has. The second parameter defines a string label for the tuple. Depending on the output schema, the label is included in the output or omitted.  |
-| __quantum__rt__array_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of an array and how many array elements it has. The second parameter defines a string label for the array. Depending on the output schema, the label is included in the output or omitted. |
-| __quantum__rt__result_record_output | `void(%Result*,i8*)` | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
-
-### Initialization
-
-A workstream to specify how to initialize the execution environment is currently
-in progress. As part of that workstream, this paragraph and the listed
-initialization function(s) will be updated.
-
-### Output Recording
-
-The program output of a quantum application is defined by a sequence of calls to
-runtime functions that record the values produced by the computation,
-specifically calls to the runtime functions ending in `record_output` listed in
-the table [above](#runtime-functions). In the case of the Base Profile, these
-calls are contained within the final block of the entry point function, i.e. the
-block that terminates in a return instruction.
-
-For all output recording functions, the `i8*` argument must be a non-null
-pointer to a global constant that contains a null-terminated string. A backend
-may ignore that argument if it guarantees that the order of the recorded output
-matches the order defined by the entry point. Conversely, certain output schemas
-do not require the recorded output to be listed in a particular order. For those
-schemas, the `i8*` argument serves as a label that permits the compiler or tool
-that generated the labels to reconstruct the order intended by the program.
-[Compiler frontends](https://en.wikipedia.org/wiki/Compiler#Front_end) must
-always generate these labels in such a way that the bitcode does not depend on
-the output schema; while choosing how to best label the program output is up to
-the frontend, the choice of output schema on the other hand is up to the
-backend. A backend may reject a program as invalid or fail execution if a label
-is missing.
-
-Both the labeling schema and the output schema are identified by a metadata
-entry in the produced output. For the [output schema](../output_schemas/), that
-identifier matches the one listed in the corresponding specification. The
-identifier for the labeling schema, on the other hand, is defined by the value
-of the `"output_labeling_schema"` attribute attached to the entry point.
+Beyond the entry point specific requirements related to attributes, custom
+attributes may optionally be attached to any of the declared functions. The
+`irreversible` attribute in particular impacts how the program logic in the
+entry point is structured, as described in the section about the [entry point
+definition](#function-body). Furthermore, the following [LLVM
+attributes](https://llvm.org/docs/LangRef.html#function-attributes) may be used
+according to their intended purpose on function declarations and call sites:
+`inlinehint`, `nofree`, `norecurse`, `readnone`, `readonly`, `writeonly`, and
+`argmemonly`.
 
 ## Module Flags Metadata
 
