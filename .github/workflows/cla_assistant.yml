@@ -24,7 +24,6 @@ jobs:
           path-to-signatures: 'signatures/${{ github.event.repository.name }}/cla.json'
           custom-allsigned-prcomment: 'All Contributors have signed the CLA.'
           custom-pr-sign-comment: 'I have read the Contributor License Agreement and I hereby accept the Terms.'
-          lock-pullrequest-aftermerge: true
           allowlist: user1,bot*
           # edit the path below (if needed) to point to the document containing the CLA that a contributor agrees to
           path-to-document: 'https://github.com/qir-alliance/qir-spec/blob/main/Contributor_License_Agreement.md' 
