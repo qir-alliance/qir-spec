@@ -22,6 +22,5 @@ about:
 - [Wikipedia entry](https://en.wikipedia.org/wiki/LLVM)
 - [Original publication](https://llvm.org/pubs/2004-01-30-CGO-LLVM.pdf)
 - [YouTube video](https://www.youtube.com/watch?v=J5xExRGaIIY)
-- [Interactive tutorial](https://freecompilercamp.org/llvm-ir/)
 - [Additional
   resources](https://lowlevelbits.org/how-to-learn-compilers-llvm-edition/)
