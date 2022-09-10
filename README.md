@@ -45,8 +45,10 @@ share your ideas and expertise.
 Contributions to the specification require you to agree to a [Contributor
 License Agreement (CLA)](Contributor_License_Agreement.md), declaring that you
 have the right to, and actually do, grant us the rights to use your
-contribution. For more information about how to grant and revoke your consent,
-see [here](Notices.md).
+contribution. A CLA bot will automatically add a comment with instructions for
+how to do so when contributing to this repository for the first time. If you
+have any questions or would like to revoke your consent, please contact
+[qiralliance@mail.com](mailto:qiralliance@mail.com).
 
 For more information about the development process for specifications under the
 QIR Alliance, please see the the governance policy available
