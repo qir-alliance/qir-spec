@@ -195,7 +195,7 @@ generate and use debug symbols.
 ## Entry Point Definition
 
 The bitcode contains the definition of the LLVM function that will be invoked
-when the program is executed, referred to as "entry point" in the rest of this
+when the program is executed, referred to as the module's "entry point" in the rest of this
 profile specification. The name of this function may be chosen freely, as long
 as it is a valid [global
 identifier](https://llvm.org/docs/LangRef.html#identifiers) according to the
