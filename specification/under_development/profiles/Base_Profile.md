@@ -133,8 +133,8 @@ body:                                     ; preds = %entry
 
 measurements:                             ; preds = %body
   ; calls to QIS functions that are irreversible
-  call void @__quantum__qis__mz__body(%Qubit* null, writeonly %Result* null)
-  call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 1 to %Qubit*), writeonly %Result* inttoptr (i64 1 to %Result*))
+  call void @__quantum__qis__mz__body(%Qubit* null, %Result* writeonly null)
+  call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 1 to %Qubit*), %Result* writeonly inttoptr (i64 1 to %Result*))
   br label %output
 
 output:                                   ; preds = %measurements
@@ -152,7 +152,7 @@ declare void @__quantum__qis__h__body(%Qubit*)
 
 declare void @__quantum__qis__cnot__body(%Qubit*, %Qubit*)
 
-declare void @__quantum__qis__mz__body(%Qubit*, writeonly %Result*) #1
+declare void @__quantum__qis__mz__body(%Qubit*, %Result* writeonly) #1
 
 ; declarations of runtime functions for initialization and output recording
 
