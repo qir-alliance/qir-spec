@@ -453,7 +453,7 @@ of a non-negative 64-bit integer constant.
 
 Similarly, the number of measurement results that need to be stored when
 executing the entry point function is captured by the `"required_num_results"`
-attribute. Since qubits cannot be used after measurement, in the case of the
+attribute. Since qubits cannot be used after measurement in the case of the
 Base Profile, this value is usually equal to the number of measurement results
 in the program output.
 
