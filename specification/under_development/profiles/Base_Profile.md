@@ -212,7 +212,7 @@ blocks](https://en.wikipedia.org/wiki/Basic_block), connected by an
 unconditional branching that terminates a block and defines the next block to
 execute, i.e., its successor. Execution starts at the entry block and follows
 the [control flow graph](https://en.wikipedia.org/wiki/Control-flow_graph)
-defined by the block terminators; block names/block identifiers may be chosen
+defined by the block terminators. Block names/block identifiers may be chosen
 arbitrarily, and the order in which blocks are listed in the function definition
 may deviate from the [example above](#program-structure). The final block is
 terminated by a `ret` instruction to exit the function and return the exit code.
