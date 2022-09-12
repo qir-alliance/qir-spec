@@ -470,8 +470,8 @@ according to their intended purpose on function declarations and call sites:
 ## Module Flags Metadata
 
 The following [module
-flags](https://llvm.org/docs/LangRef.html#module-flags-metadata) must be added
-to the QIR bitcode:
+flags](https://llvm.org/docs/LangRef.html#module-flags-metadata) must be present
+within the QIR bitcode:
 
 - a flag with the string identifier `"qir_major_version"` that contains a
   constant value of type `i32`
