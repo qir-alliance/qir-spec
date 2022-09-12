@@ -55,7 +55,7 @@ The QIR specification and its profiles describe a mechanism to accurately
 reflect program intent with regard to program output. The Base Profile
 specification requires explicitly defining program output by expressing which
 values/measurements are returned by the program and in which order. How to
-express this is defined in the section on
+express this is defined in the section on [output recording](#output-recording).
 
 While it is sufficient for the QPU to do a final measurement of all qubits in a
 predefined order at the end of the program, only the selected subset will be
