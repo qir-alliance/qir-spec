@@ -346,7 +346,7 @@ following:
 
 - Call arguments must be constant values, and `inttoptr` casts as well as
   `getelementptr` instructions must be inlined into a call instruction.
-- It is not possible to express classical computations, such as, e.g., adding
+- It is not possible to express classical computations, such as adding
   two double values, as part of a Base Profile compliant program.
 
 Constants of any type are permitted as part of a function call. What data types
