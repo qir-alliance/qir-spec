@@ -51,12 +51,11 @@ applying quantum instructions dependent on measurement outcomes.
 
 **Bullet 3: Program output** <br />
 
-The specification of QIR and all its profiles needs to permit to accurately
-reflect the program intent. This includes being able to define and customize the
-program output. The Base Profile specification hence requires explicitly
-expressing which values/measurements are returned by the program and in which
-order. How to express this is defined in the section on [output
-recording](#output-recording).
+The QIR specification and its profiles describe a mechanism to accurately
+reflect program intent with regard to program output. The Base Profile
+specification requires explicitly defining program output by expressing which
+values/measurements are returned by the program and in which order. How to
+express this is defined in the section on
 
 While it is sufficient for the QPU to do a final measurement of all qubits in a
 predefined order at the end of the program, only the selected subset will be
@@ -195,9 +194,9 @@ generate and use debug symbols.
 ## Entry Point Definition
 
 The bitcode contains the definition of the LLVM function that will be invoked
-when the program is executed, referred to as the module's "entry point" in the rest of this
-profile specification. The name of this function may be chosen freely, as long
-as it is a valid [global
+when the program is executed, referred to as the module's "entry point" in the
+rest of this profile specification. The name of this function may be chosen
+freely, as long as it is a valid [global
 identifier](https://llvm.org/docs/LangRef.html#identifiers) according to the
 LLVM standard. The entry point is identified by a custom function attribute; the
 section on [attributes](#attributes) defines which attributes must be attached
@@ -346,8 +345,8 @@ following:
 
 - Call arguments must be constant values, and `inttoptr` casts as well as
   `getelementptr` instructions must be inlined into a call instruction.
-- It is not possible to express classical computations, such as adding
-  two double values, as part of a Base Profile compliant program.
+- It is not possible to express classical computations, such as adding two
+  double values, as part of a Base Profile compliant program.
 
 Constants of any type are permitted as part of a function call. What data types
 occur in the program hence depends on what QIS functions are used in addition to
@@ -377,10 +376,9 @@ Qubits and result values are represented as opaque pointers in the bitcode,
 which may only ever be dereferenced as part a runtime function implementation.
 In general, the QIR specification distinguishes between two kinds of pointers
 for representing a qubit or result value, as explained in more detail
-[here](../Execution.md), and either one, though not both, may be used
-throughout a bitcode file. A [module flag](#module-flags-metadata) in the
-bitcode indicates which kinds of pointers are used to represent qubits and
-result values.
+[here](../Execution.md), and either one, though not both, may be used throughout
+a bitcode file. A [module flag](#module-flags-metadata) in the bitcode indicates
+which kinds of pointers are used to represent qubits and result values.
 
 The first kind of pointer points to a valid memory location that is managed
 dynamically during program execution, meaning the necessary memory is allocated
@@ -453,9 +451,9 @@ of a non-negative 64-bit integer constant.
 
 Similarly, the number of measurement results that need to be stored when
 executing the entry point function is captured by the `"required_num_results"`
-attribute. Since qubits cannot be used after measurement in the case of the
-Base Profile, this value is usually equal to the number of measurement results
-in the program output.
+attribute. Since qubits cannot be used after measurement in the case of the Base
+Profile, this value is usually equal to the number of measurement results in the
+program output.
 
 Beyond the entry point specific requirements related to attributes, custom
 attributes may optionally be attached to any of the declared functions. The
