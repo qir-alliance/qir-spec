@@ -377,7 +377,7 @@ Qubits and result values are represented as opaque pointers in the bitcode,
 which may only ever be dereferenced as part a runtime function implementation.
 In general, the QIR specification distinguishes between two kinds of pointers
 for representing a qubit or result value, as explained in more detail
-[here](../Execution.md), and either one, thought not both, may be used
+[here](../Execution.md), and either one, though not both, may be used
 throughout a bitcode file. A [module flag](#module-flags-metadata) in the
 bitcode indicates which kinds of pointers are used to represent qubits and
 result values.
