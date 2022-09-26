@@ -232,8 +232,8 @@ one to the other. Both blocks consist (only) of calls to [QIS
 functions](#quantum-instruction-set). Any number of such calls may be performed.
 To be compatible with the Base Profile the called functions must return void.
 Any arguments to invoke them must be inlined into the call itself; they must be
-constants or a pointer representing a [qubit or result
-value](#data-types-and-values).
+constants or pointers of [%Qubit* or %Result*
+type](#data-types-and-values).
 
 The only difference between these two blocks is that the first one contains only
 calls to functions that are *not* marked as irreversible by an attribute on the
