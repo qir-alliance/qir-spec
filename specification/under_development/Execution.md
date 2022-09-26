@@ -3,6 +3,8 @@
 TODO: define terminology (e.g. QPU), and add some diagrams for how a quantum
 backend conceptually looks like somewhere.
 
+entry point should not call another entry point
+
 ## QPU Resources
 
 The amount of available memory on a QPU is commonly still fairly limited, with
