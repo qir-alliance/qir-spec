@@ -5,11 +5,16 @@ of functionalities and capabilities that might be offered by a quantum backend.
 Like all profile specifications, this document is primarily intended for
 [compiler backend](https://en.wikipedia.org/wiki/Compiler#Back_end) authors as
 well as contributors to the [targeting
-stage](../Compilation_And_Targeting.md#targeting) of the QIR compiler.
+stage](../Compilation_And_Targeting.md#targeting) of the QIR compiler. For the
+sake of comprehensiveness, it is written to be largely self-contained. While the
+profile-specific restrictions defined in this document limit precisely what can
+be used as part of an [entry point function](#entry-point-definition), they do
+*not*, for example, limit how to call into such an entry point as part of a
+larger [application](#glossary).
 
-The Base Profile specifies the minimal requirements for executing a quantum
-program. Specifically, to execute a Base Profile compliant program, a backend
-needs to support the following:
+The Base Profile specifies the minimal requirements for executing a [quantum
+program](#glossary). Specifically, to execute a Base Profile compliant program,
+a backend needs to support the following:
 
 1. It can execute a sequence of quantum instructions that transform the quantum
    state.
@@ -74,8 +79,8 @@ running the program multiple times.
 
 ## Program Structure
 
-A Base Profile compliant program is defined in the form of a single LLVM bitcode
-file that contains the following:
+A Base Profile compliant program is defined in an LLVM bitcode file that
+contains (at least) the following:
 
 - the definitions of the opaque `Qubit` and `Result` types
 - global constants that store [string labels](#output-recording) needed for
@@ -194,19 +199,19 @@ generate and use debug symbols.
 ## Entry Point Definition
 
 The bitcode contains the definition of the LLVM function that will be invoked
-when the program is executed, referred to as the module's "entry point" in the
-rest of this profile specification. The name of this function may be chosen
-freely, as long as it is a valid [global
+when a [quantum program](#glossary) is executed, referred to as the module's
+"entry point" in the rest of this profile specification. The name of this
+function may be chosen freely, as long as it is a valid [global
 identifier](https://llvm.org/docs/LangRef.html#identifiers) according to the
-LLVM standard. The entry point is identified by a custom function attribute; the
+LLVM standard. Entry points are identified by a custom function attribute; the
 section on [attributes](#attributes) defines which attributes must be attached
-to the entry point function.
+to an entry point function.
 
-The entry point may not take any parameters and must return an exit code in the
-form of a 64-bit integer. The exit code `0` must be used to indicate a
-successful execution of the program.
+A Base Profile compliant entry point may not take any parameters and must return
+an exit code in the form of a 64-bit integer. The exit code `0` must be used to
+indicate a successful execution of the quantum program.
 
-The function body consists of four [basic
+The body of an entry point function consists of four [basic
 blocks](https://en.wikipedia.org/wiki/Basic_block), connected by an
 unconditional branching that terminates a block and defines the next block to
 execute, i.e., its successor. Execution starts at the entry block and follows
@@ -245,8 +250,8 @@ the exit code. The logic of this block can be done as part of post-processing
 after the computation on the QPU has completed, provided the results of the
 performed measurements are made available to the processor generating the
 requested output. More information about the [output
-recording](#output-recording) is detailed in the corresponding section about
-[runtime functions](#runtime-functions).
+recording](#output-recording) is detailed in the section about [runtime
+functions](#runtime-functions).
 
 ## Quantum Instruction Set
 
@@ -280,8 +285,8 @@ within a Base Profile compliant program:
 | LLVM Instruction         | Context and Purpose                                                                              | Rules for Usage                                                                                             |
 | :----------------------- | :----------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
 | `call`                   | Used within a basic block to invoke any one of the declared QIS functions and runtime functions. | May optionally be preceded by a [`tail` marker](https://llvm.org/docs/LangRef.html#call-instruction).       |
-| `br`                     | Used to branch from one block to another in the entry point function.                            | The branching must be unconditional and occurs as the final instruction of a block to jump to the next one. |
-| `ret`                    | Used to return the exit code of the program.                                                     | Must occur (only) as the last instruction of the final block in the entry point.                            |
+| `br`                     | Used to branch from one basic block to another.                                                  | The branching must be unconditional and occurs as the final instruction of a block to jump to the next one. |
+| `ret`                    | Used to return the exit code of the program.                                                     | Must occur (only) as the last instruction of the final block in an entry point.                             |
 | `inttoptr`               | Used to cast an `i64` integer value to either a `%Qubit*` or a `%Result*`.                       | May be used as part of a function call only.                                                                |
 | `getelementptr inbounds` | Used to create an `i8*` to pass a constant string for the purpose of labeling an output value.   | May be used as part of a call to an output recording function only.                                         |
 
@@ -310,26 +315,27 @@ be updated.*
 
 ### Output Recording
 
-The program output of a quantum application is defined by a sequence of calls to
-runtime functions that record the values produced by the computation,
-specifically calls to the runtime functions ending in `record_output` listed in
-the table [above](#runtime-functions). In the case of the Base Profile, these
-calls are contained within the final block of the entry point function, i.e. the
-block that terminates in a return instruction.
+The output of a quantum program is defined by a sequence of calls to runtime
+functions that record the values produced by the computation, specifically calls
+to the runtime functions ending in `record_output` listed in the table
+[above](#runtime-functions). In the case of the Base Profile, these calls are
+contained within the final block of an entry point function, i.e. the block that
+terminates in a return instruction.
 
 For all output recording functions, the `i8*` argument must be a non-null
-pointer to a global constant that contains a null-terminated string. A backend
-may ignore that argument if it guarantees that the order of the recorded output
-matches the order defined by the entry point. Conversely, certain output schemas
-do not require the recorded output to be listed in a particular order. For those
-schemas, the `i8*` argument serves as a label that permits the compiler or tool
-that generated the labels to reconstruct the order intended by the program.
-[Compiler frontends](https://en.wikipedia.org/wiki/Compiler#Front_end) must
-always generate these labels in such a way that the bitcode does not depend on
-the output schema; while choosing how to best label the program output is up to
-the frontend, the choice of output schema on the other hand is up to the
-backend. A backend may reject a program as invalid or fail execution if a label
-is missing.
+pointer to a global constant that contains a null-terminated string. A unique
+string must be used for each call to an output recording function within the
+same entry point. A backend may ignore that argument if it guarantees that the
+order of the recorded output matches the order defined by the quantum program.
+Conversely, certain output schemas do not require the recorded output to be
+listed in a particular order. For those schemas, the `i8*` argument serves as a
+label that permits the compiler or tool that generated the labels to reconstruct
+the order intended by the program. [Compiler
+frontends](https://en.wikipedia.org/wiki/Compiler#Front_end) must always
+generate these labels in such a way that the bitcode does not depend on the
+output schema; while choosing how to best label the program output is up to the
+frontend, the choice of output schema on the other hand is up to the backend. A
+backend may reject a program as invalid or fail execution if a label is missing.
 
 Both the labeling schema and the output schema are identified by a metadata
 entry in the produced output. For the [output schema](../output_schemas/), that
@@ -405,7 +411,7 @@ result usage:
 
 ## Attributes
 
-The following custom attributes must be attached to the entry point function:
+The following custom attributes must be attached to an entry point function:
 
 - An attribute named `"entry_point"` identifying the function as the starting
   point of a quantum program
@@ -422,7 +428,7 @@ The following custom attributes must be attached to the entry point function:
   function
 
 Optionally, additional attributes may be attached to the entry point. Any custom
-function attributes attached to the entry point should be reflected as metadata
+function attributes attached to an entry point should be reflected as metadata
 in the program output; this includes both mandatory and optional attributes but
 not parameter attributes or return value attributes. This in particular implies
 that the [labeling schema](#output-recording) used in the recorded output can be
@@ -435,16 +441,15 @@ group](https://releases.llvm.org/13.0.1/docs/LangRef.html#attrgrp) in the IR.
 Attribute groups are numbered in such a way that they can be easily referenced
 by multiple function definitions or global variables. Consumers of Base Profile
 compliant programs must not rely on a particular numbering, but instead look for
-the function to which an attribute with the name `"entry_point"` is attached to
-determine which one to invoke when the program is launched.
+functions to which an attribute with the name `"entry_point"` is attached to
+determine which function to invoke to execute a quantum program.
 
 Both the `"entry_point"` attribute and the `"output_labeling_schema"` attribute
 can only be attached to a function definition; they are invalid on a function
-that is declared but not defined. For the Base Profile, this implies that they
-can occur only in one place.
+that is declared but not defined.
 
 Within the restrictions imposed by the Base Profile, the number of qubits that
-are needed to execute the quantum program must be known at compile time. This
+are needed to execute a quantum program must be known at compile time. This
 number is captured in the form of the `"required_num_qubits"` attribute attached
 to the entry point. The value of the attribute must be the string representation
 of a non-negative 64-bit integer constant.
@@ -457,9 +462,10 @@ program output.
 
 Beyond the entry point specific requirements related to attributes, custom
 attributes may optionally be attached to any of the declared functions. The
-`irreversible` attribute in particular impacts how the program logic in the
-entry point is structured, as described in the section about the [entry point
-definition](#function-body). Furthermore, the following [LLVM
+`irreversible` attribute in particular impacts how the program logic in a Base
+Profile compliant entry point is structured, as described in the section about
+the [entry point definition](#entry-point-definition). Furthermore, the
+following [LLVM
 attributes](https://llvm.org/docs/LangRef.html#function-attributes) may be used
 according to their intended purpose on function declarations and call sites:
 `inlinehint`, `nofree`, `norecurse`, `readnone`, `readonly`, `writeonly`, and
@@ -518,3 +524,20 @@ pointers. The behavior of both module flags correspondingly must be set to
 usage](#qubit-and-result-usage), a Base Profile compliant program must not make
 use of dynamic qubit or result management. The value of both module flags hence
 must be set to `false`.
+
+## Glossary
+
+**Quantum application:** <br/>
+A piece of software that performs a specific task and/or solves a specific
+problem using both quantum and classical resources to do so. Executing a quantum
+application usually involves accessing quantum resources via a cloud service,
+and quantum resources are generally available only for parts of the computation;
+a QPU does not retain its state for the entirety of the application execution.
+
+**Quantum program:** <br/>
+A computation that includes both quantum and (potentially limited) classical
+logic. The program logic is defined in the form of an LLVM function marked as
+[entry point](https://en.wikipedia.org/wiki/Entry_point) by an attribute. Both
+classical and quantum processors executing the program retain their state
+throughout its execution, such that it is possible to access and (repeatedly)
+transfer values/data between different processors as part of the computation.
