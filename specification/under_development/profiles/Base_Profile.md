@@ -258,7 +258,7 @@ functions](#runtime-functions).
 For a quantum instruction set to be fully compatible with the Base Profile, it
 must satisfy the following three requirements:
 
-- All functions must return void; the Base Profile does not permit to call
+- All functions must return `void`; the Base Profile does not permit to call
   functions that return a value. Functions that measure qubits must take the
   qubit pointer(s) as well as the result pointer(s) as arguments.
 
