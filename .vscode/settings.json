@@ -1,0 +1,14 @@
+{
+    "cSpell.words": [
+        "argmemonly",
+        "getelementptr",
+        "inlinehint",
+        "inttoptr",
+        "nofree",
+        "norecurse",
+        "preds",
+        "readnone",
+        "readonly",
+        "writeonly"
+    ]
+}
