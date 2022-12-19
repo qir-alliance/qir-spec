@@ -489,7 +489,7 @@ These flags are attached as `llvm.module.flags` metadata to the module. They can
 be queried using the standard LLVM tools and follow the LLVM specification in
 behavior and purpose. Since module flags impact whether different modules can be
 merged and how, additional module flags may be added to the bitcode only if
-their behavior is set to `Warning`, `Append`, `AppendUnique`, `Max`, or `Min`.
+their behavior is set to `Warning`, `Append`, `AppendUnique`, or `Max`.
 It is at the discretion of the maintainers for various components in the QIR
 stack to discard module flags that are not explicitly required or listed as
 optional flags in the QIR specification.
