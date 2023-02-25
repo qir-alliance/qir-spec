@@ -46,7 +46,9 @@ END\t0
 
 ## Declared Runtime Functions 
 
-Each of these runtime functions are meant as signifiers to the provider as to how raw device results should be collected into the common output format. For simulation or future environments with full runtime support, these functions can be linked to implementations that directly perform the recording of output to the relevant stream. Each of these functions follow the naming pattern `__quantum__rt__*_record_output` where the initial part indicates the type of output to be recorded.  
+Each of these runtime functions are meant as signifiers to the provider as to how raw device results should be collected into the common output format. For simulation or future environments with full runtime support, these functions can be linked to implementations that directly perform the recording of output to the relevant stream. Each of these functions follow the naming pattern `__quantum__rt__*_record_output` where the initial part indicates the type of output to be recorded.
+
+Though the output format is labeled, the label parameters for the output recording calls may still provide values which are treated as if the QIR had specified the label as `i8* null`.
 
 ### Primitive Result Records 
 
@@ -174,7 +176,7 @@ END\t0
 
 ## Tuple Output 
 
-Recording tuple output works much the same way as array output, but with a different delimiter character in the final processed output. So, a QIR program that returns a tuple of a measurement result and calculated double value would end with: 
+Recording tuple output works much the same way as array output. So, a QIR program that returns a tuple of a measurement result and calculated double value would end with:
 
 ```llvm
 @0 = internal constant [4 x i8] c"0_t\00"

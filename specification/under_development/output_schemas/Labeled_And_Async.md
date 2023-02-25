@@ -1,7 +1,9 @@
 # Labeled Format for Asynchronous Output Generation
 
 The labeled format for asynchronous output generation is the same as the [ordered format][] with the following changes:
-  - `OUTPUT` records `TUPLE`, `ARRAY`, `RESULT`, `INT`, `BOOL`, and `DOUBLE` types have a fourth field indicating the label/tag of the record.
+  - `OUTPUT` records `TUPLE`, `ARRAY`, `RESULT`, `INT`, `BOOL`, and `DOUBLE` types have a fourth field indicating the label of the record.
+
+Labels are needed for reconstruction of asynchronous/parallel computation output and are assigned by the front-end QIR generator. Consumers of the QIR need to map the associated labeles for each recording call to its output entry label.
 
 Example log for a single shot:
 
@@ -33,25 +35,25 @@ Each of these runtime functions are meant as signifiers to the provider as to ho
 void @__quantum__rt__result_record_output(%Result*, i8*)
 ```
 
-Adds a measurement result to the generated output. It produces output records of exactly `"OUTPUT\tRESULT\t0\ttag"` or `"OUTPUT\tRESULT\t1\ttag"`. The second parameter defines a string label for the result value which is included in the output (`tag`).
+Adds a measurement result to the generated output. It produces output records of exactly `"OUTPUT\tRESULT\t0\tlabel"` or `"OUTPUT\tRESULT\t1\tlabel"`. The second parameter defines a string label for the result value which is included in the output (`label`).
 
 ```llvm
 void @__quantum__rt__bool_record_output(i1, i8*)
 ```
 
-produces output records of exactly `"OUTPUT\tBOOL\tfalse\ttag"` or `"OUTPUT\tBOOL\ttrue\ttag"`.  The second parameter defines a string label for the result value which is included in the output  (`tag`).
+produces output records of exactly `"OUTPUT\tBOOL\tfalse\tlabel"` or `"OUTPUT\tBOOL\ttrue\tlabel"`.  The second parameter defines a string label for the result value which is included in the output  (`label`).
 
 ```llvm
 void @__quantum__rt__integer_record_output(i64, i8*)
 ```
 
-produces output records of the format `"OUTPUT\tINT\tn\ttag"` where `n` is the string representation of the integer value, such as `"OUTPUT\tINT\t42\ttag"`.  The second parameter defines a string label for the result value which is included in the output (`tag`).
+produces output records of the format `"OUTPUT\tINT\tn\tlabel"` where `n` is the string representation of the integer value, such as `"OUTPUT\tINT\t42\tlabel"`.  The second parameter defines a string label for the result value which is included in the output (`label`).
 
 ```llvm
 void @__quantum__rt__double_record_output(double, i8*) 
 ```
 
-produces output records of the format `"OUTPUT\tDOUBLE\td\ttag"` where `d` is the string representation of the double value, such as `"OUTPUT\tDOUBLE\t3.14159\ttag"`. The second parameter defines a string label for the result value which is included in the output (`tag`).
+produces output records of the format `"OUTPUT\tDOUBLE\td\tlabel"` where `d` is the string representation of the double value, such as `"OUTPUT\tDOUBLE\t3.14159\tlabel"`. The second parameter defines a string label for the result value which is included in the output (`label`).
 
 ### Tuple Type Records
 
@@ -59,7 +61,7 @@ produces output records of the format `"OUTPUT\tDOUBLE\td\ttag"` where `d` is th
 void @__quantum__rt__tuple_record_output(i64, i8*)
 ```
 
-Inserts a marker in the generated output that indicates the start of a tuple and how many tuple elements it has. It produces output records of exactly `"OUTPUT\tTUPLE\tn\ttag"` where `n` is the string representation of the integer value, such as `"OUTPUT\tTUPLE\t4\ttag"`.  The second parameter defines a string label for the result value which is included in the output (`tag`).
+Inserts a marker in the generated output that indicates the start of a tuple and how many tuple elements it has. It produces output records of exactly `"OUTPUT\tTUPLE\tn\tlabel"` where `n` is the string representation of the integer value, such as `"OUTPUT\tTUPLE\t4\tlabel"`.  The second parameter defines a string label for the result value which is included in the output (`label`).
 
 ### Array Type Records
 
@@ -67,7 +69,7 @@ Inserts a marker in the generated output that indicates the start of a tuple and
 void @__quantum__rt__array_record_output(i64, i8*)
 ```
 
-Inserts a marker in the generated output that indicates the start of an array and how many array elements it has. It produces output records of exactly `"OUTPUT\tARRAY\tn\ttag"` where `n` is the string representation of the integer value, such as `"OUTPUT\tARRAY\t4\ttag"`.  The second parameter defines a string label for the result value which is included in the output (`tag`).
+Inserts a marker in the generated output that indicates the start of an array and how many array elements it has. It produces output records of exactly `"OUTPUT\tARRAY\tn\tlabel"` where `n` is the string representation of the integer value, such as `"OUTPUT\tARRAY\t4\tlabel"`.  The second parameter defines a string label for the result value which is included in the output (`label`).
 
 ## Examples
 
@@ -103,8 +105,7 @@ END\t0
 
 ## Measurement Result Array Output 
 
-For an array of measurement results (or classical register), the QIR program would include array start and end calls, with intervening result record calls (shown with static result allocation transformations performed): 
-
+For an array of measurement results (or classical values), the QIR program would include an array output recording call, where the first argument indicates the length of the array, followed by the corresponding output recording calls that represent each one of the array items (shown with static result allocation transformations performed):
 ```llvm
 @0 = internal constant [5 x i8] c"0_0a\00"
 @1 = internal constant [7 x i8] c"1_0a0r\00"
@@ -153,7 +154,7 @@ END\t0
 
 ## Tuple Output 
 
-Recording tuple output works much the same way as array output, but with a different delimiter character in the final processed output. So, a QIR program that returns a tuple of a measurement result and calculated double value would end with: 
+Recording tuple output works much the same way as array output. So, a QIR program that returns a tuple of a measurement result and calculated double value would end with:
 
 ```llvm
 @0 = internal constant [4 x i8] c"0_t\00"
