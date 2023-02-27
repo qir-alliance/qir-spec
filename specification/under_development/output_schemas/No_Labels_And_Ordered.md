@@ -126,7 +126,7 @@ END\t0
 
 ## Measurement Result Array Output 
 
-For an array of measurement results (or classical register), the QIR program would include array start and end calls, with intervening result record calls (shown with static result allocation transformations performed): 
+For an array of measurement results (or classical values), the QIR program would include an array output recording call, where the first argument indicates the length of the array, followed by the corresponding output recording calls that represent each one of the array items (shown with static result allocation transformations performed):
 
 ```llvm
 @0 = internal constant [5 x i8] c"0_0a\00"
