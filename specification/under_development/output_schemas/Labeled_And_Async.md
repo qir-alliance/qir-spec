@@ -3,7 +3,9 @@
 The labeled format for asynchronous output generation is the same as the [ordered format][] with the following changes:
   - `OUTPUT` records `TUPLE`, `ARRAY`, `RESULT`, `INT`, `BOOL`, and `DOUBLE` types have a fourth field indicating the label of the record.
 
-Labels are needed for reconstruction of asynchronous/parallel computation output and are assigned by the front-end QIR generator. Consumers of the QIR need to map the associated labeles for each recording call to its output entry label.
+Labels are needed for reconstruction of asynchronous/parallel computation output and are assigned by the front-end QIR generator. Order is not important for the `OUTPUT` entries within a `START`/`END` block; however, the responsibility of reconstructing the output based on the defined labeling scheme belongs to the party permforming the output labeling. The usage of `t0_0a` and `t2_2a` (and other values) are examples of a labeling scheme, and are only used as an example.
+
+Consumers of the QIR need to map the associated labeles for each recording call to its output entry label.
 
 Example log for a single shot:
 
