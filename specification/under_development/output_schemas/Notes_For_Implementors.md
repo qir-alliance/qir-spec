@@ -4,7 +4,6 @@
 
 The types chosen in the output schemas represent the base data types for expressing computation in the context of quantum processing. The `RESULT` and `BOOL` entries, while they could have been expressed as integers, describe core domain concepts that are unambiguous and clear in their intent.
 
-
 ## Examples
 
 ### Muliple Arrays
@@ -39,7 +38,7 @@ declare void @__quantum__rt__array_record_output(i64, i8*)
 
 declare void @__quantum__rt__result_record_output(%Result*, i8*)
 
-attributes #0 = { "entry_point" "num_required_qubits"="5" "num_required_results"="5" "output_labeling_schema" "qir_profiles"="custom" }
+attributes #0 = { "entry_point" "num_required_qubits"="5" "num_required_results"="5" "output_labeling_schema" "qir_profiles"="base_profile" }
 attributes #1 = { "irreversible" }
 
 !llvm.module.flags = !{!0, !1, !2, !3}
@@ -51,13 +50,14 @@ attributes #1 = { "irreversible" }
 ```
 
 Ouput:
-```
+
+```console
 START
 METADATA        entry_point
 METADATA        num_required_qubits     5
 METADATA        num_required_results    5
 METADATA        output_labeling_schema
-METADATA        qir_profiles    custom
+METADATA        qir_profiles    base_profile
 OUTPUT  ARRAY   2
 OUTPUT  RESULT  0
 OUTPUT  RESULT  0

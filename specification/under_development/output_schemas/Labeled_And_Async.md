@@ -1,19 +1,24 @@
 # Labeled Format for Asynchronous Output Generation
 
 The labeled format for asynchronous output generation is the same as the [ordered format][] with the following changes:
-  - `OUTPUT` records `TUPLE`, `ARRAY`, `RESULT`, `INT`, `BOOL`, and `DOUBLE` types have a fourth field indicating the label of the record.
+
+- `OUTPUT` records `TUPLE`, `ARRAY`, `RESULT`, `INT`, `BOOL`, and `DOUBLE` types have a fourth field indicating the label of the record.
+
+A [grammar](./Grammars.md#labeled-and-async) for this format is available which defines the structure and valid values.
 
 Labels are needed for reconstruction of asynchronous/parallel computation output and are assigned by the front-end QIR generator. Order is not important for the `OUTPUT` entries within a `START`/`END` block; however, the responsibility of reconstructing the output based on the defined labeling scheme belongs to the party permforming the output labeling. The usage of `t0_0a` and `t2_2a` (and other values) are examples of a labeling scheme, and are only used as an example.
 
-Consumers of the QIR need to map the associated labels for each recording call to its output entry label.
+Consumers of the QIR need to map the associated labels for each recording call to its output entry label. The [base profile required attributes](../profiles/Base_Profile.md#attributes) define the minimum set of attributes which will appear. Examples can be found in the [notes for implementors examples](./Notes_For_Implementors.md#examples).
 
 Example log for a single shot:
 
 ```log
 START
-METADATA\tmetadata1_name_only
-METADATA\tmetadata2_name\tmetadata2_value
-METADATA\tmetadata3_name\tmetadata3_value
+METADATA\tentry_point
+METADATA\tnum_required_qubits\t5
+METADATA\tnum_required_results\t5
+METADATA\toutput_labeling_schema
+METADATA\tqir_profiles\tbase_profile
 OUTPUT\tTUPLE\t2\t0_t
 OUTPUT\tARRAY\t4\t1_t0a
 OUTPUT\tRESULT\t0\t2_t0a0r
@@ -27,11 +32,11 @@ OUTPUT\tDOUBLE\t3.1415\t9_t1t2d
 END\t0
 ```
 
-## Declared Runtime Functions 
+## Declared Runtime Functions
 
-Each of these runtime functions are meant as signifiers to the provider as to how raw device results should be collected into the common output format. For simulation or future environments with full runtime support, these functions can be linked to implementations that directly perform the recording of output to the relevant stream. Each of these functions follow the naming pattern `__quantum__rt__*_record_output` where the initial part indicates the type of output to be recorded.  
+Each of these runtime functions are meant as signifiers to the provider as to how raw device results should be collected into the common output format. For simulation or future environments with full runtime support, these functions can be linked to implementations that directly perform the recording of output to the relevant stream. Each of these functions follow the naming pattern `__quantum__rt__*_record_output` where the initial part indicates the type of output to be recorded.
 
-### Primitive Result Records 
+### Primitive Result Records
 
 ```llvm
 void @__quantum__rt__result_record_output(%Result*, i8*)
@@ -52,7 +57,7 @@ void @__quantum__rt__integer_record_output(i64, i8*)
 produces output records of the format `"OUTPUT\tINT\tn\tlabel"` where `n` is the string representation of the integer value, such as `"OUTPUT\tINT\t42\tlabel"`.  The second parameter defines a string label for the result value which is included in the output (`label`).
 
 ```llvm
-void @__quantum__rt__double_record_output(double, i8*) 
+void @__quantum__rt__double_record_output(double, i8*)
 ```
 
 produces output records of the format `"OUTPUT\tDOUBLE\td\tlabel"` where `d` is the string representation of the double value, such as `"OUTPUT\tDOUBLE\t3.14159\tlabel"`. The second parameter defines a string label for the result value which is included in the output (`label`).
@@ -75,9 +80,9 @@ Inserts a marker in the generated output that indicates the start of an array an
 
 ## Examples
 
-### Basic Single Item Output 
+### Basic Single Item Output
 
-The QIR program would include a single call to the runtime function matching the type of the return value: 
+The QIR program would include a single call to the runtime function matching the type of the return value:
 
 ```llvm
 @0 = internal constant [3 x i8] c"0_i\00"
@@ -85,7 +90,7 @@ call void @__quantum__rt__integer_record_output(i64 %5, i8* getelementptr inboun
 ret void
 ```
 
-Such that the provider output for `3` shots would be: 
+Such that the provider output for `3` shots would be:
 
 ```log
 START
@@ -101,13 +106,14 @@ END\t0
 START
 METADATA\tmetadata1_name_only
 METADATA\tmetadata2_name\tmetadata2_value
-OUTPUT\tINT\t42\t0_i 
+OUTPUT\tINT\t42\t0_i
 END\t0
 ```
 
-## Measurement Result Array Output 
+## Measurement Result Array Output
 
 For an array of measurement results (or classical values), the QIR program would include an array output recording call, where the first argument indicates the length of the array, followed by the corresponding output recording calls that represent each one of the array items (shown with static result allocation transformations performed):
+
 ```llvm
 @0 = internal constant [5 x i8] c"0_0a\00"
 @1 = internal constant [7 x i8] c"1_0a0r\00"
@@ -122,7 +128,7 @@ call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 0 
 ret void
 ```
 
-This would produce provider output for `3` shots of the form: 
+This would produce provider output for `3` shots of the form:
 
 ```log
 START
@@ -154,7 +160,7 @@ OUTPUT\tRESULT\t1\t4_1a1r
 END\t0
 ```
 
-## Tuple Output 
+## Tuple Output
 
 Recording tuple output works much the same way as array output. So, a QIR program that returns a tuple of a measurement result and calculated double value would end with:
 
@@ -168,7 +174,7 @@ call void @__quantum__rt__double_record_output(double %3, i8* getelementptr inbo
 ret void
 ```
 
-Here producing a provider output for `3` shots of the form: 
+Here producing a provider output for `3` shots of the form:
 
 ```log
 START
@@ -199,7 +205,7 @@ END\t0
 
 ## Complex Output
 
-Combining the above techniques can allow for complex output with nested container types. For example, a program that returns an array of tuples each containing an integer and result might have QIR with a pattern of: 
+Combining the above techniques can allow for complex output with nested container types. For example, a program that returns an array of tuples each containing an integer and result might have QIR with a pattern of:
 
 ```llvm
 @0 = internal constant [4 x i8] c"0_a\00"
@@ -219,7 +225,7 @@ call void @__quantum__rt__result_record_output((%Result* nonnull inttoptr (i64 1
 ret void
 ```
 
-Such a QIR program would produce output for a single shot in the form: 
+Such a QIR program would produce output for a single shot in the form:
 
 ```log
 START
@@ -236,6 +242,4 @@ OUTPUT\tRESULT\t1\6_a1t1r
 END\t0
 ```
 
-[base profile]: ../profiles/Base_Profile.md
 [ordered format]: No_Labels_And_Ordered.md
- 
