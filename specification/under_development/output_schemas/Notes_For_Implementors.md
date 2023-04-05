@@ -4,6 +4,93 @@
 
 The types chosen in the output schemas represent the base data types for expressing computation in the context of quantum processing. The `RESULT` and `BOOL` entries, while they could have been expressed as integers, describe core domain concepts that are unambiguous and clear in their intent.
 
+### Output Type
+
+The effective ouput type for labeled output formats is determined by the labeling scheme employed as order is not guaranteed.
+
+For unlabeled output, the output recording calls define an inferred type based on the order in which the output recording calls are made. If the ouput is defined and held within a container type, `TUPLE` or `ARRAY`, then the shot's output type is that containers type.
+
+`TUPLE` is a container for values that may or may not have the same type. `ARRAY` is a container whose values are intended to be all of the same type. Having mixed values in an `ARRAY` entry has undefined behavior when being processed.
+
+For output that isn't contained within a container type, the inferred output type is a `TUPLE` whose values are the entries found.
+
+#### Unlabeled Examples
+
+The inferred type of the following is `TUPLE(ARRAY[RESULT], ARRAY[RESULT])`:
+
+```console
+START
+METADATA        entry_point
+METADATA        num_required_qubits     5
+METADATA        num_required_results    5
+METADATA        output_labeling_schema
+METADATA        qir_profiles    base_profile
+OUTPUT  ARRAY   2
+OUTPUT  RESULT  0
+OUTPUT  RESULT  0
+OUTPUT  ARRAY   3
+OUTPUT  RESULT  0
+OUTPUT  RESULT  0
+OUTPUT  RESULT  0
+END     0
+```
+
+The inferred type of the following is also `TUPLE(ARRAY[RESULT], ARRAY[RESULT])` as the `ARRAY` entries are wrapped in a container:
+
+```console
+START
+METADATA        entry_point
+METADATA        num_required_qubits     5
+METADATA        num_required_results    5
+METADATA        output_labeling_schema
+METADATA        qir_profiles    base_profile
+OUTPUT  TUPLE   2
+OUTPUT  ARRAY   2
+OUTPUT  RESULT  0
+OUTPUT  RESULT  0
+OUTPUT  ARRAY   3
+OUTPUT  RESULT  0
+OUTPUT  RESULT  0
+OUTPUT  RESULT  0
+END     0
+```
+
+The inferred type of the following is `TUPLE(ARRAY[RESULT], INT, DOUBLE)`:
+
+```console
+START
+METADATA        entry_point
+METADATA        num_required_qubits     5
+METADATA        num_required_results    5
+METADATA        output_labeling_schema
+METADATA        qir_profiles    base_profile
+OUTPUT  ARRAY   2
+OUTPUT  RESULT  0
+OUTPUT  RESULT  0
+OUTPUT  INT     5
+OUTPUT  DOUBLE  -0.5e3
+END     0
+```
+
+The inferred type of the following is `ARRAY[ARRAY[RESULT]]`:
+
+```console
+START
+METADATA        entry_point
+METADATA        num_required_qubits     5
+METADATA        num_required_results    5
+METADATA        output_labeling_schema
+METADATA        qir_profiles    base_profile
+OUTPUT  ARRAY   2
+OUTPUT  ARRAY   1
+OUTPUT  RESULT  0
+OUTPUT  ARRAY   3
+OUTPUT  RESULT  0
+OUTPUT  RESULT  0
+OUTPUT  RESULT  0
+END     0
+```
+
 ## Examples
 
 ### Muliple Arrays
