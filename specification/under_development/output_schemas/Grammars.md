@@ -77,7 +77,7 @@ float = ( 1*DIGIT / (*DIGIT "." 1*DIGIT) ) [exponent]
 
 exponent = "e" [sign] 1*DIGIT
 
-sign = ["+" / "-"]
+sign = "+" / "-"
 
 field = (escaped / non-escaped)
 
