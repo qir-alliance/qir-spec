@@ -23,7 +23,7 @@ Output for each shot is expected to have:
 - One or more `OUTPUT` records
 - One `END` record
 
-The `START` and `END` records are not part of the generated QIR but are written as part of an implementor's definition of a shot. The `START` record does not have any value entry. The `END` record has a value entry of `0`. The `RESULT` records will have a value corresponding to the runtime function called, either a result type record or a string representation of a supported primitive type. The `OUTPUT` records must appear in the same order as the calls in the QIR program.
+The `START` and `END` records are not part of the generated QIR but are written as part of an implementor's definition of a shot. The `START` record does not have any value entry. The `END` record has a value entry of `0`. The `OUTPUT` records will have a value corresponding to the runtime function called, either a result type record or a string representation of a supported primitive type. The `OUTPUT` records must appear in the same order as the calls in the QIR program.
 
 Example log for a single shot:
 
