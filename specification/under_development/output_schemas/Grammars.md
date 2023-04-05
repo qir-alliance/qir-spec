@@ -99,6 +99,9 @@ EOL = (LF / CR / CRLF)
 
 DQUOTE = %x22
 
+; Codes %x20 to %x7E are known as the ASCII printable characters
+; %x22, DQUOTE ("), is omitted here so that it can be the
+; used to define escaped text.
 TEXTDATA = %x20-21 / %x23-7E
 
 DIGIT = %x30-39
