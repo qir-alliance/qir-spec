@@ -571,51 +571,65 @@ LLVM standard. The entry point is identified by a custom function attribute; the
 section on [attributes](#attributes) defines which attributes must be attached
 to the entry point function.
 
-The entry point may not take any parameters and must return an exit code in the
+Unless a back-end opts into **Bullet 14** as a capability, then the 
+the entry point may not take any parameters and must return an exit code in the
 form of a 64-bit integer. The exit code `0` must be used to indicate a
-successful execution of the program.
+successful execution of the program. Exit code `1` can be used to illustrate
+that a real-time error occurred in the execution of the program dependent
+upon what features a back-end opts into when supporting an Adaptive Profile program.
+For example, with **Bullet 9/12** classical code may encounter errors like division
+by zero that can cause a an entry-point function.
 
-The function body consists of four [basic
-blocks](https://en.wikipedia.org/wiki/Basic_block), connected by an
-unconditional branching that terminates a block and defines the next block to
-execute, i.e., its successor. Execution starts at the entry block and follows
-the [control flow graph](https://en.wikipedia.org/wiki/Control-flow_graph)
-defined by the block terminators; block names/block identifiers may be chosen
-arbitrarily, and the order in which blocks are listed in the function definition
-may deviate from the [example above](#program-structure). The final block is
-terminated by a `ret` instruction to exit the function and return the exit code.
+The adaptive profile program makes no restrictions on the structure of basic blocks within
+the entry point function, other than that a block cannnot jump to a previously encountered block 
+in the control flow graph unless a back-end opts into **Bullet 13**. By default adaptive profile
+programs limit branching to only express forward branching and nested conditionality. Additionally,
+the only functions that can be called by default in the entry block are `qis` or `rt` functions defined
+in the instruction set and profile. This restriction is removed if a back-end opts into **Bullet 10/12**
+which allows for user-defined functions or the declaration of external functions that may be called that
+correspond to classical functions not defined as part of the profile.
 
-The entry block contains the necessary call(s) to initialize the execution
-environment. In particular, it must ensure that all used qubits are set to a
-zero-state. The section on [initialization functions](#initialization) defines
-how to do that.
+<!-- The function body consists of four [basic -->
+<!-- blocks](https://en.wikipedia.org/wiki/Basic_block), connected by an -->
+<!-- unconditional branching that terminates a block and defines the next block to -->
+<!-- execute, i.e., its successor. Execution starts at the entry block and follows -->
+<!-- the [control flow graph](https://en.wikipedia.org/wiki/Control-flow_graph) -->
+<!-- defined by the block terminators; block names/block identifiers may be chosen -->
+<!-- arbitrarily, and the order in which blocks are listed in the function definition -->
+<!-- may deviate from the [example above](#program-structure). The final block is -->
+<!-- terminated by a `ret` instruction to exit the function and return the exit code. -->
 
-The successor of the entry block continues with the main program logic. This
-logic is split into two blocks, separated again by an unconditional branch from
-one to the other. Both blocks consist (only) of calls to [QIS
-functions](#quantum-instruction-set). Any number of such calls may be performed.
-To be compatible with the Base Profile the called functions must return void.
-Any arguments to invoke them must be inlined into the call itself; they must be
-constants or a pointer representing a [qubit or result
-value](#data-types-and-values).
+<!-- The entry block contains the necessary call(s) to initialize the execution -->
+<!-- environment. In particular, it must ensure that all used qubits are set to a -->
+<!-- zero-state. The section on [initialization functions](#initialization) defines -->
+<!-- how to do that. -->
 
-The only difference between these two blocks is that the first one contains only
-calls to functions that are *not* marked as irreversible by an attribute on the
-respective function declaration, whereas the second one contains only calls to
-functions that perform irreversible actions, i.e. measurements of the quantum
-state. The section on the [quantum instruction set](#quantum-instruction-set)
-defines the requirement(s) regarding the use of the `irreversible` attribute,
-and the section on [qubit and result usage](#qubit-and-result-usage) details
-additional restrictions for using qubits and result values.
+<!-- The successor of the entry block continues with the main program logic. This -->
+<!-- logic is split into two blocks, separated again by an unconditional branch from -->
+<!-- one to the other. Both blocks consist (only) of calls to [QIS -->
+<!-- functions](#quantum-instruction-set). Any number of such calls may be performed. -->
+<!-- To be compatible with the Base Profile the called functions must return void. -->
+<!-- Any arguments to invoke them must be inlined into the call itself; they must be -->
+<!-- constants or a pointer representing a [qubit or result -->
+<!-- value](#data-types-and-values). -->
 
-The final block contains (only) the necessary calls to record the program
-output, as well as the `ret` instruction that terminates the block and returns
-the exit code. The logic of this block can be done as part of post-processing
-after the computation on the QPU has completed, provided the results of the
-performed measurements are made available to the processor generating the
-requested output. More information about the [output
-recording](#output-recording) is detailed in the corresponding section about
-[runtime functions](#runtime-functions).
+<!-- The only difference between these two blocks is that the first one contains only -->
+<!-- calls to functions that are *not* marked as irreversible by an attribute on the -->
+<!-- respective function declaration, whereas the second one contains only calls to -->
+<!-- functions that perform irreversible actions, i.e. measurements of the quantum -->
+<!-- state. The section on the [quantum instruction set](#quantum-instruction-set) -->
+<!-- defines the requirement(s) regarding the use of the `irreversible` attribute, -->
+<!-- and the section on [qubit and result usage](#qubit-and-result-usage) details -->
+<!-- additional restrictions for using qubits and result values. -->
+
+<!-- The final block contains (only) the necessary calls to record the program -->
+<!-- output, as well as the `ret` instruction that terminates the block and returns -->
+<!-- the exit code. The logic of this block can be done as part of post-processing -->
+<!-- after the computation on the QPU has completed, provided the results of the -->
+<!-- performed measurements are made available to the processor generating the -->
+<!-- requested output. More information about the [output -->
+<!-- recording](#output-recording) is detailed in the corresponding section about -->
+<!-- [runtime functions](#runtime-functions). -->
 
 ## Quantum Instruction Set
 
