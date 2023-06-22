@@ -1,8 +1,8 @@
 # Adaptive Profile Main Questions
 
-1. Adaptive Profile as a parametrized family of profiles (so different back-ends can mix and match features) up to some maximum profile?
-2. Enforcing non-termination in program structure or leave to back-ends to enforce non-termination?
-3. Extern functions that aren't part of the profile or the instruction set?
+1. Enforcing non-termination in program structure or leave to back-ends to enforce non-termination?
+2. Measurement representation (should it return an i1 directly or leave it void and have a function to read a %Result*)
+3. LLVM 15 upgrade and opaque pointers?
 
 # Adaptive Profile
 
@@ -38,7 +38,7 @@ instruction relies on the `i1` type a small amount of instructions implementing 
 5. Mid-circuit measurement (`quantum__qis__mz__body` or some other measurement function must be supported in the quantum instruction set).
 6. Conditional quantum operations in the instruction set that appear in the target basic blocks of a `br` instruction must be performed conditionally
    as with a classical LLVM program.
-7. A `qis` function to turn a measurement result into a boolean (`__quantum__qis__read_result__body`) must be in the instruction set.
+7. An `rt` function to turn a measurement result into a boolean (`__quantum__rt__read_result__body`) must be in the instruction set.
 
 
 Beyond this, a back-end can opt into one or more of the following additional capabilities to extend minimal
@@ -53,7 +53,7 @@ all of the following capabilities. The extended possible Adaptive Profile capabi
 12. Calling classical extern functions.
 13. Backwards branching.
    
-Thus, any back-end that supports capabilities 1-7 and as many of capabilities 8-14 that they desired
+Thus, any back-end that supports capabilities 1-7 and as many of capabilities 8-13 that they desired
 is considered as supporting Adaptive Profile programs.
 Ideally, tools should be able
 to indicate what capabilities of the Adaptive Profile a back-end is implementing
