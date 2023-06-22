@@ -251,6 +251,7 @@ should be able to cover all of the instructions in the list below for each type 
 | `ashr`           | Shifts a number the specified number of bits to the right. | Does sign extension.                                                                       |
 | `icmp`           | Performs signed or unsigned integer comparisons.           | Different options are: `eq`, `ne`, `slt`, `sgt`, `sle`, `sge`, `ult`, `ugt`, `ule`, `uge`. |
 | `zext`           | zero extend an iM to an iN where N>M           |  |
+| `xext`           | signed zero extend an iM to an iN where N>M           |  |
 |                  |                                                            |                                                                                            |
 
 Additionally if an Adaptive Profile program has support for floating point computations, the following instructions are supported:
