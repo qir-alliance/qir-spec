@@ -896,3 +896,17 @@ usage](#qubit-and-result-usage), an Adaptive Profile compliant program must not 
 use of dynamic qubit or result management. The value of both module flags hence
 must be set to `false`.
 
+For `i1`, `i64`, `f64`, ... values created by mid-circuit measurement, extern functions, or classical computations the assumption is that while a `%Result*`
+may point to a valid memory location in RAM or some other memory pool, by default, instructions performed on virtual registers with these data types corresponds to these values being stored
+in integer or floating registers when an instruction is executed. Before a virtual register is used in an instruction, there is no assumption that the value in the virtual register
+always corresponds to a physical register. For example, when considering
+register coloring, the virtual register, `%0`, in the QIR program may refer to a value stored in RAM for most of its lifetime before being loaded into a register when an instruction operates
+on `%0`.
+If this is not the case, then a back-end providing support for these instructions should indicate how/where these classical
+values are stored and what kind of constraints are placed on computations (for example, if the integer is stored directly on an FPGA and an add instruction is performed
+on an FPGA then a back-end should specify this).
+
+### LLVM 15 Opaque Pointers
+The transition to LLVM 15 means that the `%Result*` and `%Qubit*` representations of qubits and measurement results will no longer be valid.
+The changes to these pointer representations are orthogonal to the concerns of the adaptive profile other than that the signature of the measurement instruction
+must necessarily change for representing how measurement results are actually converted into `i1` values. See the discussion on this [upgrade](https://github.com/qir-alliance/qir-spec/issues/30)
