@@ -1,9 +1,3 @@
-# Adaptive Profile Main Questions
-
-1. Enforcing non-termination in program structure or leave to back-ends to enforce non-termination?
-2. Measurement representation (should it return an i1 directly or leave it void and have a function to read a %Result*)
-3. LLVM 15 upgrade and opaque pointers?
-
 # Adaptive Profile
 
 This profile defines a subset of the QIR specification to support a coherent set
@@ -77,7 +71,7 @@ sets may be incompatible with this (or other) profile(s). The section on the
 a QIS to be compatible with the Adaptive Profile. 
 More information about the role of
 the QIS, recommendations for front- and backend providers, as well as the
-distinction between runtime functions and quantum instructions can be found in
+distinction between run-time functions and quantum instructions can be found in
 [this document](../Instruction_Set.md).
 
 **Bullet 2: Measurements** <br/>
@@ -371,11 +365,11 @@ to functions in the instruction set. Consider the following program illustrating
   tail call void @__quantum__qis__rz__body(double %0, %Qubit* null)
 ```
 
-**Bullet 14: Calling classical runtime functions** <br />
-Allow for programs to have classical functions that live in the runtime. 
+**Bullet 14: Calling classical run-time functions** <br />
+Allow for programs to have classical functions that live in the run-time. 
 This assumes some amount of classical type/operation support from **Bullet 9**. 
 For example, we can consider certain classical subroutines being callable
-in the runtime for quantum error correction primitives or perhaps a random
+in the run-time for quantum error correction primitives or perhaps a random
 number generation for use in randomized benchmarking (or other) applications.
 
 ```llvm
@@ -444,7 +438,7 @@ file that contains the following:
   program logic
 - declarations of the [QIS functions](#quantum-instruction-set) used by the
   program
-- declarations of [runtime functions](#runtime-functions) used for
+- declarations of [run-time functions](#run-time-functions) used for
   initialization and output recording
 - one or more [attribute groups](#attributes) used to store information about
   the entry point, and optionally additional information about other function
@@ -662,7 +656,7 @@ correspond to classical functions not defined as part of the profile.
 <!-- performed measurements are made available to the processor generating the -->
 <!-- requested output. More information about the [output -->
 <!-- recording](#output-recording) is detailed in the corresponding section about -->
-<!-- [runtime functions](#runtime-functions). -->
+<!-- [run-time functions](#run-time-functions). -->
 
 ## Quantum Instruction Set
 
@@ -690,7 +684,7 @@ within an Adaptive Profile compliant program:
 
 | LLVM Instruction         | Context and Purpose                                                                              | Rules for Usage                                                                                             |
 | :----------------------- | :----------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
-| `call`                   | Used within a basic block to invoke any one of the declared QIS functions and runtime functions. | May optionally be preceded by a [`tail` marker](https://llvm.org/docs/LangRef.html#call-instruction).       |
+| `call`                   | Used within a basic block to invoke any one of the declared QIS functions and run-time functions. | May optionally be preceded by a [`tail` marker](https://llvm.org/docs/LangRef.html#call-instruction).       |
 | `br`                     | Used to branch from one block to another in the entry point function.                            | The branching must be unconditional and occurs as the final instruction of a block to jump to the next one. |
 | `ret`                    | Used to return the exit code of the program.                                                     | Must occur (only) as the last instruction of the final block in the entry point.                            |
 | `inttoptr`               | Used to cast an `i64` integer value to either a `%Qubit*` or a `%Result*`.                       | May be used as part of a function call only.                                                                |
@@ -701,10 +695,10 @@ The Adaptive Profile extends the base profile with additional instructions such 
 See also the section on [data types and values](#data-types-and-values) for more
 information about the creation and usage of LLVM values.
 
-## Runtime Functions
+## Run-Time Functions
 
-The following runtime functions must be supported by all backends, and are the
-only runtime functions that may be used as part of an Adaptive Profile compliant
+The following run-time functions must be supported by all backends, and are the
+only run-time functions that may be used as part of an Adaptive Profile compliant
 program:
 
 | Function                            | Signature            | Description                                                                                                                                                                                                                                                  |
@@ -715,14 +709,16 @@ program:
 | __quantum__rt__result_record_output | `void(%Result*,i8*)` | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
 | __quantum__rt__bool_record_output   | `void(i1,i8*)`  | Adds a boolean value to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                |
 
-The following output recording functions can appear if you opt into supporting real-time integer calculations:
+The following output recording functions can appear if you opt into supporting real-time integer or fixed point integer calculations. If you opt into a less standard width for any of these integer types, then use the same naming convention
+as the `i32` function below, but substitute `32` with the width of your type:
 
 | Function                            | Signature       | Description                                                                                                                                                                                                                    |
 |:------------------------------------|:----------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | __quantum__rt__int_record_output    | `void(i64,i8*)` | Adds an integer result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                              |
-| __quantum__rt__int32_record_output  | `void(i32,i8*)` | Adds an 32-bit integer result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                       |
+| __quantum__rt__i32_record_output  | `void(i32,i8*)` | Adds an 32-bit integer result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                       |
 
-The following output recording fucntions can appear if you opt into supporting real-time floating point calculations:
+The following output recording fucntions can appear if you opt into supporting real-time floating point or fixed floating point calculations. If you opt into a less standard width for any of these types, then use the same naming convention
+as the `f32` function below, but substitute `32` with the width of your type:
 | Function                            | Signature            | Description                                                                                                                                                                                                                                                  |
 |:------------------------------------|:---------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | __quantum__rt__double_record_output | `void(f64,i8*)` | Adds a double precision floating point value result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted. |
@@ -739,9 +735,9 @@ be updated.*
 ### Output Recording
 
 The program output of a quantum application is defined by a sequence of calls to
-runtime functions that record the values produced by the computation,
-specifically calls to the runtime functions ending in `record_output` listed in
-the table [above](#runtime-functions). In the case of the Adaptive Profile, these
+run-time functions that record the values produced by the computation,
+specifically calls to the run-time functions ending in `record_output` listed in
+the table [above](#run-time-functions). In the case of the Adaptive Profile, these
 calls are contained within the final block of the entry point function, i.e. the
 block that terminates in a return instruction. In the case that conditional
 data needs to be returned, then phi instructions are expected to be used to move
@@ -783,7 +779,7 @@ following:
 
 Constants of any type are permitted as part of a function call. What data types
 occur in the program hence depends on what QIS functions are used in addition to
-the runtime functions for initialization and output recording. Constant values
+the run-time functions for initialization and output recording. Constant values
 of type `i64` in particular may be used as part of calls to output recording
 functions; see the section on [output recording](#output-recording) for more
 details.
@@ -811,7 +807,7 @@ a back-end wants to support.
 ### Qubit and Result Usage
 
 Qubits and result values are represented as opaque pointers in the bitcode,
-which may only ever be dereferenced as part a runtime function implementation.
+which may only ever be dereferenced as part a run-time function implementation.
 In general, the QIR specification distinguishes between two kinds of pointers
 for representing a qubit or result value, as explained in more detail
 [here](../Execution.md), and either one, thought not both, may be used
@@ -821,7 +817,7 @@ result values.
 
 The first kind of pointer points to a valid memory location that is managed
 dynamically during program execution, meaning the necessary memory is allocated
-and freed by the runtime. The second kind of pointer merely identifies a qubit
+and freed by the run-time. The second kind of pointer merely identifies a qubit
 or result value by a constant integer encoded in the pointer itself. To be
 compliant with the Adpative Profile specification, the program must not make use of
 dynamic qubit or result management, meaning it must use only the second kind of
@@ -973,13 +969,13 @@ on an FPGA then a back-end should specify this).
 There are two forms of error messages that can occur as a result of submission of adaptive profile programs to a back-end:
 
 1. Compile-time error messages.
-2. Runtime error messages.
+2. Run-Time error messages.
 
-1. can occur when a back-end doesn't support some of the optional features from **Bullets 8-15**. In this case, the back-end should flag which features in the module 
+The compile-time error messages can occur when a back-end doesn't support some of the optional features from **Bullets 8-15**. In this case, the back-end should flag which features in the module 
 flags that were enabled that it does not support. Additionally, if there specific limitations on the support of certain features, like not supporting a particular instruction in
 **Bullet 9**, then the back-end should return an error message indicating the type of instruction that was not supported.
 
-2. can occur when opting into features such as the classical computations in **Bullets 9-11**. In there, if division or remainder instructions are supported, then a division by 0 error
+The run-time error messages can occur when opting into features such as the classical computations in **Bullets 9-11**. In there, if division or remainder instructions are supported, then a division by 0 error
 can occur. In the case that a shot executing the program encounters such a real-time error, then an error code should be reported for the shot in the QIR output format section for the 
 given shot.
 ### LLVM 15 Opaque Pointers
