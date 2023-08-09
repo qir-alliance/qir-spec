@@ -58,6 +58,8 @@ a back-end are not implementing are properly rejected.
 More details about each of the capabilities
 are outlined below.
 
+## Mandatory Capabilities
+
 **Bullet 1: Quantum transformations** <br/>
 
 The set of available instructions that transform the quantum state may vary
@@ -114,10 +116,10 @@ running the program multiple times.
 **Bullet 4: Conditional Forward branching** <br />
 The Adaptive Profile can allow for arbitrary forward branching with the restriction being that
 branch instructions cannot express programs that do not terminate. By default, support for
-backwards branching is not a requirement, though a back-end can opt into **13** to support
+backwards branching is not a requirement, though a back-end can opt into **Bullet 13** to support
 backwards branching.
 Moreover, it's allowable that gates are conditionally performed based on the
-control flow to various blocks based on **6**.
+control flow to various blocks based on ** Bullet 6**.
 Depending on the vector of capabilities defined by an Adaptive Profile program, 
 proving non-termination with a static analysis may impossible due to the capabilities
 forming a Turing-complete subset of LLVM. Thus, it is up to back-ends to enforce 
@@ -139,10 +141,8 @@ level language, and finally the `select` instruction conditionally evaluates to 
 value depending on the boolean input. A hardware provider can opt into supporting
 some subset of the above instructions (for example br and select but not switch, etc.).
 Other branch terminators that involve indirect jumps, function calls, or exception
-handling are not supported in Adaptive Profile programs.
-
-Additionally to keep branch instructions useful and without needing to generate unnecessary branching, the following operations must be supported on i1 types 
-(note that i1 support is  already required to make branch instructions possible) ```llvm and i1, i1``` ```llvm or i1, i11```.
+handling are not supported in Adaptive Profile programs. To keep branching from
+being unnecessarily
 
 **Bullet 5: Mid-circuit measurement** <br />
 The Adaptive Profile allows for mid-circuit measurement to be expressed in
@@ -193,6 +193,8 @@ forward branching and conditional quantum execution.
   br i1 %0, label %then, label %continue
 ```
 
+## Optional Capabilities
+
 **Bullet 8: Qubit resetting** <br />
 If a back-end opts into supporting this feature, then we can allow
 for an instruction to reset qubits back to the |0> state to be defined
@@ -206,7 +208,7 @@ call quantum__qis__h__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*)) ; arbitr
 ...
 ```
 
-This can be combined with the mid-circuit measurement (**Bullet 6**) to allow for the capability to re-use
+This can be combined with the mid-circuit measurement (**Bullet 5**) to allow for the capability to re-use
 the same qubit for computations, limiting the amount of qubits required
 for redundant calculations and also allowing for circuit width to bet reduced in favor of increasing depth:
 
@@ -226,7 +228,7 @@ can include integer arithmetic calcuations of a back-end specified width, floati
 point arithmetic calculations of a back-end specified width, or logical operations
 on integers of a back-end specified width.
 
-A back-end implementing classical and arithmetic logic on 64 bit integer and 1 bit boolean types
+A back-end implementing classical and arithmetic logic on 64-bit integer and 1-bit boolean types
 may have the following instructions they can use. Note that a backend providing support for operations on a type
 should be able to cover all of the instructions in the list below for each type that they opt into:
 
@@ -300,7 +302,7 @@ continue:
 ...
 ```
 
-Similarly, to **Bullet 9**, the phi instruction can be used to move classical floating point values between branches.
+Similarly to **Bullet 9**, the phi instruction can be used to move classical floating point values between branches.
 
 **Bullet 11: Classical fixed point computations computations** <br />
 If a backend has support for fixed point operations, they can also use the following intrinsics:
@@ -317,7 +319,7 @@ Additionally if an Adaptive Profile program has support for floating point compu
 | `llvm.udiv.fix.sat*`| Same as above but clamps to min/max number in scale.  |                             |
 |                  |                                   |                             |
 
-Similarly, to **Bullet 9**, the phi instruction can be used to move classical fixed point values between branches.
+Similarly to **Bullet 9**, the phi instruction can be used to move classical fixed point values between branches.
 
 
 **Bullet 12: User defined functions and function calls** <br />
@@ -354,8 +356,7 @@ define void @main() {
 }
 ```
 
-The only restriction on user functions and definitions is that you cannot have dynamically allocated %Qubit* 
-arguments, they must still be constant %Qubit* id's. 
+The only restriction on user functions and definitions is that you cannot have dynamically allocated `%Qubit*`  arguments, they must still be constant `%Qubit*` id's. 
 
 **Bullet 13: Dynamically computed or linked float angles for gates** <br />
 If a back-end opts into this feature, non-constant floating point calculations can be used as arguments
@@ -389,10 +390,10 @@ entry:
 ```
 
 **Bullet 15: Backwards branching.** <br />
-Release the restriction on backwards branching so that a more compact representation of
+Opting into this capability releases the restriction on backwards branching so that a more compact representation of
 of loops can be expressed in programs. Here is a program that implements a loop via a
 backwards branch that performs coinflips with a qubit and exits the program when the 
-coin flip produces a 1.
+coin flip produces a 1. It is up to a back-end to enforce that a program using backwards branching does not cause non-termination.
 
 ```llvm
 ; ModuleID = 'qat-link'
@@ -598,14 +599,13 @@ LLVM standard. The entry point is identified by a custom function attribute; the
 section on [attributes](#attributes) defines which attributes must be attached
 to the entry point function.
 
-Unless a back-end opts into **Bullet 14** as a capability, then the 
-the entry point may not take any parameters and must return an exit code in the
+An entry point function may not take any parameters and must either return void in case the program has no failure conditions or must return an exit code in the
 form of a 64-bit integer. The exit code `0` must be used to indicate a
 successful execution of the program. Exit code `1` can be used to illustrate
 that a real-time error occurred in the execution of the program dependent
 upon what features a back-end opts into when supporting an Adaptive Profile program.
 For example, with **Bullet 9/14** classical code may encounter errors like division
-by zero that can cause a an entry-point function.
+by zero that can cause an entry-point function to fail. In this case, programs must dynamically check failure conditions and return the exit code instead of failing outright.
 
 The adaptive profile program makes no restrictions on the structure of basic blocks within
 the entry point function, other than that a block cannnot jump to a previously encountered block 
@@ -613,8 +613,7 @@ in the control flow graph unless a back-end opts into **Bullet 13**. By default 
 programs limit branching to only express forward branching and nested conditionality. Additionally,
 the only functions that can be called by default in the entry block are `qis` or `rt` functions defined
 in the instruction set and profile. This restriction is removed if a back-end opts into **Bullet 12/14**
-which allows for user-defined functions or the declaration of external functions that may be called that
-correspond to classical functions not defined as part of the profile.
+which allows for user-defined functions or the declaration of external functions that may be called that correspond to classical functions not defined as part of the profile.
 
 <!-- The function body consists of four [basic -->
 <!-- blocks](https://en.wikipedia.org/wiki/Basic_block), connected by an -->
@@ -766,8 +765,8 @@ of the `"output_labeling_schema"` attribute attached to the entry point.
 ## Data Types and Values
 
 Within the Adaptive Profile, defining local variables is supported via
-reading mid-circuit measurements via (**Bullet 7**) or by classical instructions
-and classical extern calls (**Bullet 9** or **Bullet 12**) if a back-end supports
+reading mid-circuit measurements via (**Bullets 5/7**) or by classical instructions
+and classical extern calls (**Bullets 9-11** or **Bullet 12**) if a back-end supports
 these features. This implies the
 following:
 
@@ -799,8 +798,8 @@ attributes](#attributes). Since backends may look at the values of the
 a program can be executed, it is recommended to index qubits and results
 consecutively so that there are no unused values within these ranges.
 
-Due to **Bullet 7**, the `i1` type must be supported by Adpative profile back-ends
-along with some basic operations on the type.
+Due to **Bullet 7** being a mandatory capability, the `i1` type must be supported by Adpative profile back-ends and branching should be possible based on
+the i1 values.
 Other types like `i64` and `f64` are opt-in types depending on the capabilities
 a back-end wants to support.
 
@@ -835,7 +834,7 @@ result usage:
 
 - Results can only be used either as `writeonly` arguments, as arguments to
   [output recording functions](#output-recording), or as arguments to the 
-  measurement to boolean function. We refer to the [LLVM
+  measurement to boolean function (**Bullet 7**). We refer to the [LLVM
   documentation](https://llvm.org/docs/LangRef.html#function-attributes)
   regarding how to use the `writeonly` attribute.
 
@@ -981,4 +980,4 @@ given shot.
 ### LLVM 15 Opaque Pointers
 The transition to LLVM 15 means that the `%Result*` and `%Qubit*` representations of qubits and measurement results will no longer be valid.
 The changes to these pointer representations are orthogonal to the concerns of the adaptive profile other than that the signature of the measurement instruction
-must necessarily change for representing how measurement results are actually converted into `i1` values. See the discussion on this [upgrade](https://github.com/qir-alliance/qir-spec/issues/30)
+must necessarily change for representing how measurement results are actually converted into `i1` values. See the discussion on this [upgrade](https://github.com/qir-alliance/qir-spec/issues/30).
