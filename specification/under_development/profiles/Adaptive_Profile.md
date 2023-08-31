@@ -117,12 +117,15 @@ running the program multiple times.
 The Adaptive Profile can allow for arbitrary forward branching with the restriction being that
 branch instructions cannot express programs that do not terminate. By default, support for
 backwards branching is not a requirement, though a back-end can opt into **Bullet 13** to support
-backwards branching.
-Moreover, it's allowable that gates are conditionally performed based on the
-control flow to various blocks based on ** Bullet 6**.
-Depending on the vector of capabilities defined by an Adaptive Profile program, 
+backwards branching. In the case that **Bullet 13** is not opted into, then a simple static analysis
+can check for cycles in the control flow graph and reject any program with a cycle as invalid.
+Depending on the vector of capabilities defined by an Adaptive Profile program 
+(like when **Bullet 13** is opted into), 
 proving non-termination with a static analysis may impossible due to the capabilities
-forming a Turing-complete subset of LLVM. Thus, it is up to back-ends to enforce 
+forming a Turing-complete subset of LLVM. Therefore, it is a rule that a *valid* Adaptive Profile
+program should not contain non-terminating loops and that a front-end generating a program with a 
+non-terminating loop is generating a program that is not compliant with the Adaptive Profile specification.
+However, since there is no static analysis that can prove termination then it is up to back-ends to enforce 
 termination guarantees via a means of their choosing (for example a watchdog process
 with a timeout that will kill an executing Adaptive Profile program if it takes
 too much time). The following forms of branch instructions can be supported in the 
@@ -226,11 +229,14 @@ An Adaptive Profile program may include expressions for numeric and logical comp
 that don't involve allocating memory for aggregate data structures. These
 can include integer arithmetic calcuations of a back-end specified width, floating
 point arithmetic calculations of a back-end specified width, or logical operations
-on integers of a back-end specified width.
+on integers of a back-end specified width. Front-ends can use any integer width when generating code,
+and it is the responsiblity of a back-end to provide a compile-time error message if the front-end
+uses an integer width greater than that which the support.
 
-A back-end implementing classical and arithmetic logic on 64-bit integer and 1-bit boolean types
-may have the following instructions they can use. Note that a backend providing support for operations on a type
-should be able to cover all of the instructions in the list below for each type that they opt into:
+An adaptive profile compliant back-end implementing classical and arithmetic logic via integer and boolean types (`iN`)
+have the following instructions they can use. Note that a backend providing support for operations on a type
+should be able to cover all of the instructions in the list below for each type that they opt into. Also note that certain behaviors 
+of the back-end can differ from LLVM's defined semantics (for example, overflow may not be handled the same):
 
 | LLVM Instruction | Context and Purpose                                        | Note                                                                                       |
 |:-----------------|:-----------------------------------------------------------|:-------------------------------------------------------------------------------------------|
@@ -270,7 +276,8 @@ else:
 ```
 
 **Bullet 10: Classical floating point computations** <br />
-Additionally if an Adaptive Profile program has support for floating point computations, the following instructions are supported:
+Additionally if an Adaptive Profile program has support for floating point computations, the following instructions are supported. Note that
+many of the same caveats with respect to integer widths and overflow also apply to floating point values:
 | LLVM Instruction | Context and Purpose               | Note                        |
 |:-----------------|:----------------------------------|:----------------------------|
 | `fadd`           | Used to add two floats together.  |                             |
@@ -422,7 +429,7 @@ declare i1 @__quantum__rt__read_result__body(%Result*)
 
 declare void @__quantum__qis__h__body(%Qubit*)
 
-attributes #0 = { "entry_point" "requiredQubits"="1" "requiredResults"="1" }
+attributes #0 = { "entry_point" "required_num_qubits"="1" "required_num_results"="1" }
 ```
 
 
@@ -708,16 +715,14 @@ program:
 | __quantum__rt__result_record_output | `void(%Result*,i8*)` | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
 | __quantum__rt__bool_record_output   | `void(i1,i8*)`  | Adds a boolean value to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                |
 
-The following output recording functions can appear if you opt into supporting real-time integer or fixed point integer calculations. If you opt into a less standard width for any of these integer types, then use the same naming convention
-as the `i32` function below, but substitute `32` with the width of your type:
+The following output recording functions can appear if you opt into supporting real-time integer or fixed point integer calculations. If you opt into a less standard width than any of the options below, then it is up to the program to use a `zext` or `sext` instruction to get an `i32` or `i64` value as an argument to the call, even if this extension is not actually performed on the hardware and is just a means to make the program well-typed:
 
 | Function                            | Signature       | Description                                                                                                                                                                                                                    |
 |:------------------------------------|:----------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | __quantum__rt__int_record_output    | `void(i64,i8*)` | Adds an integer result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                              |
 | __quantum__rt__i32_record_output  | `void(i32,i8*)` | Adds an 32-bit integer result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                       |
 
-The following output recording fucntions can appear if you opt into supporting real-time floating point or fixed floating point calculations. If you opt into a less standard width for any of these types, then use the same naming convention
-as the `f32` function below, but substitute `32` with the width of your type:
+The following output recording fucntions can appear if you opt into supporting real-time floating point or fixed floating point calculations. If you opt into a less standard width than any of the options below, then it is up to the program to use a `zext` or `sext` instruction to get an `f32` or `f64` value as an argument to the call, even if this extension is not actually performed on the hardware and is just a means to make the program well-typed:
 | Function                            | Signature            | Description                                                                                                                                                                                                                                                  |
 |:------------------------------------|:---------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | __quantum__rt__double_record_output | `void(f64,i8*)` | Adds a double precision floating point value result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted. |
