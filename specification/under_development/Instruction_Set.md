@@ -12,7 +12,7 @@ which instructions are supported by the quantum processor. The profile and QIS
 can be defined/chosen mostly independently, with the caveat that a profile
 specification may contain restrictions that need to be satisfied for an QIS to
 be compatible (compliant) with that profile. To target a program to a specific
-backend hence requires selecting both a profiles and QIS that is supported by
+backend hence requires selecting both a profile and QIS that is supported by
 that backend, see also [Compilation and
 Targeting](Compilation_And_Targeting.md).
 

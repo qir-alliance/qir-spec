@@ -36,3 +36,4 @@ result management or not. To execute a given bitcode file, the backend needs to
 know how to process qubit and result pointers used by a program. This is
 achieved by storing metadata in the form of [module
 flags](https://llvm.org/docs/LangRef.html#module-flags-metadata) in the bitcode.
+

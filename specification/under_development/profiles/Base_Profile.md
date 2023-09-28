@@ -520,3 +520,20 @@ pointers. The behavior of both module flags correspondingly must be set to
 usage](#qubit-and-result-usage), a Base Profile compliant program must not make
 use of dynamic qubit or result management. The value of both module flags hence
 must be set to `false`.
+
+## Glossary
+
+**Quantum application:** <br/>
+A piece of software that performs a specific task and/or solves a specific
+problem using both quantum and classical resources to do so. Executing a quantum
+application usually involves accessing quantum resources via a cloud service,
+and quantum resources are generally available only for parts of the computation;
+a QPU does not retain its state for the entirety of the application execution.
+
+**Quantum program:** <br/>
+A computation that includes both quantum and (potentially limited) classical
+logic. The program logic is defined in the form of an LLVM function marked as
+[entry point](https://en.wikipedia.org/wiki/Entry_point) by an attribute. Both
+classical and quantum processors executing the program retain their state
+throughout its execution, such that it is possible to access and (repeatedly)
+transfer values/data between different processors as part of the computation.
