@@ -452,7 +452,9 @@ file that contains the following:
   the entry point, and optionally additional information about other function
   declarations
 - [module flags](#module-flags-metadata) that contain information that a
-  compiler or backend may need to process the bitcode.
+  compiler or backend may need to process the bitcode. These include module flags that
+  indicate which features of the adaptive profile are used. A back end can list which
+  module flags they support in the following [document](./Adaptive_Hardware/providers.md#back-end-support-for-adaptive-profile).
 
 The human readable LLVM IR for the bitcode can be obtained using standard [LLVM
 tools](https://llvm.org/docs/CommandGuide/llvm-dis.html). For the purpose of
@@ -566,7 +568,7 @@ attributes #0 = { "entry_point" "qir_profiles"="adaptive_profile" "output_labeli
 
 ; module flags
 
-!llvm.module.flags = !{!0, !1, !2, !3}
+!llvm.module.flags = !{!0, !1, !2, !3, !4, !5, !6, !7, !8, !9, !10, !11}
 
 !0 = !{i32 1, !"qir_major_version", i32 1}
 !1 = !{i32 7, !"qir_minor_version", i32 0}
