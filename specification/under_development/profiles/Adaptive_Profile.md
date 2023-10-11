@@ -8,7 +8,7 @@ well as contributors to the [targeting
 stage](../Compilation_And_Targeting.md#targeting) of the QIR compiler.
 
 
-The Adaptive Profile specifies supersets of the base profile that enables 
+The adaptive profile specifies supersets of the base profile that enables 
 control flow based on mid-circuit measurements and classical computations
 within coherence times. A back-end can support this profile by supporting
 a minimum set of features beyond the base profile and can opt-in for
@@ -19,13 +19,13 @@ compared to the full QIR specification.
 
 Being a superset of the base profile means that these 3 *capabilities* must be implemented (a few restrictions are removed from the base profile):
 
-1.  An Adaptive Profile program can execute a sequence of quantum instructions 
+1.  An adaptive profile program can execute a sequence of quantum instructions 
     that transform the quantum state.
-2.  An Adaptive Profile program can measure any qubit used in the program and thus 
+2.  An adaptive profile program can measure any qubit used in the program and thus 
 	a back-end must be able to measure the state of all qubits for use in program output generation.
-3.  An Adaptive Profile program must produce one of the specified [output schemas](../output_schemas/).
+3.  An adaptive profile program must produce one of the specified [output schemas](../output_schemas/).
 
-Minimum capability additions to the base profile an Adaptive Profile supporting back-end must be able to support:
+Minimum capability additions to the base profile an adaptive profile supporting back-end must be able to support:
 
 4. Conditional branching (the profile must support the `br` instruction assuming that the instruction only expresses non-loop control flow). Since support for the `br`
 instruction relies on the `i1` type a small amount of instructions implementing classical logic on `i1` types is also assumed.
@@ -36,8 +36,8 @@ instruction relies on the `i1` type a small amount of instructions implementing 
 
 
 Beyond this, a back-end can opt into one or more of the following additional capabilities to extend minimal
-Adaptive Profile compliance with additional features. A maximal Adaptive Profile program adds
-all of the following capabilities. The extended possible Adaptive Profile capabilities a program can express are:
+adaptive profile compliance with additional features. A maximal adaptive profile program adds
+all of the following capabilities. The extended possible adaptive profile capabilities a program can express are:
 
 8.  Qubit resetting (`__quantum__qis__reset__body` supported in the instruction set).
 9.  Classical computations on integers.
@@ -49,11 +49,11 @@ all of the following capabilities. The extended possible Adaptive Profile capabi
 15. Backwards branching.
    
 Thus, any back-end that supports capabilities 1-7 and as many of capabilities 8-15 that they desired
-is considered as supporting Adaptive Profile programs. An adaptive profile must indicate what 
+is considered as supporting adaptive profile programs. An adaptive profile must indicate what 
 additional capabilities it uses via module flags.
 Ideally, tools should be able
-to indicate what capabilities of the Adaptive Profile a back-end is implementing
-and should run a verification pass to ensure capabilities of the Adaptive Profile
+to indicate what capabilities of the adaptive profile a back-end is implementing
+and should run a verification pass to ensure capabilities of the adaptive profile
 a back-end are not implementing are properly rejected.
 More details about each of the capabilities
 are outlined below.
@@ -70,7 +70,7 @@ specific backend requires choosing a suitable profile and quantum instruction
 set (QIS). Both can be chosen largely independently, though certain instruction
 sets may be incompatible with this (or other) profile(s). The section on the
 [quantum instruction set](#quantum-instruction-set) defines the requirements for
-a QIS to be compatible with the Adaptive Profile. 
+a QIS to be compatible with the adaptive profile. 
 More information about the role of
 the QIS, recommendations for front- and backend providers, as well as the
 distinction between run-time functions and quantum instructions can be found in
@@ -91,16 +91,14 @@ qubits in the output, and perform the measurements at different points.
 
 There is no change to output specifications with respect to the base profile.
 
-The specification of QIR and all its profiles needs to permit to accurately
+The specification of QIR and all its profiles needs to accurately
 reflect the program intent. This includes being able to define and customize the
-program output. The Base Profile specification hence requires explicitly
+program output. The base profile  and adaptive profile specifications hence require explicitly
 expressing which values/measurements are returned by the program and in which
 order. How to express this is defined in the section on [output
 recording](#output-recording).
 
-While it is sufficient for the QPU to do a final measurement of all qubits in a
-predefined order at the end of the program, only the selected subset will be
-reflected in the produced output schema. A suitable output schema can be 
+A suitable output schema can be 
 generated in a post-processing step after the computation on the quantum
 processor itself has completed; customization of the program output hence does
 not require support on the QPU itself.
@@ -114,41 +112,39 @@ values in the requested order, such as, e.g., a histogram of all results when
 running the program multiple times.
 
 **Bullet 4: Conditional Forward branching** <br />
-The Adaptive Profile can allow for arbitrary forward branching with the restriction being that
+The adaptive profile can allow for arbitrary forward branching with the restriction being that
 branch instructions cannot express programs that do not terminate. By default, support for
 backwards branching is not a requirement, though a back-end can opt into **Bullet 13** to support
 backwards branching. In the case that **Bullet 13** is not opted into, then a simple static analysis
 can check for cycles in the control flow graph and reject any program with a cycle as invalid.
-Depending on the vector of capabilities defined by an Adaptive Profile program 
+Depending on the vector of capabilities defined by an adaptive profile program 
 (like when **Bullet 13** is opted into), 
 proving non-termination with a static analysis may impossible due to the capabilities
-forming a Turing-complete subset of LLVM. Therefore, it is a rule that a *valid* Adaptive Profile
+forming a Turing-complete subset of LLVM. Therefore, it is a rule that a *valid* adaptive profile
 program should not contain non-terminating loops and that a front-end generating a program with a 
-non-terminating loop is generating a program that is not compliant with the Adaptive Profile specification.
+non-terminating loop is generating a program that is not compliant with the adaptive profile specification.
 However, since there is no static analysis that can prove termination then it is up to back-ends to enforce 
 termination guarantees via a means of their choosing (for example a watchdog process
-with a timeout that will kill an executing Adaptive Profile program if it takes
+with a timeout that will kill an executing adaptive profile program if it takes
 too much time). The following forms of branch instructions can be supported in the 
 profile, but at least the basic `br` instruction must be supported from the list below :
 | LLVM Instruction         | Context and Purpose                                                                              | Rules for Usage                                                                                             |
 | :----------------------- | :----------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
-| `br i1 label %true_branch, label %false_branch`                   | Branch to one of two target blocks. | Cannot be used to implement a non-terminating loop.     |
-| `switch i64 %reg, label %otherwise [i64 0, %zero_branch i64 1, %one_branch ... i64 n, %n_branch]`                     | Used to branch to one of many objects based on an integer key.                            | Cannot be used to implement a non-terminating loop. |
-| `select i1 %0, i64 %true_reg, i64 %false_reg`                    | conditionally select the value in a register. | Cannot be used to implement a non-terminating loop.                            |
+| `br i1 label %true_branch, label %false_branch`                   | Branch to one of two target blocks. | Cannot be used to implement a non-terminating loop unless **Bullet 15** is opted into.     |
+| `switch i64 %reg, label %otherwise [i64 0, %zero_branch i64 1, %one_branch ... i64 n, %n_branch]`                     | Used to branch to one of many objects based on an integer key.                            | Cannot be used to implement a non-terminating loop unless **Bullet 15** is opted into. |
+| `select i1 %0, i64 %true_reg, i64 %false_reg`                    | conditionally select the value in a register. |  |
 
 
 
 The `br` instruction represents a usual if-then-else style jump dependent on 
 a boolean, whereas the `switch` instruction is similar to a switch statement in a high
 level language, and finally the `select` instruction conditionally evaluates to a register's
-value depending on the boolean input. A hardware provider can opt into supporting
-some subset of the above instructions (for example br and select but not switch, etc.).
+value depending on the boolean input. A hardware provider should provide support for all of the above instructions.
 Other branch terminators that involve indirect jumps, function calls, or exception
-handling are not supported in Adaptive Profile programs. To keep branching from
-being unnecessarily
+handling are not supported in adaptive profile programs. 
 
 **Bullet 5: Mid-circuit measurement** <br />
-The Adaptive Profile allows for mid-circuit measurement to be expressed in
+The adaptive profile allows for mid-circuit measurement to be expressed in
 programs by removing restrictions on a measurement operation (we will use measurement in Z
 represented by ```llvm __quantum__qis__mz__body``` in this document but other forms of measurement can also apply)
 function that state that measurements occur at the end of the quantum program
@@ -225,7 +221,7 @@ call quantum__qis__reset__body(%Qubit* null)
 ```
 
 **Bullet 9: Classical integer computations** <br />
-An Adaptive Profile program may include expressions for numeric and logical computations
+An adaptive profile program may include expressions for numeric and logical computations
 that don't involve allocating memory for aggregate data structures. These
 can include integer arithmetic calcuations of a back-end specified width, floating
 point arithmetic calculations of a back-end specified width, or logical operations
@@ -276,7 +272,7 @@ else:
 ```
 
 **Bullet 10: Classical floating point computations** <br />
-Additionally if an Adaptive Profile program has support for floating point computations, the following instructions are supported. Note that
+Additionally if an adaptive profile program has support for floating point computations, the following instructions are supported. Note that
 many of the same caveats with respect to integer widths and overflow also apply to floating point values:
 | LLVM Instruction | Context and Purpose               | Note                        |
 |:-----------------|:----------------------------------|:----------------------------|
@@ -313,8 +309,8 @@ Similarly to **Bullet 9**, the phi instruction can be used to move classical flo
 
 **Bullet 11: Classical fixed point computations computations** <br />
 If a backend has support for fixed point operations, they can also use the following intrinsics:
-Additionally if an Adaptive Profile program has support for floating point computations, the following instructions are supported:
-| LLVM Itrinsic | Context and Purpose               | Note                        |
+Additionally if an adaptive profile program has support for floating point computations, the following instructions are supported:
+| LLVM Intrinsic | Context and Purpose               | Note                        |
 |:-----------------|:----------------------------------|:----------------------------|
 | `llvm.smul.fix.*`| Used to multiply two signed fixed point numbers.  |                             |
 | `llvm.smul.fix.sat*`| Same as above but clamps to min/max number in scale.  |                             |
@@ -330,7 +326,7 @@ Similarly to **Bullet 9**, the phi instruction can be used to move classical fix
 
 
 **Bullet 12: User defined functions and function calls** <br />
-An Adaptive Profile program may use user defined functions and function calls.
+An adaptive profile program may use user defined functions and function calls.
 For example, consider that with user defined functions if a back-end has a `Cnot` gate in its instruction set,
 then a program that liberally uses `Swap` operations can define a function and call it as follows:
 ```llvm
@@ -435,7 +431,7 @@ attributes #0 = { "entry_point" "required_num_qubits"="1" "required_num_results"
 
 ## Program Structure
 
-An Adaptive Profile compliant program is defined in the form of a single LLVM bitcode
+An adaptive profile compliant program is defined in the form of a single LLVM bitcode
 file that contains the following:
 
 - the definitions of the opaque `Qubit` and `Result` types
@@ -465,7 +461,7 @@ visual differences in the human readable format depending on the LLVM version.
 These differences are irrelevant when using standard tools to load, manipulate,
 and/or execute bitcode.
 
-The code below illustrates how a simple program looks within an Adaptive Profile
+The code below illustrates how a simple program looks within an adaptive profile
 representation:
 
 ```llvm
@@ -612,7 +608,7 @@ An entry point function may not take any parameters and must either return void 
 form of a 64-bit integer. The exit code `0` must be used to indicate a
 successful execution of the program. Exit code `1` can be used to illustrate
 that a real-time error occurred in the execution of the program dependent
-upon what features a back-end opts into when supporting an Adaptive Profile program.
+upon what features a back-end opts into when supporting an adaptive profile program.
 For example, with **Bullet 9/14** classical code may encounter errors like division
 by zero that can cause an entry-point function to fail. In this case, programs must dynamically check failure conditions and return the exit code instead of failing outright.
 
@@ -668,7 +664,7 @@ which allows for user-defined functions or the declaration of external functions
 
 ## Quantum Instruction Set
 
-For a quantum instruction set to be fully compatible with the Adaptive Profile, it
+For a quantum instruction set to be fully compatible with the adaptive profile, it
 must satisfy the following three requirements:
 
 - All functions must return `void`, `iN`, or `fN` types (`i1` and `i64` for example). 
@@ -688,7 +684,7 @@ targeting](../Compilation_And_Targeting.md).
 ## Classical Instructions
 
 The following instructions are the LLVM instructions that were permitted
-within an Adaptive Profile compliant program:
+within a base profile compliant program:
 
 | LLVM Instruction         | Context and Purpose                                                                              | Rules for Usage                                                                                             |
 | :----------------------- | :----------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
@@ -698,7 +694,7 @@ within an Adaptive Profile compliant program:
 | `inttoptr`               | Used to cast an `i64` integer value to either a `%Qubit*` or a `%Result*`.                       | May be used as part of a function call only.                                                                |
 | `getelementptr inbounds` | Used to create an `i8*` to pass a constant string for the purpose of labeling an output value.   | May be used as part of a call to an output recording function only.                                         |
 
-The Adaptive Profile extends the base profile with additional instructions such as `br` (**Bullet 4**) and the additional opt-in instructions or intrinsics in (**Bullet 9/10/11**)
+The adaptive profile extends the base profile with additional instructions such as `br` (**Bullet 4**) and the additional opt-in instructions or intrinsics in (**Bullet 9/10/11**)
 
 See also the section on [data types and values](#data-types-and-values) for more
 information about the creation and usage of LLVM values.
@@ -706,7 +702,7 @@ information about the creation and usage of LLVM values.
 ## Run-Time Functions
 
 The following run-time functions must be supported by all backends, and are the
-only run-time functions that may be used as part of an Adaptive Profile compliant
+only run-time functions that may be used as part of an adaptive profile compliant
 program:
 
 | Function                            | Signature            | Description                                                                                                                                                                                                                                                  |
@@ -743,7 +739,7 @@ be updated.*
 The program output of a quantum application is defined by a sequence of calls to
 run-time functions that record the values produced by the computation,
 specifically calls to the run-time functions ending in `record_output` listed in
-the table [above](#run-time-functions). In the case of the Adaptive Profile, these
+the table [above](#run-time-functions). In the case of the adaptive profile, these
 calls are contained within the final block of the entry point function, i.e. the
 block that terminates in a return instruction. In the case that conditional
 data needs to be returned, then phi instructions are expected to be used to move
@@ -771,7 +767,7 @@ of the `"output_labeling_schema"` attribute attached to the entry point.
 
 ## Data Types and Values
 
-Within the Adaptive Profile, defining local variables is supported via
+Within the adaptive profile, defining local variables is supported via
 reading mid-circuit measurements via (**Bullets 5/7**) or by classical instructions
 and classical extern calls (**Bullets 9-11** or **Bullet 12**) if a back-end supports
 these features. This implies the
@@ -832,7 +828,7 @@ is bitcast to a pointer to match the expected type. How such an integer value is
 interpreted and specifically how it relates to hardware resources is ultimately
 up to the executing backend.
 
-Additionally, the Adaptive Profile imposes the following restrictions on qubit and
+Additionally, the adaptive profile imposes the following restrictions on qubit and
 result usage:
 
 - Qubits must not be used after they have been passed as arguments to a function
@@ -882,10 +878,10 @@ determine which one to invoke when the program is launched.
 
 Both the `"entry_point"` attribute and the `"output_labeling_schema"` attribute
 can only be attached to a function definition; they are invalid on a function
-that is declared but not defined. For the Adaptive Profile, this implies that they
+that is declared but not defined. For the adaptive profile, this implies that they
 can occur only in one place.
 
-Within the restrictions imposed by the Adaptive Profile, the number of qubits that
+Within the restrictions imposed by the adaptive profile, the number of qubits that
 are needed to execute the quantum program must be known at compile time. This
 number is captured in the form of the `"required_num_qubits"` attribute attached
 to the entry point. The value of the attribute must be the string representation
@@ -957,7 +953,7 @@ named `"dynamic_qubit_management"` and `"dynamic_result_management"`. Within the
 same bitcode module, there can never be a mixture of the two different kinds of
 pointers. The behavior of both module flags correspondingly must be set to
 `Error`. As detailed in the section on [qubit and result
-usage](#qubit-and-result-usage), an Adaptive Profile compliant program must not make
+usage](#qubit-and-result-usage), an adaptive profile compliant program must not make
 use of dynamic qubit or result management. The value of both module flags hence
 must be set to `false`.
 
@@ -966,10 +962,7 @@ may point to a valid memory location in RAM or some other memory pool, by defaul
 in integer or floating registers when an instruction is executed. Before a virtual register is used in an instruction, there is no assumption that the value in the virtual register
 always corresponds to a physical register. For example, when considering
 register coloring, the virtual register, `%0`, in the QIR program may refer to a value stored in RAM for most of its lifetime before being loaded into a register when an instruction operates
-on `%0`.
-If this is not the case, then a back-end providing support for these instructions should indicate how/where these classical
-values are stored and what kind of constraints are placed on computations (for example, if the integer is stored directly on an FPGA and an add instruction is performed
-on an FPGA then a back-end should specify this).
+on `%0`. Back-ends should specify any constraints on classical compute support on this [page](./Adaptive_Hardware/providers.md#back-end-support-for-adaptive-profile).
 
 ### Error Messages
 There are two forms of error messages that can occur as a result of submission of adaptive profile programs to a back-end:
@@ -985,6 +978,8 @@ The run-time error messages can occur when opting into features such as the clas
 can occur. In the case that a shot executing the program encounters such a real-time error, then an error code should be reported for the shot in the QIR output format section for the 
 given shot.
 ### LLVM 15 Opaque Pointers
-The transition to LLVM 15 means that the `%Result*` and `%Qubit*` representations of qubits and measurement results will no longer be valid.
+The transition of LLVM in LLVM 15 and on means that the `%Result*` and `%Qubit*` representations of qubits and measurement results will no longer be valid.
+Esablishing a baseline LLVM version is not the point of this workstream. After discussions around LLVM 15 and on support resolve, this spec will be updated on how to indicate an 
+adaptive profile program pre LLVM 15 and for LLVM 15 and on.
 The changes to these pointer representations are orthogonal to the concerns of the adaptive profile other than that the signature of the measurement instruction
 must necessarily change for representing how measurement results are actually converted into `i1` values. See the discussion on this [upgrade](https://github.com/qir-alliance/qir-spec/issues/30).
