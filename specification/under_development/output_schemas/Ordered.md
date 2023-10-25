@@ -133,11 +133,22 @@ END\t0
 
 ## Output Recording Functions
 
-These runtime functions determine how values should be collected to be emitted as output. For simulation or future environments with full runtime support, these functions can be linked to implementations that directly perform the recording of output to the relevant stream. Each of these functions follow the naming pattern `__quantum__rt__*_record_output` where the initial part indicates the type of output to be recorded.
+Calls to output recording functions determine what values should be emitted as output. For simulation or future environments with full runtime support, these functions can be linked to implementations that directly perform the recording of output to the relevant stream. Each of these functions follow the naming pattern `__quantum__rt__*_record_output` where the initial part indicates the type of output to be recorded.
 
-Though all the output recording functions have an `i8*` parameter representing a label, a `null` value may be passed when using the orderd output schema.
+Though all the output recording functions have an `i8*` parameter representing a label, a `null` value may be passed for programs which run on backends that use the ordered output schema. If a non `null` value is passed as a label to output recording functions, backends that use the ordered output schema must ignore it. Taking everything into account, backends that support the ordered output schema must accept the following two equivalent versions of a call to an output recording function:
 
-### Primitive Output Records
+**Passing a `null` label**
+```log
+call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 1 to %Result*), i8* null)
+```
+
+**Passing a non `null` label and ignoring it**
+```log
+@0 = internal constant [3 x i8] c"0_r\00"
+call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 1 to %Result*), i8* getelementptr inbounds ([3 x i8], [3 x i8]* @0, i32 0, i32 0))
+```
+
+### Primitive Output Recording Functions
 
 #### Result
 
@@ -171,7 +182,7 @@ void @__quantum__rt__double_record_output(double, i8*)
 
 Produces output records of the format `"OUTPUT\tDOUBLE\td"` where `d` is the string representation of the double value, such as `"OUTPUT\tDOUBLE\t3.14159"`
 
-### Tuple Output Records
+### Tuple
 
 ```llvm
 void @__quantum__rt__tuple_record_output(i64, i8*)
@@ -179,7 +190,7 @@ void @__quantum__rt__tuple_record_output(i64, i8*)
 
 Produces output records of the format `"OUTPUT\tTUPLE\tn"` where `n` is the string representation of the integer value, such as `"OUTPUT\tTUPLE\t4"`. This record indicates the start of a tuple and how many elements it has.
 
-### Array Output Records
+### Array
 
 ```llvm
 void @__quantum__rt__array_record_output(i64, i8*)
@@ -201,19 +212,27 @@ ret void
 The output for `3` shots would have the following form (using symbolic `METADATA` records):
 
 ```log
+HEADER\tschema_name\tordered
+HEADER\tschema_version\t1.0
 START
-METADATA\tmetadata1_name_only
-METADATA\tmetadata2_name\tmetadata2_value
+METADATA\tentry_point
+METADATA\tqir_profiles\tbase_profile
+METADATA\trequired_num_qubits\t5
+METADATA\trequired_num_results\t5
 OUTPUT\tINT\t42
 END\t0
 START
-METADATA\tmetadata1_name_only
-METADATA\tmetadata2_name\tmetadata2_value
+METADATA\tentry_point
+METADATA\tqir_profiles\tbase_profile
+METADATA\trequired_num_qubits\t5
+METADATA\trequired_num_results\t5
 OUTPUT\tINT\t41
 END\t0
 START
-METADATA\tmetadata1_name_only
-METADATA\tmetadata2_name\tmetadata2_value
+METADATA\tentry_point
+METADATA\tqir_profiles\tbase_profile
+METADATA\trequired_num_qubits\t5
+METADATA\trequired_num_results\t5
 OUTPUT\tINT\t42
 END\t0
 ```
@@ -234,9 +253,13 @@ ret void
 The output for `3` shots would have the following form (using symbolic `METADATA` records):
 
 ```log
+HEADER\tschema_name\tordered
+HEADER\tschema_version\t1.0
 START
-METADATA\tmetadata1_name_only
-METADATA\tmetadata2_name\tmetadata2_value
+METADATA\tentry_point
+METADATA\tqir_profiles\tbase_profile
+METADATA\trequired_num_qubits\t5
+METADATA\trequired_num_results\t5
 OUTPUT\tARRAY\t1
 OUTPUT\tRESULT\t0
 OUTPUT\tARRAY\t2
@@ -244,8 +267,10 @@ OUTPUT\tRESULT\t1
 OUTPUT\tRESULT\t1
 END\t0
 START
-METADATA\tmetadata1_name_only
-METADATA\tmetadata2_name\tmetadata2_value
+METADATA\tentry_point
+METADATA\tqir_profiles\tbase_profile
+METADATA\trequired_num_qubits\t5
+METADATA\trequired_num_results\t5
 OUTPUT\tARRAY\t1
 OUTPUT\tRESULT\t1
 OUTPUT\tARRAY\t2
@@ -253,8 +278,10 @@ OUTPUT\tRESULT\t1
 OUTPUT\tRESULT\t1
 END\t0
 START
-METADATA\tmetadata1_name_only
-METADATA\tmetadata2_name\tmetadata2_value
+METADATA\tentry_point
+METADATA\tqir_profiles\tbase_profile
+METADATA\trequired_num_qubits\t5
+METADATA\trequired_num_results\t5
 OUTPUT\tARRAY\t1
 OUTPUT\tRESULT\t0
 OUTPUT\tARRAY\t2
@@ -277,26 +304,31 @@ ret void
 The output for `3` shots would have the following form (using symbolic `METADATA` records):
 
 ```log
+HEADER\tschema_name\tordered
+HEADER\tschema_version\t1.0
 START
-METADATA\tmetadata1_name_only
-METADATA\tmetadata2_name\tmetadata2_value
-METADATA\tmetadata3_name\tmetadata3_value
+METADATA\tentry_point
+METADATA\tqir_profiles\tbase_profile
+METADATA\trequired_num_qubits\t5
+METADATA\trequired_num_results\t5
 OUTPUT\tTUPLE\t2
 OUTPUT\tRESULT\t0
 OUTPUT\tDOUBLE\t0.42
 END\t0
 START
-METADATA\tmetadata1_name_only
-METADATA\tmetadata2_name\tmetadata2_value
-METADATA\tmetadata3_name\tmetadata3_value
+METADATA\tentry_point
+METADATA\tqir_profiles\tbase_profile
+METADATA\trequired_num_qubits\t5
+METADATA\trequired_num_results\t5
 OUTPUT\tTUPLE\t2
 OUTPUT\tRESULT\t1
 OUTPUT\tDOUBLE\t0.42
 END\t0
 START
-METADATA\tmetadata1_name_only
-METADATA\tmetadata2_name\tmetadata2_value
-METADATA\tmetadata3_name\tmetadata3_value
+METADATA\tentry_point
+METADATA\tqir_profiles\tbase_profile
+METADATA\trequired_num_qubits\t5
+METADATA\trequired_num_results\t5
 OUTPUT\tTUPLE\t2
 OUTPUT\tRESULT\t0
 OUTPUT\tDOUBLE\t0.25
@@ -321,10 +353,13 @@ ret void
 The output for one shot would have the following form (using symbolic `METADATA` records):
 
 ```log
+HEADER\tschema_name\tordered
+HEADER\tschema_version\t1.0
 START
-METADATA\tmetadata1_name_only
-METADATA\tmetadata2_name\tmetadata2_value
-METADATA\tmetadata3_name\tmetadata3_value
+METADATA\tentry_point
+METADATA\tqir_profiles\tbase_profile
+METADATA\trequired_num_qubits\t5
+METADATA\trequired_num_results\t5
 OUTPUT\tARRAY\t2
 OUTPUT\tTUPLE\t2
 OUTPUT\tINT\t42
