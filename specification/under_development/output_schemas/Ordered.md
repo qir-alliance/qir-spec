@@ -148,9 +148,7 @@ call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 1 
 call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 1 to %Result*), i8* getelementptr inbounds ([3 x i8], [3 x i8]* @0, i32 0, i32 0))
 ```
 
-### Primitive Output Recording Functions
-
-#### Result
+### Result
 
 ```llvm
 void @__quantum__rt__result_record_output(%Result*, i8*)
@@ -158,7 +156,7 @@ void @__quantum__rt__result_record_output(%Result*, i8*)
 
 Produces output records that are exactly `"OUTPUT\tRESULT\t0"` or `"OUTPUT\tRESULT\t1"`, representing measurement results.
 
-#### Boolean
+### Boolean
 
 ```llvm
 void @__quantum__rt__bool_record_output(i1, i8*)
@@ -166,7 +164,7 @@ void @__quantum__rt__bool_record_output(i1, i8*)
 
 Produces output records that are exactly `"OUTPUT\tBOOL\tfalse"` or `"OUTPUT\tBOOL\ttrue"`.
 
-#### Integer
+### Integer
 
 ```llvm
 void @__quantum__rt__integer_record_output(i64, i8*)
@@ -174,7 +172,7 @@ void @__quantum__rt__integer_record_output(i64, i8*)
 
 Produces output records of the format `"OUTPUT\tINT\tn"` where `n` is the string representation of the integer value, such as `"OUTPUT\tINT\t42"`.
 
-#### Double
+### Double
 
 ```llvm
 void @__quantum__rt__double_record_output(double, i8*)
@@ -237,7 +235,7 @@ OUTPUT\tINT\t42
 END\t0
 ```
 
-## Measurement Result Array Output
+### Measurement Result Array Output
 
 For two arrays of measurement results, the QIR program contains array output recording calls where the first argument indicates the length of the array, followed by the corresponding output recording calls that represent each one of the array items (shown with static result allocation):
 
@@ -290,7 +288,7 @@ OUTPUT\tRESULT\t1
 END\t0
 ```
 
-## Tuple Output
+### Tuple Output
 
 Recording tuple output works much the same way as array output. So, a QIR program that returns a tuple of a measurement result and a double value uses the following output recording functions:
 
@@ -335,7 +333,7 @@ OUTPUT\tDOUBLE\t0.25
 END\t0
 ```
 
-## Complex Output
+### Complex Output
 
 Combining the above techniques can allow for complex output with nested container types. For example, a program that returns an array of tuples each containing an integer and result uses the following output recording functions:
 
