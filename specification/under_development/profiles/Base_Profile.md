@@ -413,27 +413,19 @@ result usage:
 The following custom attributes must be attached to an entry point function:
 
 - An attribute named `"entry_point"` identifying the function as the starting
-  point of a quantum program
+  point of a quantum program.
 - An attribute named `"qir_profiles"` with the value `"base_profile"`
-  identifying the profile the entry point has been compiled for
-- An attribute named `"output_labeling_schema"` with an arbitrary string value
-  that identifies the schema used by a [compiler
-  frontend](https://en.wikipedia.org/wiki/Compiler#Front_end) that produced the
-  IR to label the recorded output
+  identifying the profile the entry point has been compiled for.
 - An attribute named `"required_num_qubits"` indicating the number of qubits
-  used by the entry point
+  used by the entry point.
 - An attribute named `"required_num_results"` indicating the maximal number of
   measurement results that need to be stored while executing the entry point
-  function
+  function.
 
 Optionally, additional attributes may be attached to the entry point. Any custom
 function attributes attached to an entry point should be reflected as metadata
 in the program output; this includes both mandatory and optional attributes but
-not parameter attributes or return value attributes. This in particular implies
-that the [labeling schema](#output-recording) used in the recorded output can be
-identified by looking at the metadata in the produced output. See the
-specification of the [output schemas](../output_schemas/) for more information
-about how metadata is represented in the output schema.
+not parameter attributes or return value attributes.
 
 Custom function attributes will show up as part of an [attribute
 group](https://releases.llvm.org/13.0.1/docs/LangRef.html#attrgrp) in the IR.
@@ -443,8 +435,7 @@ compliant programs must not rely on a particular numbering, but instead look for
 functions to which an attribute with the name `"entry_point"` is attached to
 determine which function to invoke to execute a quantum program.
 
-Both the `"entry_point"` attribute and the `"output_labeling_schema"` attribute
-can only be attached to a function definition; they are invalid on a function
+The `"entry_point"` attribute can only be attached to a function definition; they are invalid on a function
 that is declared but not defined.
 
 Within the restrictions imposed by the Base Profile, the number of qubits that

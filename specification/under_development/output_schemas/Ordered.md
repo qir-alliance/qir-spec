@@ -92,25 +92,42 @@ OUTPUT\tBOOL\tfalse
 
 ## Output Structure
 
-The output for each shot is expected to have the following structure:
-1. One `START` record.
-2. A variable number of `METADATA` records.
-3. One or more `OUTPUT` records.
-4. One `END` record.
+The output must start with two `HEADER` records that contain the name and version of the output schema used:
+- `HEADER\tschema_name\tordered`
+- `HEADER\tschema_version\t1.0`
 
-Here's an example of the output emitted for a single shot:
+Additional `HEADER` records that provide more general information about the output are optional.
 
+After the `HEADER` records, the output corresponding to each shot is expected. Each shot must have the following structure:
+- One `START` record.
+- A variable number of `METADATA` records.
+- One or more `OUTPUT` records.
+- One `END` record.
+
+Example of the output emitted for three shots:
 ```log
+HEADER\tschema_name\tordered
+HEADER\tschema_version\t1.0
 START
-METADATA\tuser_metadata1_name_only
-METADATA\tuser_metadata2_name\tuser_metadata2_value
-METADATA\tuser_metadata3_name\tuser_metadata3_value
 METADATA\tentry_point
-METADATA\tnum_required_qubits\t5
-METADATA\tnum_required_results\t5
-METADATA\toutput_labeling_schema
 METADATA\tqir_profiles\tbase_profile
-
+METADATA\trequired_num_qubits\t5
+METADATA\trequired_num_results\t5
+OUTPUT\tRESULT\t0
+END\t0
+START
+METADATA\tentry_point
+METADATA\tqir_profiles\tbase_profile
+METADATA\trequired_num_qubits\t5
+METADATA\trequired_num_results\t5
+OUTPUT\tRESULT\t1
+END\t0
+START
+METADATA\tentry_point
+METADATA\tqir_profiles\tbase_profile
+METADATA\trequired_num_qubits\t5
+METADATA\trequired_num_results\t5
+OUTPUT\tRESULT\t0
 END\t0
 ```
 
