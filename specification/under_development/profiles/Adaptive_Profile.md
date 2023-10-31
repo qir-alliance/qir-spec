@@ -47,8 +47,9 @@ all of the following capabilities. The extended possible adaptive profile capabi
 13.  Non-constant floating point arguments to instruction set functions.
 14. Calling classical extern functions.
 15. Backwards branching.
+16. Multiple target branching.
    
-Thus, any back-end that supports capabilities 1-7 and as many of capabilities 8-15 that they desired
+Thus, any back-end that supports capabilities 1-7 and as many of capabilities 8-16 that they desired
 is considered as supporting adaptive profile programs. An adaptive profile must indicate what 
 additional capabilities it uses via module flags.
 Ideally, tools should be able
@@ -126,22 +127,8 @@ non-terminating loop is generating a program that is not compliant with the adap
 However, since there is no static analysis that can prove termination then it is up to back-ends to enforce 
 termination guarantees via a means of their choosing (for example a watchdog process
 with a timeout that will kill an executing adaptive profile program if it takes
-too much time). The following forms of branch instructions can be supported in the 
-profile, but at least the basic `br` instruction must be supported from the list below :
-| LLVM Instruction         | Context and Purpose                                                                              | Rules for Usage                                                                                             |
-| :----------------------- | :----------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
-| `br i1 label %true_branch, label %false_branch`                   | Branch to one of two target blocks. | Cannot be used to implement a non-terminating loop unless **Bullet 15** is opted into.     |
-| `switch i64 %reg, label %otherwise [i64 0, %zero_branch i64 1, %one_branch ... i64 n, %n_branch]`                     | Used to branch to one of many objects based on an integer key.                            | Cannot be used to implement a non-terminating loop unless **Bullet 15** is opted into. |
-| `select i1 %0, i64 %true_reg, i64 %false_reg`                    | conditionally select the value in a register. |  |
-
-
-
-The `br` instruction represents a usual if-then-else style jump dependent on 
-a boolean, whereas the `switch` instruction is similar to a switch statement in a high
-level language, and finally the `select` instruction conditionally evaluates to a register's
-value depending on the boolean input. A hardware provider should provide support for all of the above instructions.
-Other branch terminators that involve indirect jumps, function calls, or exception
-handling are not supported in adaptive profile programs. 
+too much time). Different forms of conditional logic can be supported in the 
+profile based on optional features, but minimum the simple `br` branch instruction must be supported.
 
 **Bullet 5: Mid-circuit measurement** <br />
 The adaptive profile allows for mid-circuit measurement to be expressed in
@@ -216,7 +203,7 @@ call quantum__qis__h__body(%Qubit* null)
 call quantum__qis__mz__body(%Qubit* null, %Result* null) ; 1st coin flip
 call quantum__qis__reset__body(%Qubit* null)
 call quantum__qis__h__body(%Qubit* null) 
-call quantum__qis__mz__body(%Qubit* null, %Result* null) ; 2nd coin flip
+call quantum__qis__mz__body(%Qubit* null, %Result* nonnull inttoptr (i64 1 to %Result*)) ; 2nd coin flip
 call quantum__qis__reset__body(%Qubit* null)
 ```
 
@@ -252,10 +239,13 @@ of the back-end can differ from LLVM's defined semantics (for example, overflow 
 | `icmp`           | Performs signed or unsigned integer comparisons.           | Different options are: `eq`, `ne`, `slt`, `sgt`, `sle`, `sge`, `ult`, `ugt`, `ule`, `uge`. |
 | `zext`           | zero extend an iM to an iN where N>M           |  |
 | `sext`           | signed zero extend an iM to an iN where N>M           |  |
+| `select ` | conditionally select the value in a register based on a boolean value|  |
+| `phi ` | assign a value to a register based on control-flow |  |
 |                  |                                                            |                                                                                            |
 
 
-Finally, the phi instruction can be used to conditionally move values between branches dependent on control flow:
+
+Finally, the phi instruction can be used to conditionally move values between branches dependent on control flow and must also be supported. The `select` instruction should also be supported since practically, llvm optimization passes are likely to generate `select` instructions when simplifying certain control flow patterns. Consider the following code snippet to illustrate phi instruction support:
 ```llvm
 define void @purelyclassical() local_unnamed_addr #0 {
 entry:
@@ -338,7 +328,7 @@ call void __quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
 
 define void @main() {
 ...
-call void @swap_0_1()
+call void @swap_0_1(%Qubit* null, %Qubit* nonnull inttoptr (1 to %Qubit*))
 ...
 }
 ```
@@ -362,8 +352,21 @@ define void @main() {
 The only restriction on user functions and definitions is that you cannot have dynamically allocated `%Qubit*`  arguments, they must still be constant `%Qubit*` id's. 
 
 **Bullet 13: Dynamically computed or linked float angles for gates** <br />
-If a back-end opts into this feature, non-constant floating point calculations can be used as arguments
-to functions in the instruction set. Consider the following program illustrating this:
+If a back-end opts into this feature, non-constant floating point values can be used as arguments
+to functions in the instruction set. In the most simple case, this can come from linked
+global `double` values. This makes it easier for back-ends to support VQE style applications in 
+a QIR program without needing the shot loop to be expressed in the adpative profile program.
+Consider the following program illustrating this:
+```llvm
+  @some_global_val = external global double
+  
+  declare void @main() {
+  ...
+  tail call void @__quantum__qis__rz__body(double @some_global_val, %Qubit* null)
+  }
+```
+
+If a back-end opts into **Bullet 10**, then dynamic floating point calculations can also be used to provide gate angles.
 ```llvm
   %0 = mul double 3.14, 2.0
   tail call void @__quantum__qis__rz__body(double %0, %Qubit* null)
@@ -426,6 +429,21 @@ declare i1 @__quantum__rt__read_result__body(%Result*)
 declare void @__quantum__qis__h__body(%Qubit*)
 
 attributes #0 = { "entry_point" "required_num_qubits"="1" "required_num_results"="1" }
+```
+**Bullet 16: Multiple Target Branching.** <br />
+It can be desirable to support control constructs that indicate how a computation can lead to branching to one
+of *many* different control flow paths. Having such a construct exposed in the IR allows for more aggressive optimization considerations
+where it is easy to gather that gates being performed on the same qubits across different blocks can have no control flow dependencies.
+As such, a back-end can opt into switch instruction support so that more aggressive static anlaysis and optimization is possible.
+To make such a construct useful, some amount of integer computation support (**Bullet 9**) must be supported. In the snippet below,
+we can imagine that mid-circuit measurement fed into classical computations producing `%val` and that each target block
+has conditional quantum operations.
+
+```llvm
+ Implement a jump table:
+switch i32 %val, label %otherwise [ i32 0, label %onzero
+                                    i32 1, label %onone
+                                    i32 2, label %ontwo ]
 ```
 
 
@@ -564,7 +582,7 @@ attributes #0 = { "entry_point" "qir_profiles"="adaptive_profile" "output_labeli
 
 ; module flags
 
-!llvm.module.flags = !{!0, !1, !2, !3, !4, !5, !6, !7, !8, !9, !10, !11}
+!llvm.module.flags = !{!0, !1, !2, !3, !4, !5, !6, !7, !8, !9, !10, !11, !12}
 
 !0 = !{i32 1, !"qir_major_version", i32 1}
 !1 = !{i32 7, !"qir_minor_version", i32 0}
@@ -578,6 +596,7 @@ attributes #0 = { "entry_point" "qir_profiles"="adaptive_profile" "output_labeli
 !9 = !{i32 1, !"dynamic_float_args", i1 false}
 !10 = !{i32 1, !"extern_functions", i1 false}
 !11 = !{i32 1, !"backwards_branching", i1 false}
+!12 = !{i32 1, !"multiple_target_branching", i1 false}
 ```
 
 The program performs gate teleportation, and it uses conditional single qubit gates and mid-circuit measurements to effect control flow.
@@ -713,14 +732,14 @@ program:
 | __quantum__rt__result_record_output | `void(%Result*,i8*)` | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
 | __quantum__rt__bool_record_output   | `void(i1,i8*)`  | Adds a boolean value to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                |
 
-The following output recording functions can appear if you opt into supporting real-time integer or fixed point integer calculations. If you opt into a less standard width than any of the options below, then it is up to the program to use a `zext` or `sext` instruction to get an `i32` or `i64` value as an argument to the call, even if this extension is not actually performed on the hardware and is just a means to make the program well-typed:
+The following output recording functions can appear if you opt into supporting real-time integer calculations (the back-end supports the `classical_ints` module flag). If you opt into a less standard width than any of the options below, then it is up to the program to use a `zext` or `sext` instruction to get an `i32` or `i64` value as an argument to the call, even if this extension is not actually performed on the hardware and is just a means to make the program well-typed:
 
 | Function                            | Signature       | Description                                                                                                                                                                                                                    |
 |:------------------------------------|:----------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | __quantum__rt__int_record_output    | `void(i64,i8*)` | Adds an integer result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                              |
 | __quantum__rt__i32_record_output  | `void(i32,i8*)` | Adds an 32-bit integer result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                       |
 
-The following output recording fucntions can appear if you opt into supporting real-time floating point or fixed floating point calculations. If you opt into a less standard width than any of the options below, then it is up to the program to use a `zext` or `sext` instruction to get an `f32` or `f64` value as an argument to the call, even if this extension is not actually performed on the hardware and is just a means to make the program well-typed:
+The following output recording fucntions can appear if you opt into supporting real-time floating point or fixed floating point calculations (the back-end supports the `classical_floats` and `classical_fixed_points` module flags). If you opt into a less standard width than any of the options below, then it is up to the program to use a `zext` or `sext` instruction to get an `f32` or `f64` value as an argument to the call, even if this extension is not actually performed on the hardware and is just a means to make the program well-typed:
 | Function                            | Signature            | Description                                                                                                                                                                                                                                                  |
 |:------------------------------------|:---------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | __quantum__rt__double_record_output | `void(f64,i8*)` | Adds a double precision floating point value result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted. |
@@ -739,7 +758,7 @@ be updated.*
 The program output of a quantum application is defined by a sequence of calls to
 run-time functions that record the values produced by the computation,
 specifically calls to the run-time functions ending in `record_output` listed in
-the table [above](#run-time-functions). In the case of the adaptive profile, these
+the tables [above](#run-time-functions). In the case of the adaptive profile, these
 calls are contained within the final block of the entry point function, i.e. the
 block that terminates in a return instruction. In the case that conditional
 data needs to be returned, then phi instructions are expected to be used to move
@@ -970,7 +989,7 @@ There are two forms of error messages that can occur as a result of submission o
 1. Compile-time error messages.
 2. Run-Time error messages.
 
-The compile-time error messages can occur when a back-end doesn't support some of the optional features from **Bullets 8-15**. In this case, the back-end should flag which features in the module 
+The compile-time error messages can occur when a back-end doesn't support some of the optional features from **Bullets 8-16**. In this case, the back-end should flag which features in the module 
 flags that were enabled that it does not support. Additionally, if there specific limitations on the support of certain features, like not supporting a particular instruction in
 **Bullet 9**, then the back-end should return an error message indicating the type of instruction that was not supported.
 

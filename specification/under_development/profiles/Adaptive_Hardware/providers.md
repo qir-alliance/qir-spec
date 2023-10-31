@@ -13,6 +13,7 @@ columns with hardware providers using the adaptive profile to indicate whether o
 | dynamic_float_args      | x | ? | ? | ? |
 | extern_functions        | ✓ (\*via web assembly) | ? | ? | ? |
 | backwards_branching     | x | ? | ? | ? |
+| multiple_target_branching| X | ? | ? | ? |
 
 For now, only the Quantinuum support is specified above, but other providers should put in pull requests.
 When a change to add more functionality is publicly available from a provider or to add a provider's description of support for the adaptive profile,
