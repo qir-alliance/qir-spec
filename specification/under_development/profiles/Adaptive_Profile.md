@@ -26,6 +26,7 @@ Being a superset of the base profile means that these 3 *capabilities* must be i
 
 Minimum capability additions to the base profile an adaptive profile supporting back-end must be able to support:
 
+<!-- markdownlint-disable MD029 -->
 4. Conditional branching (the profile must support the `br` instruction assuming that the instruction only expresses non-loop control flow). Since support for the `br`
 instruction relies on the `i1` type a small amount of instructions implementing classical logic on `i1` types is also assumed.
 5. Mid-circuit measurement (`quantum__qis__mz__body` or some other measurement function must be supported in the quantum instruction set).
@@ -46,6 +47,7 @@ all of the following capabilities. The extended possible adaptive profile capabi
 14. Calling classical extern functions.
 15. Backwards branching.
 16. Multiple target branching.
+<!-- markdownlint-enable MD029 -->
 
 Thus, any back-end that supports capabilities 1-7 and as many of capabilities 8-16 that they desired
 is considered as supporting adaptive profile programs. An adaptive profile must indicate what
@@ -226,27 +228,27 @@ have the following instructions they can use. Note that a backend providing supp
 should be able to cover all of the instructions in the list below for each type that they opt into. Also note that certain behaviors
 of the back-end can differ from LLVM's defined semantics (for example, overflow may not be handled the same):
 
-| LLVM Instruction | Context and Purpose                                        | Note                                                                                       |
-|:-----------------|:-----------------------------------------------------------|:-------------------------------------------------------------------------------------------|
-| `add`            | Used to add two integers together.                         |                                                                                            |
-| `sub`            | Used to subtract two integers.                             |                                                                                            |
-| `mul`            | Used to multiply integers                                  |                                                                                            |
-| `udiv`           | Used for unsigned division.                                | Can cause real-time errors.                                                                |
-| `sdiv`           | Used for signed division.                                  | Can cause real-time errors.                                                                |
-| `urem`           | Used for unsigned remainder division.                      | Can cause real-time errors.                                                                |
-| `srem`           | Used for signed remainder division.                        | Can cause real-time errors.                                                                |
-| `and`            | Bitwise and of two integers.                               |                                                                                            |
-| `or`             | Bitwise or of two integers.                                |                                                                                            |
-| `xor`            | Bitwise xor of two integers.                               |                                                                                            |
-| `shl`            | a left bit shift on a register or number.                  |                                                                                            |
-| `lshr`           | Shifts a number the specified number of bits to the right. | No sign extension.                                                                         |
-| `ashr`           | Shifts a number the specified number of bits to the right. | Does sign extension.                                                                       |
-| `icmp`           | Performs signed or unsigned integer comparisons.           | Different options are: `eq`, `ne`, `slt`, `sgt`, `sle`, `sge`, `ult`, `ugt`, `ule`, `uge`. |
-| `zext`           | zero extend an iM to an iN where N>M           |  |
-| `sext`           | signed zero extend an iM to an iN where N>M           |  |
-| `select` | conditionally select the value in a register based on a boolean value|  |
-| `phi` | assign a value to a register based on control-flow |  |
-|                  |                                                            |                                                                                            |
+| LLVM Instruction | Context and Purpose                                                   | Note                                                                                       |
+| :--------------- | :-------------------------------------------------------------------- | :----------------------------------------------------------------------------------------- |
+| `add`            | Used to add two integers together.                                    |                                                                                            |
+| `sub`            | Used to subtract two integers.                                        |                                                                                            |
+| `mul`            | Used to multiply integers                                             |                                                                                            |
+| `udiv`           | Used for unsigned division.                                           | Can cause real-time errors.                                                                |
+| `sdiv`           | Used for signed division.                                             | Can cause real-time errors.                                                                |
+| `urem`           | Used for unsigned remainder division.                                 | Can cause real-time errors.                                                                |
+| `srem`           | Used for signed remainder division.                                   | Can cause real-time errors.                                                                |
+| `and`            | Bitwise and of two integers.                                          |                                                                                            |
+| `or`             | Bitwise or of two integers.                                           |                                                                                            |
+| `xor`            | Bitwise xor of two integers.                                          |                                                                                            |
+| `shl`            | a left bit shift on a register or number.                             |                                                                                            |
+| `lshr`           | Shifts a number the specified number of bits to the right.            | No sign extension.                                                                         |
+| `ashr`           | Shifts a number the specified number of bits to the right.            | Does sign extension.                                                                       |
+| `icmp`           | Performs signed or unsigned integer comparisons.                      | Different options are: `eq`, `ne`, `slt`, `sgt`, `sle`, `sge`, `ult`, `ugt`, `ule`, `uge`. |
+| `zext`           | zero extend an iM to an iN where N>M                                  |                                                                                            |
+| `sext`           | signed zero extend an iM to an iN where N>M                           |                                                                                            |
+| `select`         | conditionally select the value in a register based on a boolean value |                                                                                            |
+| `phi`            | assign a value to a register based on control-flow                    |                                                                                            |
+|                  |                                                                       |                                                                                            |
 
 Finally, the phi instruction can be used to conditionally move values between branches dependent on control flow and must also be supported. The `select` instruction should also be supported since practically, llvm optimization passes are likely to generate `select` instructions when simplifying certain control flow patterns. Consider the following code snippet to illustrate phi instruction support:
 
@@ -270,7 +272,7 @@ else:
 Additionally if an adaptive profile program has support for floating point computations, the following instructions are supported. Note that
 many of the same caveats with respect to integer widths and overflow also apply to floating point values:
 | LLVM Instruction | Context and Purpose               | Note                        |
-|:-----------------|:----------------------------------|:----------------------------|
+| :--------------- | :-------------------------------- | :-------------------------- |
 | `fadd`           | Used to add two floats together.  |                             |
 | `fsub`           | Used to subtract floats integers. |                             |
 | `fmul`           | Used to multiply floats           |                             |
@@ -306,17 +308,17 @@ Similarly to **Bullet 9**, the phi instruction can be used to move classical flo
 
 If a backend has support for fixed point operations, they can also use the following intrinsics:
 Additionally if an adaptive profile program has support for floating point computations, the following instructions are supported:
-| LLVM Intrinsic | Context and Purpose               | Note                        |
-|:-----------------|:----------------------------------|:----------------------------|
-| `llvm.smul.fix.*`| Used to multiply two signed fixed point numbers.  |                             |
-| `llvm.smul.fix.sat*`| Same as above but clamps to min/max number in scale.  |                             |
-| `llvm.umul.fix.*`| Used to multiply two unsigned fixed point numbers. |                             |
-| `llvm.umul.fix.sat*`| Same as above but clamps to min/max number in scale.  |                             |
-| `llvm.sdiv.fix.*`| Used to divide two signed fixed point numbers. | Can cause real-time errors.                             |
-| `llvm.sdiv.fix.sat*`| Same as above but clamps to min/max number in scale.  |                             |
-| `llvm.udiv.fix.*`| Used to divide two unsigned fixed point numbers. | Can cause real-time errors. |
-| `llvm.udiv.fix.sat*`| Same as above but clamps to min/max number in scale.  |                             |
-|                  |                                   |                             |
+| LLVM Intrinsic       | Context and Purpose                                  | Note                        |
+| :------------------- | :--------------------------------------------------- | :-------------------------- |
+| `llvm.smul.fix.*`    | Used to multiply two signed fixed point numbers.     |                             |
+| `llvm.smul.fix.sat*` | Same as above but clamps to min/max number in scale. |                             |
+| `llvm.umul.fix.*`    | Used to multiply two unsigned fixed point numbers.   |                             |
+| `llvm.umul.fix.sat*` | Same as above but clamps to min/max number in scale. |                             |
+| `llvm.sdiv.fix.*`    | Used to divide two signed fixed point numbers.       | Can cause real-time errors. |
+| `llvm.sdiv.fix.sat*` | Same as above but clamps to min/max number in scale. |                             |
+| `llvm.udiv.fix.*`    | Used to divide two unsigned fixed point numbers.     | Can cause real-time errors. |
+| `llvm.udiv.fix.sat*` | Same as above but clamps to min/max number in scale. |                             |
+|                      |                                                      |                             |
 
 Similarly to **Bullet 9**, the phi instruction can be used to move classical fixed point values between branches.
 
@@ -707,7 +709,7 @@ must satisfy the following three requirements:
   [attributes](#attributes) in general is outlined in the corresponding section.
 
 For more information about the relation between a profile specification and the
-quantum instruction set we refer to the paragraph on [Bullet 1](#base-profile)
+quantum instruction set we refer to the paragraph on [Bullet 1](#bullet-1-quantum-transformations)
 in the introduction of this document. For more information about how and when
 the QIS is resolved, as well as recommendations for front- and backend
 developers, we refer to the document on [compilation stages and
@@ -738,23 +740,23 @@ only run-time functions that may be used as part of an adaptive profile complian
 program:
 
 | Function                            | Signature            | Description                                                                                                                                                                                                                                                  |
-|:------------------------------------|:---------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| :---------------------------------- | :------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | __quantum__rt__initialize           | `void(i8*)`          | Initializes the execution environment. Sets all qubits to a zero-state if they are not dynamically managed.                                                                                                                                                  |
 | __quantum__rt__tuple_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of a tuple and how many tuple elements it has. The second parameter defines a string label for the tuple. Depending on the output schema, the label is included in the output or omitted.  |
 | __quantum__rt__array_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of an array and how many array elements it has. The second parameter defines a string label for the array. Depending on the output schema, the label is included in the output or omitted. |
 | __quantum__rt__result_record_output | `void(%Result*,i8*)` | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
-| __quantum__rt__bool_record_output   | `void(i1,i8*)`  | Adds a boolean value to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                |
+| __quantum__rt__bool_record_output   | `void(i1,i8*)`       | Adds a boolean value to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                              |
 
 The following output recording functions can appear if you opt into supporting real-time integer calculations (the back-end supports the `classical_ints` module flag). If you opt into a less standard width than any of the options below, then it is up to the program to use a `zext` or `sext` instruction to get an `i32` or `i64` value as an argument to the call, even if this extension is not actually performed on the hardware and is just a means to make the program well-typed:
 
-| Function                            | Signature       | Description                                                                                                                                                                                                                    |
-|:------------------------------------|:----------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| __quantum__rt__int_record_output    | `void(i64,i8*)` | Adds an integer result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                              |
-| __quantum__rt__i32_record_output  | `void(i32,i8*)` | Adds an 32-bit integer result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                       |
+| Function                         | Signature       | Description                                                                                                                                                                                              |
+| :------------------------------- | :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| __quantum__rt__int_record_output | `void(i64,i8*)` | Adds an integer result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.        |
+| __quantum__rt__i32_record_output | `void(i32,i8*)` | Adds an 32-bit integer result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted. |
 
 The following output recording functions can appear if you opt into supporting real-time floating point or fixed floating point calculations (the back-end supports the `classical_floats` and `classical_fixed_points` module flags). If you opt into a less standard width than any of the options below, then it is up to the program to use a `zext` or `sext` instruction to get an `f32` or `f64` value as an argument to the call, even if this extension is not actually performed on the hardware and is just a means to make the program well-typed:
-| Function                            | Signature            | Description                                                                                                                                                                                                                                                  |
-|:------------------------------------|:---------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Function                            | Signature       | Description                                                                                                                                                                                                                    |
+| :---------------------------------- | :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | __quantum__rt__double_record_output | `void(f64,i8*)` | Adds a double precision floating point value result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted. |
 | __quantum__rt__f32_record_output    | `void(f32,i8*)` | Adds an 32-bit floating point value result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.          |
 
@@ -928,7 +930,7 @@ Beyond the entry point specific requirements related to attributes, custom
 attributes may optionally be attached to any of the declared functions. The
 `irreversible` attribute in particular impacts how the program logic in the
 entry point is structured, as described in the section about the [entry point
-definition](#function-body). Furthermore, the following [LLVM
+definition](#entry-point-definition). Furthermore, the following [LLVM
 attributes](https://llvm.org/docs/LangRef.html#function-attributes) may be used
 according to their intended purpose on function declarations and call sites:
 `inlinehint`, `nofree`, `norecurse`, `readnone`, `readonly`, `writeonly`, and
