@@ -9,7 +9,11 @@ The ABNF grammars for the [Labeled](./Labeled.md) and [Ordered](./Ordered.md) de
 The grammars share a basic structure and only vary in their definition of values, tuples, and arrays. The top level definitions are the same:
 
 ```abnf
-file = 2*(header EOL) shot *(EOL shot) [EOL]
+file = header-schema-name EOL header-schema-version *(EOL header) 1*(EOL shot) [EOL]
+
+header-schema-name = HEADER-LIT TAB SCHEMA-NAME-LIT TAB (ORDERED-SCHEMA-LIT / LABELED-SCHEMA-LIT)
+
+header-schema-version = HEADER-LIT TAB SCHEMA-VERSION-LIT TAB field 
 
 header = HEADER-LIT TAB field TAB field
 
@@ -125,6 +129,14 @@ INFINITY-LIT = "I" "N" "F" "I" "N" "I" "T" "Y"
 NAN-LIT = "N" "A" "N"
 
 HEADER-LIT = "H" "E" "A" "D" "E" "R"
+
+SCHEMA-NAME-LIT = "s" "c" "h" "e" "m" "a" "_" "n" "a" "m" "e"
+
+SCHEMA-VERSION-LIT = "s" "c" "h" "e" "m" "a" "_" "v" "e" "r" "s" "i" "o" "n"
+
+ORDERED-SCHEMA-LIT = "o" "r" "d" "e" "r" "e" "d"
+
+LABELED-SCHEMA-LIT = "l" "a" "b" "e" "l" "e" "d"
 
 START-LIT = "S" "T" "A" "R" "T"
 
