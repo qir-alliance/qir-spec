@@ -69,10 +69,10 @@ generated in a post-processing step after the computation on the quantum
 processor itself has completed; customization of the program output hence does
 not require support on the QPU itself.
 
-The defined [output schemas](../output_schemas/) provide different options for
+The defined [output schemas](../output_schemas/Schemas.md) provide different options for
 how a backend may express the computed value(s). The exact schema can be freely
-chosen by the backend and is identified by a string label in the produced
-schema. Each output schema contains sufficient information to allow quantum
+chosen by the backend and is identified by a header record in the produced
+output. Each output schema contains sufficient information to allow quantum
 programming frameworks to generate a user-friendly presentation of the returned
 values in the requested order, such as, e.g., a histogram of all results when
 running the program multiple times.
@@ -168,7 +168,7 @@ declare void @__quantum__rt__result_record_output(%Result*, i8*)
 
 ; attributes
 
-attributes #0 = { "entry_point" "qir_profiles"="base_profile" "output_labeling_schema"="schema_id" "required_num_qubits"="2" "required_num_results"="2" }
+attributes #0 = { "entry_point" "qir_profiles"="base_profile" "output_labeling_format"="format_id" "required_num_qubits"="2" "required_num_results"="2" }
 
 attributes #1 = { "irreversible" }
 
@@ -324,23 +324,17 @@ terminates in a return instruction.
 For all output recording functions, the `i8*` argument must be a non-null
 pointer to a global constant that contains a null-terminated string. A unique
 string must be used for each call to an output recording function within the
-same entry point. A backend may ignore that argument if it guarantees that the
-order of the recorded output matches the order defined by the quantum program.
-Conversely, certain output schemas do not require the recorded output to be
-listed in a particular order. For those schemas, the `i8*` argument serves as a
-label that permits the compiler or tool that generated the labels to reconstruct
-the order intended by the program. [Compiler
+same entry point. A backend may ignore that argument depending on the  [output
+ schema](../output_schemas/Schemas.md) it chooses to support. [Compiler
 frontends](https://en.wikipedia.org/wiki/Compiler#Front_end) must always
-generate these labels in such a way that the bitcode does not depend on the
-output schema; while choosing how to best label the program output is up to the
-frontend, the choice of output schema on the other hand is up to the backend. A
-backend may reject a program as invalid or fail execution if a label is missing.
+generate these labels in such a way that the QIR program does not depend on the
+output schema. While choosing how to best label the program output is up to the
+frontend, the choice of output schema is up to the backend. A backend may reject
+a program as invalid or fail execution if a label is missing.
 
-Both the labeling schema and the output schema are identified by a metadata
-entry in the produced output. For the [output schema](../output_schemas/), that
-identifier matches the one listed in the corresponding specification. The
-identifier for the labeling schema, on the other hand, is defined by the value
-of the `"output_labeling_schema"` attribute attached to the entry point.
+Both the output schema and the labeling format are identified by records present
+in the produced output. For more details, please refere to the [output schemas
+specification](../output_schemas/Schemas.md).
 
 ## Data Types and Values
 
@@ -413,27 +407,23 @@ result usage:
 The following custom attributes must be attached to an entry point function:
 
 - An attribute named `"entry_point"` identifying the function as the starting
-  point of a quantum program
+  point of a quantum program.
 - An attribute named `"qir_profiles"` with the value `"base_profile"`
-  identifying the profile the entry point has been compiled for
-- An attribute named `"output_labeling_schema"` with an arbitrary string value
-  that identifies the schema used by a [compiler
-  frontend](https://en.wikipedia.org/wiki/Compiler#Front_end) that produced the
-  IR to label the recorded output
+  identifying the profile the entry point has been compiled for.
 - An attribute named `"required_num_qubits"` indicating the number of qubits
-  used by the entry point
+  used by the entry point.
 - An attribute named `"required_num_results"` indicating the maximal number of
   measurement results that need to be stored while executing the entry point
-  function
+  function.
+- An attribute named `"output_labeling_format"` with an arbitrary string value
+  that identifies the format used by the [compiler 
+  frontend](https://en.wikipedia.org/wiki/Compiler#Front_end) that produced the
+  IR to label the recorded output.
 
 Optionally, additional attributes may be attached to the entry point. Any custom
 function attributes attached to an entry point should be reflected as metadata
 in the program output; this includes both mandatory and optional attributes but
-not parameter attributes or return value attributes. This in particular implies
-that the [labeling schema](#output-recording) used in the recorded output can be
-identified by looking at the metadata in the produced output. See the
-specification of the [output schemas](../output_schemas/) for more information
-about how metadata is represented in the output schema.
+not parameter attributes or return value attributes.
 
 Custom function attributes will show up as part of an [attribute
 group](https://releases.llvm.org/13.0.1/docs/LangRef.html#attrgrp) in the IR.
@@ -443,9 +433,8 @@ compliant programs must not rely on a particular numbering, but instead look for
 functions to which an attribute with the name `"entry_point"` is attached to
 determine which function to invoke to execute a quantum program.
 
-Both the `"entry_point"` attribute and the `"output_labeling_schema"` attribute
+Both the `"entry_point"` attribute and the `"output_labeling_format"` attribute
 can only be attached to a function definition; they are invalid on a function
-that is declared but not defined.
 
 Within the restrictions imposed by the Base Profile, the number of qubits that
 are needed to execute a quantum program must be known at compile time. This
