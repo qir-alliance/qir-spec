@@ -1,6 +1,6 @@
 # ABNF Grammars For Schema Definitions
 
-The ABNF grammars for the [Labeled and Async](./Labeled_And_Async.md) and [No Labels and Ordered](./No_Labels_And_Ordered.md) define the technical content of the files. The details of the QIR calls and how they map to the input is coverred in the associated specifications. Type consistency cannot be defined for array elements and is a validation concern when consuming output.
+The ABNF grammars for the [Labeled](./Labeled.md) and [Ordered](./Ordered.md) define the technical content of the files. The details of the QIR calls and how they map to the input is coverred in the associated specifications. Type consistency cannot be defined for array elements and is a validation concern when consuming output.
 
 ## Grammars
 
@@ -9,7 +9,9 @@ The ABNF grammars for the [Labeled and Async](./Labeled_And_Async.md) and [No La
 The grammars share a basic structure and only vary in their definition of values, tuples, and arrays. The top level definitions are the same:
 
 ```abnf
-file = shot *(EOL shot) [EOL]
+file = 2*(header EOL) shot *(EOL shot) [EOL]
+
+header = HEADER-LIT TAB field TAB field
 
 shot = start *(EOL record) EOL end
 
@@ -22,7 +24,7 @@ output = (container / value)
 container = (tuple / array)
 ```
 
-### Labeled and Async:
+### Labeled:
 
 ```abnf
 value = output-start (result / bool / int / double) TAB label
@@ -121,6 +123,8 @@ INF-LIT = "I" "N" "F"
 INFINITY-LIT = "I" "N" "F" "I" "N" "I" "T" "Y"
 
 NAN-LIT = "N" "A" "N"
+
+HEADER-LIT = "H" "E" "A" "D" "E" "R"
 
 START-LIT = "S" "T" "A" "R" "T"
 

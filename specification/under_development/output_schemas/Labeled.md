@@ -1,5 +1,7 @@
 # Labeled Output Schema
 
+This output schema is meant for backends that asynchronously emit output records and support strings as arguments to functions.
+
 The labeled output schema for asynchronous output emission is the same as the [ordered schema](./Ordered.md) with the following changes:
 - `OUTPUT` records `RESULT`, `BOOL`, `INT`, `DOUBLE`, `TUPLE`, and `ARRAY`,  have a fourth element indicating the label of the record.
 - Generated QIR that intends to produce output that adheres to the labeled schema must include a `labeling_format` attribute in entry-point functions. This has the implication that a `METADATA` record specifying the labeling format must be present for each `START`/`END` block. For example:
