@@ -4,8 +4,6 @@ This output schema is meant for backends that asynchronously emit output records
 
 The labeled output schema for asynchronous output emission is the same as the [ordered schema](./Ordered.md) with the following changes:
 - `OUTPUT` records `RESULT`, `BOOL`, `INT`, `DOUBLE`, `TUPLE`, and `ARRAY`,  have a fourth element indicating the label of the record.
-- Generated QIR that intends to produce output that adheres to the labeled schema must include a `labeling_format` attribute in entry-point functions. This has the implication that a `METADATA` record specifying the labeling format must be present for each `START`/`END` block. For example:
-    - `METADATA\tlabeling_format\tsample_format_name`
 
 A grammar that defines the structure and valid values for this format is available [here](./Grammars.md#labeled-and-async).
 
@@ -23,7 +21,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\tlabeling_format\tsample_format_name
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tTUPLE\t2\t0_t
 OUTPUT\tARRAY\t4\t1_t0a
 OUTPUT\tRESULT\t0\t2_t0a0r
@@ -111,7 +109,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\tlabeling_format\tsample_format_name
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tINT\t42\t0_i
 END\t0
 START
@@ -119,7 +117,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\tlabeling_format\tsample_format_name
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tINT\t41\t0_i
 END\t0
 START
@@ -127,7 +125,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\tlabeling_format\tsample_format_name
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tINT\t42\t0_i
 END\t0
 ```
@@ -160,7 +158,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\tlabeling_format\tsample_format_name
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t1\t0_0a
 OUTPUT\tRESULT\t0\t1_0a0r
 OUTPUT\tARRAY\t2\t2_1a
@@ -172,7 +170,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\tlabeling_format\tsample_format_name
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t1\t0_0a
 OUTPUT\tRESULT\t1\t1_0a0r
 OUTPUT\tARRAY\t2\t2_1a
@@ -184,7 +182,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\tlabeling_format\tsample_format_name
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t1\t0_0a
 OUTPUT\tRESULT\t0\t1_0a0r
 OUTPUT\tARRAY\t2\t2_1a
@@ -217,7 +215,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\tlabeling_format\tsample_format_name
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tTUPLE\t2\t0_t
 OUTPUT\tRESULT\t0\t1_t0r
 OUTPUT\tDOUBLE\t0.42\t2_t1d
@@ -227,7 +225,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\tlabeling_format\tsample_format_name
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tTUPLE\t2\t0_t
 OUTPUT\tRESULT\t1\t1_t0r
 OUTPUT\tDOUBLE\t0.42\t2_t1d
@@ -237,7 +235,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\tlabeling_format\tsample_format_name
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tTUPLE\t2\t0_t
 OUTPUT\tRESULT\t0\t1_t0r
 OUTPUT\tDOUBLE\t0.25\t2_t1d
@@ -276,7 +274,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\tlabeling_format\tsample_format_name
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t2\t0_a
 OUTPUT\tTUPLE\t2\t1_a0t
 OUTPUT\tINT\t42\t2_a0t0i
@@ -287,4 +285,4 @@ OUTPUT\tRESULT\t1\6_a1t1r
 END\t0
 ```
 
-[ordered format]: No_Labels_And_Ordered.md
+[ordered format]: Ordered.md

@@ -135,18 +135,7 @@ END\t0
 
 Calls to output recording functions determine what values should be emitted as output. For simulation or future environments with full runtime support, these functions can be linked to implementations that directly perform the recording of output to the relevant stream. Each of these functions follow the naming pattern `__quantum__rt__*_record_output` where the initial part indicates the type of output to be recorded.
 
-Though all the output recording functions have an `i8*` parameter representing a label, a `null` value may be passed for programs which run on backends that use the ordered output schema. If a non `null` value is passed as a label to output recording functions, backends that use the ordered output schema must ignore it. Taking everything into account, backends that support the ordered output schema must accept the following two equivalent versions of a call to an output recording function:
-
-**Passing a `null` label**
-```log
-call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 1 to %Result*), i8* null)
-```
-
-**Passing a non `null` label and ignoring it**
-```log
-@0 = internal constant [3 x i8] c"0_r\00"
-call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 1 to %Result*), i8* getelementptr inbounds ([3 x i8], [3 x i8]* @0, i32 0, i32 0))
-```
+Though all the output recording functions have an `i8*` parameter representing a label, its value is ignored by backends that use the ordered output schema.
 
 ### Result
 
@@ -203,7 +192,8 @@ Produces output records of the format `"OUTPUT\tARRAY\tn"` where `n` is the stri
 A QIR program that contains a single call to the integer output recording function:
 
 ```llvm
-call void @__quantum__rt__integer_record_output(i64 %5, i8* null)
+@0 = internal constant [3 x i8] c"0_i\00"
+call void @__quantum__rt__integer_record_output(i64 %5, i8* getelementptr inbounds ([3 x i8], [3 x i8]* @0, i32 0, i32 0))
 ret void
 ```
 
@@ -217,6 +207,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tINT\t42
 END\t0
 START
@@ -224,6 +215,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tINT\t41
 END\t0
 START
@@ -231,6 +223,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tINT\t42
 END\t0
 ```
@@ -240,11 +233,16 @@ END\t0
 For two arrays of measurement results, the QIR program contains array output recording calls where the first argument indicates the length of the array, followed by the corresponding output recording calls that represent each one of the array items (shown with static result allocation):
 
 ```llvm
-call void @__quantum__rt__array_record_output(i64 1, i8* null)
-call void @__quantum__rt__result_record_output(%Result* null, i8* null)
-call void @__quantum__rt__array_record_output(i64 2, i8* null)
-call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 1 to %Result*), i8* null)
-call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 2 to %Result*), i8* null)
+@0 = internal constant [5 x i8] c"0_0a\00"
+@1 = internal constant [7 x i8] c"1_0a0r\00"
+@2 = internal constant [5 x i8] c"2_1a\00"
+@3 = internal constant [7 x i8] c"3_1a0r\00"
+@4 = internal constant [7 x i8] c"4_1a1r\00"
+call void @__quantum__rt__array_record_output(i64 1, i8* getelementptr inbounds ([5 x i8], [5 x i8]* @0, i32 0, i32 0))
+call void @__quantum__rt__result_record_output(%Result* %2, i8* getelementptr inbounds ([7 x i8], [7 x i8]* @1, i32 0, i32 0))
+call void @__quantum__rt__array_record_output(i64 2, i8* getelementptr inbounds ([5 x i8], [5 x i8]* @2, i32 0, i32 0))
+call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 0 to %Result*), i8* getelementptr inbounds ([7 x i8], [7 x i8]* @3, i32 0, i32 0))
+call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 0 to %Result*), i8* getelementptr inbounds ([7 x i8], [7 x i8]* @4, i32 0, i32 0))
 ret void
 ```
 
@@ -258,6 +256,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t1
 OUTPUT\tRESULT\t0
 OUTPUT\tARRAY\t2
@@ -269,6 +268,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t1
 OUTPUT\tRESULT\t1
 OUTPUT\tARRAY\t2
@@ -280,6 +280,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t1
 OUTPUT\tRESULT\t0
 OUTPUT\tARRAY\t2
@@ -293,9 +294,12 @@ END\t0
 Recording tuple output works much the same way as array output. So, a QIR program that returns a tuple of a measurement result and a double value uses the following output recording functions:
 
 ```llvm
-call void @__quantum__rt__tuple_record_output(i64 2, i8* null)
-call void @__quantum__rt__result_record_output(%Result* %2, i8* null)
-call void @__quantum__rt__double_record_output(double %3, i8* null)
+@0 = internal constant [4 x i8] c"0_t\00"
+@1 = internal constant [6 x i8] c"1_t0r\00"
+@2 = internal constant [6 x i8] c"2_t1d\00"
+call void @__quantum__rt__tuple_record_output(i64 2, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @0, i32 0, i32 0))
+call void @__quantum__rt__result_record_output(%Result* %2, i8* getelementptr inbounds ([6 x i8], [6 x i8]* @1, i32 0, i32 0))
+call void @__quantum__rt__double_record_output(double %3, i8* getelementptr inbounds ([6 x i8], [6 x i8]* @2, i32 0, i32 0))
 ret void
 ```
 
@@ -309,6 +313,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tTUPLE\t2
 OUTPUT\tRESULT\t0
 OUTPUT\tDOUBLE\t0.42
@@ -318,6 +323,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tTUPLE\t2
 OUTPUT\tRESULT\t1
 OUTPUT\tDOUBLE\t0.42
@@ -327,6 +333,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tTUPLE\t2
 OUTPUT\tRESULT\t0
 OUTPUT\tDOUBLE\t0.25
@@ -338,13 +345,20 @@ END\t0
 Combining the above techniques can allow for complex output with nested container types. For example, a program that returns an array of tuples each containing an integer and result uses the following output recording functions:
 
 ```llvm
-call void @__quantum__rt__array_record_output(i64 2, i8* null)
-call void @__quantum__rt__tuple_record_output(i64 2, i8* null)
-call void @__quantum__rt__integer_record_output(i64 %3, i8* null)
-call void @__quantum__rt__result_record_output(%Result* null, i8* null)
-call void @__quantum__rt__tuple_record_output(i64 2, i8* null)
-call void @__quantum__rt__integer_record_output(i64 %7, i8* null)
-call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 1 to %Result*), i8* null)
+@0 = internal constant [4 x i8] c"0_a\00"
+@1 = internal constant [6 x i8] c"1_a0t\00"
+@2 = internal constant [8 x i8] c"2_a0t0i\00"
+@3 = internal constant [8 x i8] c"3_a0t1r\00"
+@4 = internal constant [6 x i8] c"4_a1t\00"
+@5 = internal constant [8 x i8] c"5_a1t0i\00"
+@6 = internal constant [8 x i8] c"6_a1t1r\00"
+call void @__quantum__rt__array_record_output(i64 2, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @0, i32 0, i32 0))
+call void @__quantum__rt__tuple_record_output(i64 2, i8* getelementptr inbounds ([6 x i8], [6 x i8]* @1, i32 0, i32 0))
+call void @__quantum__rt__integer_record_output(i64 %3, i8* getelementptr inbounds ([8 x i8], [8 x i8]* @2, i32 0, i32 0))
+call void @__quantum__rt__result_record_output(%Result* null, i8* getelementptr inbounds ([8 x i8], [8 x i8]* @3, i32 0, i32 0))
+call void @__quantum__rt__tuple_record_output(i64 2, i8* getelementptr inbounds ([6 x i8], [6 x i8]* @4, i32 0, i32 0))
+call void @__quantum__rt__integer_record_output(i64 %7, i8* getelementptr inbounds ([8 x i8], [8 x i8]* @5, i32 0, i32 0))
+call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 1 to %Result*), i8* getelementptr inbounds ([8 x i8], [8 x i8]* @6, i32 0, i32 0))
 ret void
 ```
 
@@ -358,6 +372,7 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t2
 OUTPUT\tTUPLE\t2
 OUTPUT\tINT\t42
