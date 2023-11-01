@@ -99,7 +99,7 @@ call void @__quantum__rt__integer_record_output(i64 %5, i8* getelementptr inboun
 ret void
 ```
 
-The output for `3` shots would have the following form (using symbolic `METADATA` records):
+The output for `3` shots would have the following form (using fabricated `METADATA` records):
 
 ```log
 HEADER\tschema_name\tordered
@@ -148,7 +148,7 @@ call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 0 
 ret void
 ```
 
-The output for `3` shots would have the following form (using symbolic `METADATA` records):
+The output for `3` shots would have the following form (using fabricated `METADATA` records):
 
 ```log
 HEADER\tschema_name\tordered
@@ -205,7 +205,7 @@ call void @__quantum__rt__double_record_output(double %3, i8* getelementptr inbo
 ret void
 ```
 
-The output for `3` shots would have the following form (using symbolic `METADATA` records):
+The output for `3` shots would have the following form (using fabricated `METADATA` records):
 
 ```log
 HEADER\tschema_name\tordered
@@ -264,7 +264,7 @@ call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 1 
 ret void
 ```
 
-The output for one shot would have the following form (using symbolic `METADATA` records):
+The output for one shot would have the following form (using fabricated `METADATA` records):
 
 ```log
 HEADER\tschema_name\tordered

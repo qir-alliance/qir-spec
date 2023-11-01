@@ -4,7 +4,7 @@
 
 The types chosen in the output schemas represent the base data types for expressing computation in the context of quantum processing. The `RESULT` and `BOOL` entries, while they could have been expressed as integers, describe core domain concepts that are unambiguous and clear in their intent.
 
-### Output Type
+## Output Type
 
 The effective ouput type for labeled output formats is determined by the labeling format employed as order is not guaranteed.
 
@@ -14,7 +14,9 @@ For ordered output, the output recording calls define an inferred type based on 
 
 For output that isn't contained within a container type, the inferred output type is a `TUPLE` whose values are the entries found.
 
-#### Ordered Examples
+### Output Type Examples using the Ordered Schema
+
+Note that `METADATA` records in the following examples are fabricated.
 
 The inferred type of the following shot is `TUPLE(ARRAY[RESULT], ARRAY[RESULT])`:
 
@@ -24,6 +26,7 @@ METADATA\tentry_point
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
 METADATA\tqir_profiles\tbase_profile
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t2
 OUTPUT\tRESULT\t0
 OUTPUT\tRESULT\t0
@@ -42,6 +45,7 @@ METADATA\tentry_point
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
 METADATA\tqir_profiles\tbase_profile
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tTUPLE\t2
 OUTPUT\tARRAY\t2
 OUTPUT\tRESULT\t0
@@ -61,6 +65,7 @@ METADATA\tentry_point
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
 METADATA\tqir_profiles\tbase_profile
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t2
 OUTPUT\tRESULT\t0
 OUTPUT\tRESULT\t0
@@ -77,6 +82,7 @@ METADATA\tentry_point
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
 METADATA\tqir_profiles\tbase_profile
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t2
 OUTPUT\tARRAY\t1
 OUTPUT\tRESULT\t0
@@ -87,7 +93,7 @@ OUTPUT\tRESULT\t0
 END\t0
 ```
 
-## Examples
+## QIR to Output Examples
 
 ### Multiple Arrays
 
@@ -121,7 +127,7 @@ declare void @__quantum__rt__array_record_output(i64, i8*)
 
 declare void @__quantum__rt__result_record_output(%Result*, i8*)
 
-attributes #0 = { "entry_point" "required_num_qubits"="5" "required_num_results"="5" "qir_profiles"="base_profile" }
+attributes #0 = { "entry_point" "required_num_qubits"="5" "required_num_results"="5" "qir_profiles"="base_profile" "output_labeling_format"="format_id" }
 attributes #1 = { "irreversible" }
 
 !llvm.module.flags = !{!0, !1, !2, !3}
@@ -140,6 +146,7 @@ METADATA\tentry_point
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
 METADATA\tqir_profiles\tbase_profile
+METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t2
 OUTPUT\tRESULT\t0
 OUTPUT\tRESULT\t0
