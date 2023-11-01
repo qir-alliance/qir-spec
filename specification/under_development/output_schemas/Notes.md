@@ -101,19 +101,27 @@ END\t0
 %Qubit = type opaque
 %Result = type opaque
 
+@0 = internal constant [5 x i8] c"0_0a\00"
+@1 = internal constant [7 x i8] c"1_0a0r\00"
+@2 = internal constant [7 x i8] c"1_0a1r\00"
+@3 = internal constant [5 x i8] c"2_1a\00"
+@4 = internal constant [7 x i8] c"3_1a0r\00"
+@5 = internal constant [7 x i8] c"4_1a1r\00"
+@6 = internal constant [7 x i8] c"4_1a1r\00"
+
 define void @main() #0 {
 entry:
   call void @__quantum__rt__initialize(i8* null)
   call void @__quantum__qis__h__body(%Qubit* null)
   call void @__quantum__qis__mz__body(%Qubit* null, %Result* null)
   call void @__quantum__qis__mz__body(%Qubit* null, %Result* inttoptr (i64 2 to %Result*))
-  call void @__quantum__rt__array_record_output(i64 2, i8* null)
-  call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 1 to %Result*), i8* null)
-  call void @__quantum__rt__result_record_output(%Result* null, i8* null)
-  call void @__quantum__rt__array_record_output(i64 3, i8* null)
-  call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 4 to %Result*), i8* null)
-  call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 3 to %Result*), i8* null)
-  call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 2 to %Result*), i8* null)
+  call void @__quantum__rt__array_record_output(i64 2, i8* getelementptr inbounds ([5 x i8], [5 x i8]* @0, i32 0, i32 0))
+  call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 1 to %Result*), i8* getelementptr inbounds ([7 x i8], [7 x i8]* @1, i32 0, i32 0))
+  call void @__quantum__rt__result_record_output(%Result* null, i8* getelementptr inbounds ([7 x i8], [7 x i8]* @2, i32 0, i32 0))
+  call void @__quantum__rt__array_record_output(i64 3, i8* getelementptr inbounds ([5 x i8], [5 x i8]* @3, i32 0, i32 0))
+  call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 4 to %Result*), i8* getelementptr inbounds ([7 x i8], [7 x i8]* @4, i32 0, i32 0))
+  call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 3 to %Result*), i8* getelementptr inbounds ([7 x i8], [7 x i8]* @5, i32 0, i32 0))
+  call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 2 to %Result*), i8* getelementptr inbounds ([7 x i8], [7 x i8]* @6, i32 0, i32 0))
   ret void
 }
 
