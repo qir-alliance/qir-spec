@@ -433,8 +433,8 @@ compliant programs must not rely on a particular numbering, but instead look for
 functions to which an attribute with the name `"entry_point"` is attached to
 determine which function to invoke to execute a quantum program.
 
-The `"entry_point"` attribute can only be attached to a function definition; they are invalid on a function
-that is declared but not defined.
+Both the `"entry_point"` attribute and the `"output_labeling_format"` attribute
+can only be attached to a function definition; they are invalid on a function
 
 Within the restrictions imposed by the Base Profile, the number of qubits that
 are needed to execute a quantum program must be known at compile time. This
