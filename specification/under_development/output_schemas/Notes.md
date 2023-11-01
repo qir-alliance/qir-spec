@@ -6,89 +6,85 @@ The types chosen in the output schemas represent the base data types for express
 
 ### Output Type
 
-The effective ouput type for labeled output formats is determined by the labeling scheme employed as order is not guaranteed.
+The effective ouput type for labeled output formats is determined by the labeling format employed as order is not guaranteed.
 
-For unlabeled output, the output recording calls define an inferred type based on the order in which the output recording calls are made. If the ouput is defined and held within a container type, `TUPLE` or `ARRAY`, then the shot's output type is that containers type.
+For ordered output, the output recording calls define an inferred type based on the order in which the output recording calls are made. If the ouput is defined and held within a container type, `TUPLE` or `ARRAY`, then the shot's output type is that containers type.
 
 `TUPLE` is a container for values that may or may not have the same type. `ARRAY` is a container whose values are intended to be all of the same type. Having mixed values in an `ARRAY` entry has undefined behavior when being processed.
 
 For output that isn't contained within a container type, the inferred output type is a `TUPLE` whose values are the entries found.
 
-#### Unlabeled Examples
+#### Ordered Examples
 
-The inferred type of the following is `TUPLE(ARRAY[RESULT], ARRAY[RESULT])`:
+The inferred type of the following shot is `TUPLE(ARRAY[RESULT], ARRAY[RESULT])`:
 
-```console
+```log
 START
-METADATA        entry_point
-METADATA        num_required_qubits     5
-METADATA        num_required_results    5
-METADATA        output_labeling_schema
-METADATA        qir_profiles    base_profile
-OUTPUT  ARRAY   2
-OUTPUT  RESULT  0
-OUTPUT  RESULT  0
-OUTPUT  ARRAY   3
-OUTPUT  RESULT  0
-OUTPUT  RESULT  0
-OUTPUT  RESULT  0
-END     0
+METADATA\tentry_point
+METADATA\trequired_num_qubits\t5
+METADATA\trequired_num_results\t5
+METADATA\tqir_profiles\tbase_profile
+OUTPUT\tARRAY\t2
+OUTPUT\tRESULT\t0
+OUTPUT\tRESULT\t0
+OUTPUT\tARRAY\t3
+OUTPUT\tRESULT\t0
+OUTPUT\tRESULT\t0
+OUTPUT\tRESULT\t0
+END\t0
 ```
 
-The inferred type of the following is also `TUPLE(ARRAY[RESULT], ARRAY[RESULT])` as the `ARRAY` entries are wrapped in a container:
+The inferred type of the following shot is also `TUPLE(ARRAY[RESULT], ARRAY[RESULT])` as the `ARRAY` entries are wrapped in a container:
 
-```console
+```log
 START
-METADATA        entry_point
-METADATA        num_required_qubits     5
-METADATA        num_required_results    5
-METADATA        output_labeling_schema
-METADATA        qir_profiles    base_profile
-OUTPUT  TUPLE   2
-OUTPUT  ARRAY   2
-OUTPUT  RESULT  0
-OUTPUT  RESULT  0
-OUTPUT  ARRAY   3
-OUTPUT  RESULT  0
-OUTPUT  RESULT  0
-OUTPUT  RESULT  0
-END     0
+METADATA\tentry_point
+METADATA\trequired_num_qubits\t5
+METADATA\trequired_num_results\t5
+METADATA\tqir_profiles\tbase_profile
+OUTPUT\tTUPLE\t2
+OUTPUT\tARRAY\t2
+OUTPUT\tRESULT\t0
+OUTPUT\tRESULT\t0
+OUTPUT\tARRAY\t3
+OUTPUT\tRESULT\t0
+OUTPUT\tRESULT\t0
+OUTPUT\tRESULT\t0
+END\t0
 ```
 
-The inferred type of the following is `TUPLE(ARRAY[RESULT], INT, DOUBLE)`:
+The inferred type of the following shot is `TUPLE(ARRAY[RESULT], INT, DOUBLE)`:
 
-```console
+```log
 START
-METADATA        entry_point
-METADATA        num_required_qubits     5
-METADATA        num_required_results    5
-METADATA        output_labeling_schema
-METADATA        qir_profiles    base_profile
-OUTPUT  ARRAY   2
-OUTPUT  RESULT  0
-OUTPUT  RESULT  0
-OUTPUT  INT     5
-OUTPUT  DOUBLE  -0.5e3
-END     0
+METADATA\tentry_point
+METADATA\trequired_num_qubits\t5
+METADATA\trequired_num_results\t5
+METADATA\tqir_profiles\tbase_profile
+OUTPUT\tARRAY\t2
+OUTPUT\tRESULT\t0
+OUTPUT\tRESULT\t0
+OUTPUT\tINT\t5
+OUTPUT\tDOUBLE\t-0.5e3
+END\t0
 ```
 
-The inferred type of the following is `ARRAY[ARRAY[RESULT]]`:
+The inferred type of the following shot is `ARRAY[ARRAY[RESULT]]`:
 
 ```console
 START
-METADATA        entry_point
-METADATA        num_required_qubits     5
-METADATA        num_required_results    5
-METADATA        output_labeling_schema
-METADATA        qir_profiles    base_profile
-OUTPUT  ARRAY   2
-OUTPUT  ARRAY   1
-OUTPUT  RESULT  0
-OUTPUT  ARRAY   3
-OUTPUT  RESULT  0
-OUTPUT  RESULT  0
-OUTPUT  RESULT  0
-END     0
+METADATA\tentry_point
+METADATA\trequired_num_qubits\t5
+METADATA\trequired_num_results\t5
+METADATA\tqir_profiles\tbase_profile
+OUTPUT\tARRAY\t2
+OUTPUT\tARRAY\t1
+OUTPUT\tRESULT\t0
+OUTPUT\tARRAY\t3
+OUTPUT\tRESULT\t0
+OUTPUT\tRESULT\t0
+OUTPUT\tRESULT\t0
+END\t0
 ```
 
 ## Examples
@@ -125,32 +121,31 @@ declare void @__quantum__rt__array_record_output(i64, i8*)
 
 declare void @__quantum__rt__result_record_output(%Result*, i8*)
 
-attributes #0 = { "entry_point" "num_required_qubits"="5" "num_required_results"="5" "output_labeling_schema" "qir_profiles"="base_profile" }
+attributes #0 = { "entry_point" "required_num_qubits"="5" "required_num_results"="5" "qir_profiles"="base_profile" }
 attributes #1 = { "irreversible" }
 
 !llvm.module.flags = !{!0, !1, !2, !3}
 
 !0 = !{i32 1, !"qir_major_version", i32 1}
 !1 = !{i32 7, !"qir_minor_version", i32 0}
-!2 = !{i32 1, !"dynamic_qubit_management", i1 false}
-!3 = !{i32 1, !"dynamic_result_management", i1 false}
 ```
 
-Ouput:
+Ouput for a single shot:
 
-```console
+```log
+HEADER\tschema_name\tordered
+HEADER\tschema_version\t1.0
 START
-METADATA        entry_point
-METADATA        num_required_qubits     5
-METADATA        num_required_results    5
-METADATA        output_labeling_schema
-METADATA        qir_profiles    base_profile
-OUTPUT  ARRAY   2
-OUTPUT  RESULT  0
-OUTPUT  RESULT  0
-OUTPUT  ARRAY   3
-OUTPUT  RESULT  0
-OUTPUT  RESULT  0
-OUTPUT  RESULT  0
-END     0
+METADATA\tentry_point
+METADATA\trequired_num_qubits\t5
+METADATA\trequired_num_results\t5
+METADATA\tqir_profiles\tbase_profile
+OUTPUT\tARRAY\t2
+OUTPUT\tRESULT\t0
+OUTPUT\tRESULT\t0
+OUTPUT\tARRAY\t3
+OUTPUT\tRESULT\t0
+OUTPUT\tRESULT\t0
+OUTPUT\tRESULT\t0
+END\t0
 ```
