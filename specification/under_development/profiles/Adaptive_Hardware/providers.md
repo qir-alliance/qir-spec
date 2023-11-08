@@ -14,5 +14,5 @@ columns with hardware providers using the adaptive profile to indicate whether o
 | dynamic_float_args        | x                                        | ?                     | ?                     | ?                     |
 | extern_functions          | ✓                                        | ?                     | ?                     | ?                     |
 | backwards_branching       | x                                        | ?                     | ?                     | ?                     |
-| multiple_target_branching | X                                        | ?                     | ?                     | ?                     |
+| multiple_target_branching | x                                        | ?                     | ?                     | ?                     |
 
