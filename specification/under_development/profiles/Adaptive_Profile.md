@@ -39,25 +39,22 @@ adaptive profile compliance with additional features. A maximal adaptive profile
 all of the following capabilities. The extended possible adaptive profile capabilities a program can express are:
 
 8. Qubit resetting (`__quantum__qis__reset__body` supported in the instruction set).
-9. Classical computations on integers.
-10. Classical computations on floating point values.
-11. Classical computations on fixed point values.
-12. User defined functions and function calls.
-13. Non-constant floating point arguments to instruction set functions.
-14. Calling classical extern functions.
-15. Backwards branching.
-16. Multiple target branching.
+9. Classical computations on integers, floating-point numbers, or fixed-point numbers.
+10. User-defined functions and function calls.
+11. Backwards branching.
+12. Multiple target branching.
 <!-- markdownlint-enable MD029 -->
 
-Thus, any back-end that supports capabilities 1-7 and as many of capabilities 8-16 that they desired
-is considered as supporting adaptive profile programs. An adaptive profile must indicate what
-additional capabilities it uses via module flags.
-Ideally, tools should be able
-to indicate what capabilities of the adaptive profile a back-end is implementing
-and should run a verification pass to ensure capabilities of the adaptive profile
-a back-end are not implementing are properly rejected.
-More details about each of the capabilities
-are outlined below.
+Thus, any back-end that supports capabilities 1-7 and as many of capabilities 8-12 that they desired
+is considered as supporting adaptive profile programs. An adaptive profile program must indicate what
+additional capabilities it uses via module flags. Additionally, back-ends can indicate how they 
+support the various optional capabilities and any caveats on support for the capabilities that they do 
+support via this [document](./Adaptive_Hardware/providers.md#back-end-support-for-adaptive-profile).
+Ideally, static analysis/verification tools should be able
+to understand what capabilities of the adaptive profile a back-end is implementing
+and should run a verification pass to ensure adaptive profile programs that are using capabilities
+not supported by a back-end are rejected with an informative message.
+More details about each of the aforementioned capabilities are outlined below.
 
 ## Mandatory Capabilities
 
@@ -74,8 +71,8 @@ sets may be incompatible with this (or other) profile(s). The section on the
 a QIS to be compatible with the adaptive profile.
 More information about the role of
 the QIS, recommendations for front- and backend providers, as well as the
-distinction between run-time functions and quantum instructions can be found in
-[this document](../Instruction_Set.md).
+distinction between run-time functions and quantum instructions can be found in this
+[document](../Instruction_Set.md).
 
 ### Bullet 2: Measurements
 
@@ -116,11 +113,11 @@ running the program multiple times.
 
 The adaptive profile can allow for arbitrary forward branching with the restriction being that
 branch instructions cannot express programs that do not terminate. By default, support for
-backwards branching is not a requirement, though a back-end can opt into **Bullet 13** to support
-backwards branching. In the case that **Bullet 13** is not opted into, then a simple static analysis
+backwards branching is not a requirement, though a back-end can opt into **Bullet 11** to support
+backwards branching. In the case that **Bullet 11** is not opted into, then a simple static analysis
 can check for cycles in the control flow graph and reject any program with a cycle as invalid.
 Depending on the vector of capabilities defined by an adaptive profile program
-(like when **Bullet 13** is opted into),
+(like when **Bullet 11** is opted into),
 proving non-termination with a static analysis may impossible due to the capabilities
 forming a Turing-complete subset of LLVM. Therefore, it is a rule that a *valid* adaptive profile
 program should not contain non-terminating loops and that a front-end generating a program with a
@@ -213,74 +210,28 @@ call quantum__qis__mz__body(%Qubit* null, %Result* nonnull inttoptr (i64 1 to %R
 call quantum__qis__reset__body(%Qubit* null)
 ```
 
-### Bullet 9: Classical integer computations
+### Bullet 9: Classical Computations
 
-An adaptive profile program may include expressions for numeric and logical computations
+An adaptive profile program may include instructions or intrinsics for numeric and logical computations
 that don't involve allocating memory for aggregate data structures. These
 can include integer arithmetic calculations of a back-end specified width, floating
-point arithmetic calculations of a back-end specified width, or logical operations
-on integers of a back-end specified width. Front-ends can use any integer width when generating code,
+point arithmetic calculations of a back-end specified width, logical operations
+on integers of a back-end specified width, or operations on fixed-point numbers via intrinsics. Front-ends can use any integer or floating point width when generating code,
 and it is the responsibility of a back-end to provide a compile-time error message if the front-end
 uses an integer width greater than that which the support.
 
-An adaptive profile compliant back-end implementing classical and arithmetic logic via integer and boolean types (`iN`)
-have the following instructions they can use. Note that a backend providing support for operations on a type
-should be able to cover all of the instructions in the list below for each type that they opt into. Also note that certain behaviors
-of the back-end can differ from LLVM's defined semantics (for example, overflow may not be handled the same):
-
-| LLVM Instruction | Context and Purpose                                                   | Note                                                                                       |
-| :--------------- | :-------------------------------------------------------------------- | :----------------------------------------------------------------------------------------- |
-| `add`            | Used to add two integers together.                                    |                                                                                            |
-| `sub`            | Used to subtract two integers.                                        |                                                                                            |
-| `mul`            | Used to multiply integers                                             |                                                                                            |
-| `udiv`           | Used for unsigned division.                                           | Can cause real-time errors.                                                                |
-| `sdiv`           | Used for signed division.                                             | Can cause real-time errors.                                                                |
-| `urem`           | Used for unsigned remainder division.                                 | Can cause real-time errors.                                                                |
-| `srem`           | Used for signed remainder division.                                   | Can cause real-time errors.                                                                |
-| `and`            | Bitwise and of two integers.                                          |                                                                                            |
-| `or`             | Bitwise or of two integers.                                           |                                                                                            |
-| `xor`            | Bitwise xor of two integers.                                          |                                                                                            |
-| `shl`            | a left bit shift on a register or number.                             |                                                                                            |
-| `lshr`           | Shifts a number the specified number of bits to the right.            | No sign extension.                                                                         |
-| `ashr`           | Shifts a number the specified number of bits to the right.            | Does sign extension.                                                                       |
-| `icmp`           | Performs signed or unsigned integer comparisons.                      | Different options are: `eq`, `ne`, `slt`, `sgt`, `sle`, `sge`, `ult`, `ugt`, `ule`, `uge`. |
-| `zext`           | zero extend an iM to an iN where N>M                                  |                                                                                            |
-| `sext`           | signed zero extend an iM to an iN where N>M                           |                                                                                            |
-| `select`         | conditionally select the value in a register based on a boolean value |                                                                                            |
-| `phi`            | assign a value to a register based on control-flow                    |                                                                                            |
-|                  |                                                                       |                                                                                            |
-
-Finally, the phi instruction can be used to conditionally move values between branches dependent on control flow and must also be supported. The `select` instruction should also be supported since practically, llvm optimization passes are likely to generate `select` instructions when simplifying certain control flow patterns. Consider the following code snippet to illustrate phi instruction support:
+When an adaptive profile program indicates that it is using a particular data-type, then instruction set (`qis`) functions or classical (`rt`)
+functions that a back-end may support can now be called. For example, consider that if a back-end supports integer computations and random number generation,
+then an adaptive profile qir program may have code like the following to do randomized benchmarking:
 
 ```llvm
-define void @purelyclassical() local_unnamed_addr #0 {
-entry:
-  %0 = add i64 1, 2 ; 3
-  %1 = icmp eq i64 %0, 3
-  br i1 %6, label %then, label %else
-then:
-  %2 = add i64 %0, 1
-  br label %else
-else:
-  %8 = phi i64 [ 0, %entry ],  [ %2, %then ]
-  ret void
-}
+%0 = call i64 @__quantum__rt__rand_range(i64 0, i64 2)
+%1 = icmp eq i64 %0, 0
+br i1 %1, label %zero_rand_sequence, label %one_rand_sequence
 ```
 
-### Bullet 10: Classical floating point computations
-
-Additionally if an adaptive profile program has support for floating point computations, the following instructions are supported. Note that
-many of the same caveats with respect to integer widths and overflow also apply to floating point values:
-| LLVM Instruction | Context and Purpose               | Note                        |
-| :--------------- | :-------------------------------- | :-------------------------- |
-| `fadd`           | Used to add two floats together.  |                             |
-| `fsub`           | Used to subtract floats integers. |                             |
-| `fmul`           | Used to multiply floats           |                             |
-| `fdiv`           | Used for floating point division. | Can cause real-time errors. |
-|                  |                                   |                             |
-
-Combining these mid-circuit measurements with some of these classical instructions, you can conditionally apply
-gates based on logic on multiple mid-circuit measurements:
+Moreover, by combining mid-circuit measurements with instructions on classical data-types, you can conditionally apply
+gates based on logic using multiple mid-circuit measurements and boolean computations:
 
 ```llvm
   tail call void @__quantum__qis__h__body(%Qubit* null)
@@ -302,12 +253,72 @@ continue:
 ...
 ```
 
-Similarly to **Bullet 9**, the phi instruction can be used to move classical floating point values between branches.
+An adaptive profile program can indicate which classical data type it supports by setting the following module flags with `true` or `false` values for the rightmost section of the module flag metadata, like in the table below. Any program like the previous one that uses instructions on classical
+data-types must have the appropriate module flag set, or it is not a legal adaptive profile program.
+| LLVM Module Flag | Context and Purpose                                                   | Note                                                                                       |
+| :--------------- | :-------------------------------------------------------------------- | :----------------------------------------------------------------------------------------- |
+| `!{i32 1, !"classical_ints", i1 val_1}` | indicates whether the integer `i1 and iN` data types are used by the program | |
+| `!{i32 1, !"classical_floats", i1 val_2` | indicates whether a floating point `fN` data type is used by the program | |
+| `!{i32 1, !"classical_fixed_points", i1 val_3` | indicates whether a fixed-point  data type is used by the program | |
 
-### Bullet 11: Classical fixed point computations computations
+For each data type being supported, there are some corresponding instructions that must be supported.
+The phi instruction must be supported can be used to conditionally move values between branches dependent on control flow and must also be supported.
+The `select` instruction should also be supported since practically, 
+llvm optimization passes are likely to generate `select` instructions when simplifying certain control flow patterns.
+For each datatype, any caveats on the ability to support certain instructions or where major differences in the behavior of back-end's execution from the semantics of the LLVM instruction should be noted in this [document](./Adaptive_Hardware/providers.md#back-end-support-for-adaptive-profile):
 
-If a backend has support for fixed point operations, they can also use the following intrinsics:
-Additionally if an adaptive profile program has support for floating point computations, the following instructions are supported:
+An adaptive profile program using integers as a datatype (the `classical_ints` module flag is set to `true`) can use the instructions from the table below.
+
+| LLVM Instruction | Context and Purpose                                                   | Note                                                                                       |
+|:-----------------|:----------------------------------------------------------------------|:-------------------------------------------------------------------------------------------|
+| `add`            | Used to add two integers together.                                    |                                                                                            |
+| `sub`            | Used to subtract two integers.                                        |                                                                                            |
+| `mul`            | Used to multiply integers                                             |                                                                                            |
+| `udiv`           | Used for unsigned division.                                           | Can cause real-time errors.                                                                |
+| `sdiv`           | Used for signed division.                                             | Can cause real-time errors.                                                                |
+| `urem`           | Used for unsigned remainder division.                                 | Can cause real-time errors.                                                                |
+| `srem`           | Used for signed remainder division.                                   | Can cause real-time errors.                                                                |
+| `and`            | Bitwise and of two integers.                                          |                                                                                            |
+| `or`             | Bitwise or of two integers.                                           |                                                                                            |
+| `xor`            | Bitwise xor of two integers.                                          |                                                                                            |
+| `shl`            | a left bit shift on a register or number.                             |                                                                                            |
+| `lshr`           | Shifts a number the specified number of bits to the right.            | No sign extension.                                                                         |
+| `ashr`           | Shifts a number the specified number of bits to the right.            | Does sign extension.                                                                       |
+| `icmp`           | Performs signed or unsigned integer comparisons.                      | Different options are: `eq`, `ne`, `slt`, `sgt`, `sle`, `sge`, `ult`, `ugt`, `ule`, `uge`. |
+| `zext`           | zero extend an iM to an iN where N>M                                  |                                                                                            |
+| `sext`           | signed zero extend an iM to an iN where N>M                           |                                                                                            |
+| `select`         | conditionally select the value in a register based on a boolean value |                                                                                            |
+| `phi`            | assign a value to a register based on control-flow                    |                                                                                            |
+|                  |                                                                       |                                                                                            |
+|                  |                                                                       |                                                                                            |
+
+ Consider the following code snippet to illustrate phi instruction support for integers:
+
+```llvm
+define void @purelyclassical() local_unnamed_addr #0 {
+entry:
+  %0 = add i64 1, 2 ; 3
+  %1 = icmp eq i64 %0, 3
+  br i1 %6, label %then, label %else
+then:
+  %2 = add i64 %0, 1
+  br label %else
+else:
+  %8 = phi i64 [ 0, %entry ],  [ %2, %then ]
+  ret void
+}
+```
+
+If an adaptive profile program has support for floating point computations (the `classical_floats` module flag is set to `true`), then the following instructions are supported. 
+| LLVM Instruction | Context and Purpose               | Note                        |
+| :--------------- | :-------------------------------- | :-------------------------- |
+| `fadd`           | Used to add two floats together.  |                             |
+| `fsub`           | Used to subtract floats integers. |                             |
+| `fmul`           | Used to multiply floats           |                             |
+| `fdiv`           | Used for floating point division. | Can cause real-time errors. |
+|                  |                                   |                             |
+
+Finally, an adaptive profile program using fixed-point values (the `classical_fixed_points` module flag is set to `true`), can use the following intrinsics:
 | LLVM Intrinsic       | Context and Purpose                                  | Note                        |
 | :------------------- | :--------------------------------------------------- | :-------------------------- |
 | `llvm.smul.fix.*`    | Used to multiply two signed fixed point numbers.     |                             |
@@ -320,11 +331,10 @@ Additionally if an adaptive profile program has support for floating point compu
 | `llvm.udiv.fix.sat*` | Same as above but clamps to min/max number in scale. |                             |
 |                      |                                                      |                             |
 
-Similarly to **Bullet 9**, the phi instruction can be used to move classical fixed point values between branches.
 
-### Bullet 12: User defined functions and function calls
+### Bullet 10: User defined functions and function calls
 
-An adaptive profile program may use user defined functions and function calls.
+An adaptive profile program may use user defined functions and function calls. 
 For example, consider that with user defined functions if a back-end has a `Cnot` gate in its instruction set,
 then a program that liberally uses `Swap` operations can define a function and call it as follows:
 
@@ -358,57 +368,11 @@ define void @main() {
 }
 ```
 
-The only restriction on user functions and definitions is that you cannot have dynamically allocated `%Qubit*`  arguments, they must still be constant `%Qubit*` id's.
+The only restriction on user functions and definitions is that you cannot have dynamically allocated `%Qubit*`  arguments, they must still be constant `%Qubit*` id's. An adaptive profile program using this feature must
+have the a module flag set like the following: `!{i32 1, !"user_functions", i1 true}`.
 
-### Bullet 13: Dynamically computed or linked float angles for gates
 
-If a back-end opts into this feature, non-constant floating point values can be used as arguments
-to functions in the instruction set. In the most simple case, this can come from linked
-global `double` values. This makes it easier for back-ends to support VQE style applications in
-a QIR program without needing the shot loop to be expressed in the adpative profile program.
-Consider the following program illustrating this:
-
-```llvm
-  @some_global_val = external global double
-
-  declare void @main() {
-  ...
-  tail call void @__quantum__qis__rz__body(double @some_global_val, %Qubit* null)
-  }
-```
-
-If a back-end opts into **Bullet 10**, then dynamic floating point calculations can also be used to provide gate angles.
-
-```llvm
-  %0 = mul double 3.14, 2.0
-  tail call void @__quantum__qis__rz__body(double %0, %Qubit* null)
-```
-
-### Bullet 14: Calling classical run-time functions
-
-Allow for programs to have classical functions that live in the run-time.
-This assumes some amount of classical type/operation support from **Bullet 9**.
-For example, we can consider certain classical subroutines being callable
-in the run-time for quantum error correction primitives or perhaps a random
-number generation for use in randomized benchmarking (or other) applications.
-
-```llvm
-...
-declare i1 __quantum__rt__qec_function(i1, i1, i1, i1)
-declare i64 __quantum__rt__random_range(i64, i64)
-
-define void main() #0 {
-entry:
-  %0 = call i64 __quantum__rt__random_range(i64 0, i64 10)
-  ...
-  ; assume %1-4 contain mid-circuit measurement results
-  %5 = call __quantum__rt__qec__function(i1 %1, i1 %2, i1 %3, i1 %4)
-}
-...
-#0 = { "entry_point" ... }
-```
-
-### Bullet 15: Backwards branching
+### Bullet 11: Backwards branching
 
 Opting into this capability releases the restriction on backwards branching so that a more compact representation of
 of loops can be expressed in programs. Here is a program that implements a loop via a
@@ -416,12 +380,7 @@ backwards branch that performs coinflips with a qubit and exits the program when
 coin flip produces a 1. It is up to a back-end to enforce that a program using backwards branching does not cause non-termination.
 
 ```llvm
-; ModuleID = 'qat-link'
-source_filename = "qat-link"
-
-%Qubit = type opaque
-%Result = type opaque
-
+...
 define void @simple_loop() local_unnamed_addr #0 {
 entry:
   br label %loop
@@ -433,19 +392,13 @@ loop:
 exit:
   ret void
 }
-
-declare void @__quantum__rt__int_record_output(i64) local_unnamed_addr
-
-declare void @__quantum__qis__mz__body(%Qubit*, %Result*)
-
-declare i1 @__quantum__rt__read_result__body(%Result*)
-
-declare void @__quantum__qis__h__body(%Qubit*)
-
-attributes #0 = { "entry_point" "required_num_qubits"="1" "required_num_results"="1" }
+...
 ```
 
-### Bullet 16: Multiple Target Branching
+An adaptive profile program using this feature must
+have the a module flag set like the following: `!{i32 1, !"user_functions", i1 true}`.
+
+### Bullet 12: Multiple Target Branching
 
 It can be desirable to support control constructs that indicate how a computation can lead to branching to one
 of *many* different control flow paths. Having such a construct exposed in the IR allows for more aggressive optimization considerations
@@ -462,6 +415,8 @@ switch i32 %val, label %otherwise [ i32 0, label %onzero
                                     i32 2, label %ontwo ]
 ```
 
+An adaptive profile program using this feature must
+have the a module flag set like the following: `!{i32 1, !"multiple_target_branching", i1 true}`.
 ## Program Structure
 
 An adaptive profile compliant program is defined in the form of a single LLVM bitcode
@@ -608,10 +563,8 @@ attributes #0 = { "entry_point" "qir_profiles"="adaptive_profile" "output_labeli
 !6 = !{i32 1, !"classical_floats", i1 false}
 !7 = !{i32 1, !"classical_fixed_points", i1 false}
 !8 = !{i32 1, !"user_functions", i1 false}
-!9 = !{i32 1, !"dynamic_float_args", i1 false}
-!10 = !{i32 1, !"extern_functions", i1 false}
-!11 = !{i32 1, !"backwards_branching", i1 false}
-!12 = !{i32 1, !"multiple_target_branching", i1 false}
+!9 = !{i32 1, !"backwards_branching", i1 false}
+!10 = !{i32 1, !"multiple_target_branching", i1 false}
 ```
 
 The program performs gate teleportation, and it uses conditional single qubit gates and mid-circuit measurements to effect control flow.
@@ -638,21 +591,18 @@ LLVM standard. The entry point is identified by a custom function attribute; the
 section on [attributes](#attributes) defines which attributes must be attached
 to the entry point function.
 
-An entry point function may not take any parameters and must either return void in case the program has no failure conditions or must return an exit code in the
-form of a 64-bit integer. The exit code `0` must be used to indicate a
-successful execution of the program. Exit code `1` can be used to illustrate
-that a real-time error occurred in the execution of the program dependent
-upon what features a back-end opts into when supporting an adaptive profile program.
-For example, with **Bullet 9/14** classical code may encounter errors like division
-by zero that can cause an entry-point function to fail. In this case, programs must dynamically check failure conditions and return the exit code instead of failing outright.
+An entry point function may not take any parameters and must either return void in case the program has no failure conditions or must return an exit code in the form of a 64-bit integer. In the case that a shot fails either because the entry point function returns an integer value indicating
+that the program caught an error or because an instruction caused an uncaught error (for example a `div` instruction fails due to division by 0), 
+then the output format should indicate that the shot failed with output for the shot appearing as `ERROR Code: ival` where `ival` is the error code
+from the adaptive profile program or `ERROR message` in the case that an uncaught failure occurs, and the message is choses by the backend.
 
 The adaptive profile program makes no restrictions on the structure of basic blocks within
 the entry point function, other than that a block cannot jump to a previously encountered block
-in the control flow graph unless a back-end opts into **Bullet 13**. By default adaptive profile
+in the control flow graph unless a back-end opts into **Bullet 11**. By default adaptive profile
 programs limit branching to only express forward branching and nested conditionality. Additionally,
 the only functions that can be called by default in the entry block are `qis` or `rt` functions defined
-in the instruction set and profile. This restriction is removed if a back-end opts into **Bullet 12/14**
-which allows for user-defined functions or the declaration of external functions that may be called that correspond to classical functions not defined as part of the profile.
+in the instruction set and profile. This restriction is removed if a back-end opts into **Bullet 10**
+which allows for user-defined functions.
 
 <!-- The function body consists of four [basic -->
 <!-- blocks](https://en.wikipedia.org/wiki/Basic_block), connected by an -->
@@ -701,7 +651,12 @@ which allows for user-defined functions or the declaration of external functions
 For a quantum instruction set to be fully compatible with the adaptive profile, it
 must satisfy the following three requirements:
 
-- All functions must return `void`, `iN`, or `fN` types (`i1` and `i64` for example).
+- All functions must return `void`, `iN`, or `fN` types (`i1` and `i64` for example) and can only take in
+  `%Qubit*`, `%Result*`, `iN`, or `fN` types as arguments. Additionally, arguments to the quantum instruction
+  set cannot have dynamically computed arguments by default. They can however refer to static global values
+  that are defined by linking (for example `call @__quantum__qis__rz__body(double @angle, %Qubit* null)` where `@double` 
+  is a static global who gets a new rotation angle linked at each shot). Dynamically computed arguments can be supplied
+  to instruction set functions when adaptive profile programs use a classical data-type from **Bullet 9**.
   Functions that measure qubits must take the qubit pointer(s) as well as the result pointer(s) as arguments.
 
 - Functions that perform a measurement of one or more qubit(s) must be marked
@@ -728,16 +683,14 @@ within a base profile compliant program:
 | `inttoptr`               | Used to cast an `i64` integer value to either a `%Qubit*` or a `%Result*`.                       | May be used as part of a function call only.                                                                |
 | `getelementptr inbounds` | Used to create an `i8*` to pass a constant string for the purpose of labeling an output value.   | May be used as part of a call to an output recording function only.                                         |
 
-The adaptive profile extends the base profile with additional instructions such as `br` (**Bullet 4**) and the additional opt-in instructions or intrinsics in (**Bullet 9/10/11**)
+The adaptive profile extends the base profile with additional instructions such as `br` (**Bullet 4**) and the additional opt-in instructions or intrinsics in (**Bullet 9**)
 
 See also the section on [data types and values](#data-types-and-values) for more
 information about the creation and usage of LLVM values.
 
 ## Run-Time Functions
 
-The following run-time functions must be supported by all backends, and are the
-only run-time functions that may be used as part of an adaptive profile compliant
-program:
+The following run-time functions must be supported by all backends:
 
 | Function                            | Signature            | Description                                                                                                                                                                                                                                                  |
 | :---------------------------------- | :------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -759,6 +712,9 @@ The following output recording functions can appear if you opt into supporting r
 | :---------------------------------- | :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | __quantum__rt__double_record_output | `void(f64,i8*)` | Adds a double precision floating point value result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted. |
 | __quantum__rt__f32_record_output    | `void(f32,i8*)` | Adds an 32-bit floating point value result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.          |
+
+Additionally, a back-end can provided more `rt` functions that can be used by adaptive profile programs in accordance with the classical data
+types that it supports.
 
 ### Initialization
 
