@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     name: "Check spelling, linting and links"
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - run: |
         wget https://github.com/qir-alliance/.github/archive/refs/heads/main.zip -O clone.zip &&
         unzip clone.zip && mv .github-main out && rm clone.zip &&
@@ -38,7 +38,7 @@ jobs:
       if: ${{ success() || failure() }}
     - name: "Check spelling in changed files"
       # cspell:words streetsidesoftware
-      uses: streetsidesoftware/cspell-action@v1.2.4
+      uses: streetsidesoftware/cspell-action@v6
       with:
         inline: warning
         # Only warn on spelling errors, since there's likely a lot of false
