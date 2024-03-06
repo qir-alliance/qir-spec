@@ -429,7 +429,7 @@ exit:
 ```
 
 An adaptive profile program using this feature must
-have a module flag set like the following: `!{i32 1, !"user_functions", i1 true}`.
+have a module flag set like the following: `!{i32 1, !"backwards_branching", i1 true}`.
 
 ### Bullet 12: Multiple Target Branching
 
@@ -778,7 +778,7 @@ of the `"output_labeling_schema"` attribute attached to the entry point.
 
 Within the adaptive profile, defining local variables is supported via
 reading mid-circuit measurements via (**Bullets 5/7**) or by classical instructions
-and classical extern calls (**Bullets 9-11** or **Bullet 12**) if a backend supports
+and calls (**Bullets 9**) if a backend supports
 these features. This implies the
 following:
 
@@ -786,7 +786,7 @@ following:
   `getelementptr` instructions that are inlined into a call instruction, or
   classical registers.
 - backends can have various numeric data types used in their instructions
-  if they opt in for **Bullet 9** or **Bullet 12**.
+  if they opt in to using the classical types specified in  **Bullet 9**.
 
 Constants of any type are permitted as part of a function call. What data types
 occur in the program hence depends on what QIS functions are used in addition to
@@ -813,7 +813,7 @@ consecutively so that there are no unused values within these ranges.
 Due to **Bullet 7** being a mandatory capability, the `i1` type must be supported
 by adaptive profile backends and branching should be possible based on the i1 values.
 Other types like `i64` and `f64` are opt-in types depending on the capabilities
-a backend wants to support.
+a backend wants to support via **Bullet 9**.
 
 ### Qubit and Result Usage
 
@@ -828,7 +828,7 @@ result values.
 
 The first kind of pointer points to a valid memory location that is managed
 dynamically during program execution, meaning the necessary memory is allocated
-and freed by the runtime. The second kind of pointer merely identifies a qubit
+and freed by the run-time. The second kind of pointer merely identifies a qubit
 or result value by a constant integer encoded in the pointer itself. To be
 compliant with the adaptive profile specification, the program must not make use
 of dynamic qubit or result management, meaning it must use only the second kind of
@@ -846,7 +846,7 @@ result usage:
 
 - Results can only be used either as `writeonly` arguments, as arguments to
   [output recording functions](#output-recording), or as arguments to the
-  measurement to boolean function (**Bullet 7**). We refer to the [LLVM
+  measurement result to boolean conversion function (**Bullet 7**). We refer to the [LLVM
   documentation](https://llvm.org/docs/LangRef.html#function-attributes)
   regarding how to use the `writeonly` attribute.
 
@@ -867,6 +867,7 @@ The following custom attributes must be attached to the entry point function:
 - An attribute named `"required_num_results"` indicating the maximal number of
   measurement results that need to be stored while executing the entry point
   function
+
 
 Optionally, additional attributes may be attached to the entry point. Any custom
 function attributes attached to the entry point should be reflected as metadata
@@ -924,6 +925,20 @@ to the QIR bitcode:
   constant `true` or `false` value of type `i1`
 - a flag with the string identifier `"dynamic_result_management"` that contains
   a constant `true` or `false` value of type `i1`
+- A flag named `"qubit_resetting"` with a boolean i1 value indicating
+if the program uses reset operations on qubits.
+- A flag named `"classical_ints"`  with a boolean i1 value indicating
+if the program uses classical computations on integers.
+- A flag named `"classical_floats"`  with a boolean i1 value indicating
+if the program uses classical computations on floating point values.
+- A flag named `"classical_fixed_points"`  with a boolean i1 value indicating
+if the program uses reset operations on fixed point values.
+- A flag named `"user_functions"`  with a boolean i1 value indicating
+if the program uses user defined functions and function calls.
+- A flag named `"backwards_branching"`  with a boolean i1 value indicating
+if the program uses branch instructions that causes "backwards" jumps in the control flow.
+- A flag named `"multiple_target_branching"`  with a boolean i1 value indicating
+if the program uses the switch instruction in llvm.
 
 These flags are attached as `llvm.module.flags` metadata to the module. They can
 be queried using the standard LLVM tools and follow the LLVM specification in
@@ -986,7 +1001,7 @@ profile programs to a backend:
 2. Run-time error messages.
 
 The compile-time error messages can occur when a backend doesn't support some
-of the optional features from **Bullets 8-16**. In this case, the backend should
+of the optional features from **Bullets 8-12**. In this case, the backend should
 flag which features in the module flags that were enabled that it does not
 support. Additionally, if there are specific limitations on the support of certain
 features, like not supporting a particular instruction in **Bullet 9**, then the
@@ -994,7 +1009,7 @@ backend should return an error message indicating the type of instruction that
 was not supported.
 
 The run-time error messages can occur when opting into features such as the
-classical computations in **Bullets 9-11**. In there, if division or remainder
+classical computations in **Bullets 9**. In there, if division or remainder
 instructions are supported, then a division by 0 error can occur. In the case
 that a shot executing the program encounters such a real-time error, then an
 error code should be reported for the shot in the QIR output format section for
