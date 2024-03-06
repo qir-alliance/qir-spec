@@ -589,7 +589,7 @@ attributes #0 = { "entry_point" "qir_profiles"="adaptive_profile" "output_labeli
 
 ; module flags
 
-!llvm.module.flags = !{!0, !1, !2, !3, !4, !5, !6, !7, !8, !9, !10, !11, !12}
+!llvm.module.flags = !{!0, !1, !2, !3, !4, !5, !6, !7, !8, !9, !10}
 
 !0 = !{i32 1, !"qir_major_version", i32 1}
 !1 = !{i32 7, !"qir_minor_version", i32 0}
