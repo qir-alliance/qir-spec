@@ -377,7 +377,7 @@ call void __quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
 
 define void @main() {
 ...
-call void @swap_0_1(%Qubit* null, %Qubit* nonnull inttoptr (1 to %Qubit*))
+call void @swap(%Qubit* null, %Qubit* nonnull inttoptr (1 to %Qubit*))
 ...
 }
 ```
