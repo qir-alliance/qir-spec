@@ -82,4 +82,4 @@ restrictions:
   appear as literals.
 
 ---
-_[Back to index](README.md)_
+*[Back to index](README.md)*

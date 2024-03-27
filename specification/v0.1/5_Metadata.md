@@ -75,4 +75,4 @@ marked with an LLVM "EntryPoint" attribute.
 >use.
 
 ---
-_[Back to index](README.md)_
+*[Back to index](README.md)*

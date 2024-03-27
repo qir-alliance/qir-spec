@@ -17,7 +17,7 @@ about:
 - [A quick introduction to
   LLVM](https://hub.packtpub.com/introducing-llvm-intermediate-representation/)
 - [Gitbook about LLVM-based
-  compilers](https://mapping-high-level-constructs-to-llvm-ir.readthedocs.io/en/latest/README.html)
+  compilers](https://mapping-high-level-constructs-to-llvm-ir.readthedocs.io/en/latest/)
 - [Language reference manual](https://llvm.org/docs/LangRef.html)
 - [Wikipedia entry](https://en.wikipedia.org/wiki/LLVM)
 - [Original publication](https://llvm.org/pubs/2004-01-30-CGO-LLVM.pdf)
