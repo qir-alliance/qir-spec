@@ -14,7 +14,7 @@ a minimum set of features beyond the base profile and can opt in for features
 beyond that. This marks the first attempt at defining a profile greater in scope
 than the base profile but still limited when compared to the full QIR specification.
 
-Being a superset of the base profile means that these 3 *capabilities* must be
+To support the adaptive profile without any of its optional features, the following *capabilities* must be
 implemented (a few restrictions are removed from the base profile):
 
 1. An adaptive profile program can execute a sequence of quantum instructions
