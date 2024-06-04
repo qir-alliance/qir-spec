@@ -271,7 +271,7 @@ continue:
 ...
 ```
 
-An adaptive profile program can indicate which classical data type it supports by
+An adaptive profile program must indicate which classical data types must be supported to execute it. This done by
 setting the following module flags with `true` or `false` values for the rightmost
 section of the module flag metadata, like in the table below. Any program like the
 previous one that uses instructions on classical data types must have the
