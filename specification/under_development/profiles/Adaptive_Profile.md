@@ -190,7 +190,7 @@ critical to using forward branching and conditional quantum execution.
 
 ```llvm
 %0 = tail call i1 @__quantum__rt__read_result__body(%Result* null)
-  br i1 %0, label %then, label %continue
+ br i1 %0, label %then, label %continue
 ```
 
 ## Optional Capabilities
