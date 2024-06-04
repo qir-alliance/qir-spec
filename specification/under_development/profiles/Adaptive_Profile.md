@@ -233,7 +233,7 @@ logical operations on integers of a backend-specified width, or operations
 on fixed-point numbers via intrinsics. Frontends can use any integer or floating
 point width when generating code, and it is the responsibility of a backend to
 provide a compile-time error message if the frontend uses an integer width greater
-than that which the support.
+than that which is supported.
 
 When an adaptive profile program indicates that it is using a particular data
 type, then instruction set (`qis`) functions or classical (`rt`) functions that
