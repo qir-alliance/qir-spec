@@ -710,7 +710,7 @@ The following run-time functions must be supported by all backends:
 
 The following output recording functions can appear if you opt into supporting
 real-time integer calculations (the backend supports the `classical_ints` module
-flag). If you opt into a less standard width than any of the options below, then
+flag). If the program leverages support for integers with non-standard width (i.e. other than any of the options below), then
 it is up to the program to use a `zext` or `sext` instruction to get an `i32` or
 `i64` value as an argument to the call, even if this extension is not actually
 performed on the hardware and is just a means to make the program well-typed:
