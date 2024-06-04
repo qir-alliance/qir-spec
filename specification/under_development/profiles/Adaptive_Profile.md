@@ -247,7 +247,7 @@ qir program may have code like the following to do randomized benchmarking:
 br i1 %1, label %zero_rand_sequence, label %one_rand_sequence
 ```
 
-Moreover, by combining mid-circuit measurements with instructions on classical
+By combining mid-circuit measurements with instructions on classical
 data types, you can conditionally apply gates based on logic using multiple
 mid-circuit measurements and boolean computations:
 
