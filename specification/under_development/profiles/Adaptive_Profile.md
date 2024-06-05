@@ -11,34 +11,24 @@ The adaptive profile specifies supersets of the base profile that enable
 control flow based on mid-circuit measurements and classical computations
 within coherence times. A backend can support this profile by supporting
 a minimum set of features beyond the base profile and can opt in for features
-beyond that. This marks the first attempt at defining a profile greater in scope
-than the base profile but still limited when compared to the full QIR specification.
+beyond that.
 
 Being a superset of the base profile means that these 3 *capabilities* must be
-implemented (a few restrictions are removed from the base profile):
+implemented:
 
 1. An adaptive profile program can execute a sequence of quantum instructions
    that transform the quantum state.
-2. An adaptive profile program can measure any qubit used in the program and
-   thus a backend must be able to measure the state of all qubits for use in
-   program output generation.
+2. A backend must support applying a measurement operation at any point 
+   in the exeuction of the program. Qubits not undergoing the measurement 
+   should not have their state affected as if they underwent the measurement. 
+   A QIS measurement function, `quantum__qis__mz__body` or some other measurement function, must be supported in the quantum instruction set of back-end executing an adaptive profile program. Additionally, an`rt` function to turn a measurement result into a boolean
+   (`__quantum__rt__read_result__body`) must be in the instruction set.
 3. An adaptive profile program must produce one of the specified [output schemas](../output_schemas/).
-
-Minimum capability additions to the base profile an adaptive profile supporting
-backend must be able to support:
-
-<!-- markdownlint-disable MD029 -->
-4. Conditional branching (the profile must support the `br` instruction assuming
+4. Forward branching (the profile must support the `br` instruction assuming
    that the instruction only expresses non-loop control flow). Since support for
    the `br` instruction relies on the `i1` type a small amount of instructions
-   implementing classical logic on `i1` types is also assumed.
-5. Mid-circuit measurement (`quantum__qis__mz__body` or some other measurement
-   function must be supported in the quantum instruction set).
-6. Conditional quantum operations in the instruction set that appear in the
-   target basic blocks of a `br` instruction must be performed conditionally
-   as with a classical LLVM program.
-7. An `rt` function to turn a measurement result into a boolean
-   (`__quantum__rt__read_result__body`) must be in the instruction set.
+   implementing classical logic on `i1` types is also assumed. The base set
+   of supported instructions on `i1` includes `br`, `and`, `or`, `xor`, `select`, and `phi`. Conditional quantum operations in the instruction set that appear in the target basic blocks of a `br` instruction must be performed conditionally like in a purely classical LLVM program.
 
 Beyond this, a backend can opt into one or more of the following additional
 capabilities to extend minimal adaptive profile compliance with additional
@@ -46,15 +36,15 @@ features. A maximal adaptive profile program adds all of the following
 capabilities. The extended possible adaptive profile capabilities a program can
 express are:
 
-8. Qubit resetting (`__quantum__qis__reset__body` supported in the instruction set).
-9. Classical computations on integers, floating-point numbers, or fixed-point numbers.
-10. User-defined functions and function calls.
-11. Backwards branching.
-12. Multiple target branching.
+5. Qubit resetting (`__quantum__qis__reset__body` supported in the instruction set).
+6. Classical computations on integers, floating-point numbers, or fixed-point numbers.
+7. IR-defined functions and function calls.
+8. Backwards branching.
+9. Multiple target branching.
 <!-- markdownlint-enable MD029 -->
 
 Thus, any backend that supports capabilities 1-7 and as many of capabilities
-8-12 as it desires is considered as supporting adaptive profile programs.
+5-9 as it desires is considered as supporting adaptive profile programs.
 An adaptive profile program must indicate what additional capabilities it uses
 via module flags. Additionally, backends can indicate how they support the
 various optional capabilities and any caveats on support for the capabilities
@@ -117,7 +107,7 @@ programming frameworks to generate a user-friendly presentation of the returned
 values in the requested order, such as, e.g., a histogram of all results when
 running the program multiple times.
 
-### Bullet 4: Conditional Forward branching
+### Bullet 4: Forward Branching
 
 The adaptive profile can allow for arbitrary forward branching with the
 restriction being that branch instructions cannot express programs that do not
@@ -195,35 +185,7 @@ critical to using forward branching and conditional quantum execution.
 
 ## Optional Capabilities
 
-### Bullet 8: Qubit resetting
-
-If a backend opts into supporting this feature, then we can allow
-for an instruction to reset qubits back to the |0> state to be defined
-in the instruction set. This can be illustrated by the following program:
-
-```llvm
-call quantum__qis__h__body(%Qubit* null) ; arbitrary gate here
-...
-call quantum__qis__reset__body(%Qubit* null)
-call quantum__qis__h__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*)) ; arbitrary gate choice again
-...
-```
-
-This can be combined with the mid-circuit measurement (**Bullet 5**) to allow
-for the capability to re-use the same qubit for computations, limiting the number
-of qubits required for redundant calculations and also allowing for circuit width
-to be reduced in favor of increasing depth:
-
-```llvm
-call quantum__qis__h__body(%Qubit* null)
-call quantum__qis__mz__body(%Qubit* null, %Result* null) ; 1st coin flip
-call quantum__qis__reset__body(%Qubit* null)
-call quantum__qis__h__body(%Qubit* null)
-call quantum__qis__mz__body(%Qubit* null, %Result* nonnull inttoptr (i64 1 to %Result*)) ; 2nd coin flip
-call quantum__qis__reset__body(%Qubit* null)
-```
-
-### Bullet 9: Classical Computations
+### Bullet 6: Classical Computations
 
 An adaptive profile program may include instructions or intrinsics for numeric
 and logical computations that don't involve allocating memory for aggregate data
@@ -361,7 +323,7 @@ module flag is set to `true`), can use the following intrinsics:
 | `llvm.udiv.fix.sat*` | Same as above but clamps to min/max number in scale. |                             |
 |                      |                                                      |                             |
 
-### Bullet 10: User-defined functions and function calls
+### Bullet 7: IR-defined functions and function calls
 
 An adaptive profile program may use user-defined functions and function calls.
 For example, consider that with user-defined functions if a backend has a `Cnot`
@@ -403,7 +365,7 @@ dynamically allocated `%Qubit*`  arguments, they must still be constant `%Qubit*
 id's. An adaptive profile program using this feature must have a module flag
 set like the following: `!{i32 1, !"user_functions", i1 true}`.
 
-### Bullet 11: Backwards branching
+### Bullet 8: Backwards branching
 
 Opting into this capability releases the restriction on backwards branching so
 that a more compact representation of loops can be expressed in programs. Here
@@ -431,7 +393,7 @@ exit:
 An adaptive profile program using this feature must
 have a module flag set like the following: `!{i32 1, !"backwards_branching", i1 true}`.
 
-### Bullet 12: Multiple Target Branching
+### Bullet 9: Multiple Target Branching
 
 It can be desirable to support control constructs that indicate how a computation
 can lead to branching to one of *many* different control flow paths. Having such
@@ -440,7 +402,7 @@ where it is easy to gather that gates being performed on the same qubits across
 different blocks can have no control flow dependencies. As such, a backend can
 opt into switch instruction support so that more aggressive static analysis and
 optimization are possible. To make such a construct useful, some amount of integer
-computation support (**Bullet 9**) must be supported. In the snippet below, we
+computation support (**Bullet 5**) must be supported. In the snippet below, we
 can imagine that mid-circuit measurement fed into classical computations producing
 `%val` and that each target block has conditional quantum operations.
 
@@ -661,7 +623,7 @@ must satisfy the following three requirements:
   `call @__quantum__qis__rz__body(double @angle, %Qubit* null)` where `@double`
   is a static global who gets a new rotation angle linked at each shot).
   Dynamically computed arguments can be supplied to instruction set functions
-  when adaptive profile programs use a classical data type from **Bullet 9**.
+  when adaptive profile programs use a classical data type from **Bullet 5**.
   Functions that measure qubits must take the qubit pointer(s) as well as the
   result pointer(s) as arguments.
 
@@ -1001,7 +963,7 @@ profile programs to a backend:
 2. Run-time error messages.
 
 The compile-time error messages can occur when a backend doesn't support some
-of the optional features from **Bullets 8-12**. In this case, the backend should
+of the optional features from **Bullets 5-9**. In this case, the backend should
 flag which features in the module flags that were enabled that it does not
 support. Additionally, if there are specific limitations on the support of certain
 features, like not supporting a particular instruction in **Bullet 9**, then the
