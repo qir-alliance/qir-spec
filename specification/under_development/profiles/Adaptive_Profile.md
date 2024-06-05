@@ -386,7 +386,23 @@ like the following: `!{i32 1, !"multiple_target_branching", i1 true}`.
 
 ### Bullet 9: Multiple Return Points
 As an optional feature, adaptive profile programs can have multiple
-return points in the entry point function. 
+return points in the entry point function. For example, an adpative profile program can 
+contain code like: 
+
+```llvm
+...
+define i32 @simple_br() local_unnamed_addr #0 {
+entry:
+  br i1 label %error, label %exit
+error:
+  ret 2
+exit:
+  ret 0
+}
+```
+
+An adaptive profile program using this feature must have a module flag set
+like the following: `!{i32 1, !"multiple_return_points", i1 true}`.
 
 ## Program Structure
 
@@ -535,6 +551,7 @@ attributes #0 = { "entry_point" "qir_profiles"="adaptive_profile" "output_labeli
 !7 = !{i32 1, !"IR_functions", i1 false}
 !8 = !{i32 1, !"backwards_branching", i1 false}
 !9 = !{i32 1, !"multiple_target_branching", i1 false}
+!10 = !{i32 1, !"multiple_return_points", i1 false}
 ```
 
 The program performs gate teleportation, and it uses conditional single qubit
