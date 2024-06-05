@@ -32,6 +32,7 @@ implemented:
    implementing classical logic on `i1` types is also assumed.
    Conditional quantum operations in the instruction set that appear in the target basic blocks of a `br` instruction must be performed conditionally like in a purely classical LLVM program.
 
+This means that at minimum, backends supporting adaptive profile programs should support mid-circuit measurement, turning measurements into booleans, and branching based on those booleans.
 Beyond this, a backend can opt into one or more of the following additional
 capabilities to extend minimal adaptive profile compliance with additional
 features. A maximal adaptive profile program adds all of the following
