@@ -1,12 +1,17 @@
 # ABNF Grammars For Schema Definitions
 
-The ABNF grammars for the [Labeled](./Labeled.md) and [Ordered](./Ordered.md) define the technical content of the files. The details of the QIR calls and how they map to the input is coverred in the associated specifications. Type consistency cannot be defined for array elements and is a validation concern when consuming output.
+The ABNF grammars for the [Labeled](./Labeled.md) and [Ordered](./Ordered.md)
+define the technical content of the files. The details of the QIR calls and how
+they map to the input is coverred in the associated specifications. Type
+consistency cannot be defined for array elements and is a validation concern
+when consuming output.
 
 ## Grammars
 
 ### Shared Top Level
 
-The grammars share a basic structure and only vary in their definition of values, tuples, and arrays. The top level definitions are the same:
+The grammars share a basic structure and only vary in their definition of
+values, tuples, and arrays. The top level definitions are the same:
 
 ```abnf
 file = header-schema-name EOL header-schema-version *(EOL header) 1*(EOL shot) [EOL]
@@ -28,7 +33,7 @@ output = (container / value)
 container = (tuple / array)
 ```
 
-### Labeled:
+### Labeled
 
 ```abnf
 value = output-start (result / bool / int / double) TAB label
