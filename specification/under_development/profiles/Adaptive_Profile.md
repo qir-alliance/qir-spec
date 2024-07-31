@@ -231,23 +231,10 @@ continue:
 ```
 
 An Adaptive Profile program must indicate which classical data types must be
-supported to execute it. This is done by setting the following module flags to
-indicate the widths of various classical types as values for the rightmost
-section of the module flag metadata, like in the table below. Any program like
-the previous one that uses instructions on classical data types must have the
-appropriate module flag set, or it is not a legal Adaptive Profile program. A
-module flag can indicate that the program uses multiple classical types by
-adding multiple "end" fields in the module flags, each an i32 representing a
-type's width. For example, `!{i32 1, !"classical_ints", i32 16, i32 32}`
-indicates that both 16-bit integers and 32-bit integers are used in the adaptive
-profile program. On the other hand, `!{i32 1, !"classical_ints", i32 0}`
-indicates that the program does not use classical integer computations.
-
-| LLVM Module Flag                               | Context and Purpose                                                          |
-| :--------------------------------------------- | :--------------------------------------------------------------------------- |
-| `!{i32 1, !"classical_ints", i32 N}`        | indicates whether the integer `i1 and iN` data types are used by the program |
-| `!{i32 1, !"classical_floats", i32 N}`       | indicates whether a floating point `fN` data type is used by the program     |
-| `!{i32 1, !"classical_fixed_points", i32 N}` | indicates whether fixed-point intrinsics on an `iN` type are used by the program            |
+supported to execute it. This is done by setting the corresponding [module
+flags](#module-flags-metadata) to indicate what classical types are supported.
+Any program like the previous one that uses instructions on classical data types
+must have the appropriate module flag set. 
 
 For each data type being supported, some corresponding instructions must be
 supported, as detailed in the table below. For each datatype, any caveats on the
@@ -256,9 +243,12 @@ behavior of the backend's execution from the semantics of the LLVM instruction
 should be noted in this
 [document](./Adaptive_Hardware/providers.md#backend-support-for-adaptive-profile):
 
-An Adaptive Profile program using integers as a datatype with width `N` (for
-example the following module flag is defined: `!{i32 1, !"classical_ints", i32
-N}`) can use the instructions from the table below on this `iN` type.
+An Adaptive Profile program using integer computations must specify the
+corresponding [module flag](#module-flags-metadata). The use of integer
+constants in calls to QIS functions is supported regardless of whether integer
+computations in general are supported. However, integer values can only be
+passed to IR functions - if IR functions are supported, if the backend also
+supports integer computations.
 
 | LLVM Instruction | Context and Purpose                                                   | Note                                                                                       |
 |:-----------------|:----------------------------------------------------------------------|:-------------------------------------------------------------------------------------------|
@@ -282,9 +272,7 @@ N}`) can use the instructions from the table below on this `iN` type.
 | `phi`            | assign a value to a register based on control-flow                    |                                                                                            |
 
 If an Adaptive Profile program has support for floating point computations on
-floats of width `N` (for example, computations on N-bit floats are supported
-`!{i32 1, !"classical_floats", i32 N}`), then the following instructions are
-supported.
+floating-point numbers, then the following instructions are supported.
 
 | LLVM Instruction | Context and Purpose               | Note                        |
 | :--------------- | :-------------------------------- | :-------------------------- |
@@ -294,9 +282,8 @@ supported.
 | `fdiv`           | Used for floating point division. | Can cause real-time errors. |
 |                  |                                   |                             |
 
-Finally, an Adaptive Profile program using fixed-point intrinsics on integers of
-width `N` (for example, a module flag is set as follows `!{i32 1,
-!"classical_floats", i32 N}`), can use the following intrinsics:
+Finally, an Adaptive Profile program using computations on fixed-point numbers,
+can use the following intrinsics:
 
 | LLVM Intrinsic       | Context and Purpose                                  | Note                        |
 | :------------------- | :--------------------------------------------------- | :-------------------------- |
@@ -699,17 +686,14 @@ The following runtime functions must be supported by all backends:
 | __quantum__rt__bool_record_output   | `void(i1,i8*)`       | Adds a boolean value to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                              |
 
 The following output recording functions can appear if you opt into supporting
-real-time integer calculations on an integer or fixed-point `iN` type (the
-profile compliant program sets the following module flag `!{i32 1,
-!"classical_ints", i32 N}` or  `!{i32 1, !"classical_fixed_points", i32 N}`).
+real-time integer calculations on an integer or fixed-point type.
 
 | Function                         | Signature       | Description                                                                                                                                                                                              |
 | :------------------------------- | :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | __quantum__rt__iN_record_output | `void(i64,i8*)` | Adds an integer result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.        |
 
 The following output recording functions can appear if you opt into supporting
-real-time floating point computations on an `fN` type (the profile compliant
-program sets the following module flag `!{i32 1, !"classical_ints", f32 N}`).
+real-time floating point computations.
 
 | Function                            | Signature       | Description                                                                                                                                                                                                                    |
 | :---------------------------------- | :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
