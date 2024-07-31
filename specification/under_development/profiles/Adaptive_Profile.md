@@ -624,10 +624,8 @@ it must satisfy the following three requirements:
 - All functions must return `void`, `iN`, or `fN` types (`i1` and `i64` for
   example) and can only take in `%Qubit*`, `%Result*`, `iN`, or `fN` types as
   arguments. Additionally, arguments to the quantum instruction set cannot have
-  dynamically computed arguments by default. They can however refer to static
-  global values that are defined by linking (for example `call
-  @__quantum__qis__rz__body(double @angle, %Qubit* null)` where `@double` is a
-  static global who gets a new rotation angle linked at each shot). Dynamically
+  dynamically computed arguments by default. They can however consume constant values
+  of any data type. Dynamically
   computed arguments can be supplied to instruction set functions when adaptive
   profile programs use a classical data type from **Bullet 5**. Functions that
   measure qubits must take the qubit pointer(s) as well as the result pointer(s)
@@ -683,7 +681,6 @@ The following runtime functions must be supported by all backends:
 | __quantum__rt__tuple_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of a tuple and how many tuple elements it has. The second parameter defines a string label for the tuple. Depending on the output schema, the label is included in the output or omitted.  |
 | __quantum__rt__array_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of an array and how many array elements it has. The second parameter defines a string label for the array. Depending on the output schema, the label is included in the output or omitted. |
 | __quantum__rt__result_record_output | `void(%Result*,i8*)` | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
-| __quantum__rt__bool_record_output   | `void(i1,i8*)`       | Adds a boolean value to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                              |
 
 The following output recording functions can appear if you opt into supporting
 real-time integer calculations on an integer or fixed-point type.
@@ -992,15 +989,11 @@ The compile-time error messages can occur when a backend doesn't support some of
 the optional features from **Bullets 5-9**. If upon inspecting a module flag,
 the backend determines that the Adaptive Profile program uses features not
 supported by the backend, then a compile-time error message should be provided.
-Additionally, if there are specific limitations on the support of certain
-features, like not supporting a particular instruction in **Bullet 5**, then the
-backend should return an error message indicating the type of instruction that
-was not supported.
 
 The runtime error messages can occur when opting into features such as the
 classical computations in **Bullets 5**. An Adaptive Profile program that
 undergoes a real-time classical error (for example unchecked division by zero)
-has undefined behavior, and a backend is free to execute and appropriate
+has undefined behavior, and a backend is free to execute an undefined
 behavior. Programs can also check computations and provide error code by
 returning a value supported by a classical data type in a program, assuming a
 classical type specified in **Bullet 5** is supported.
