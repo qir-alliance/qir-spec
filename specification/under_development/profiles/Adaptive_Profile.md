@@ -687,14 +687,14 @@ real-time integer calculations on an integer or fixed-point type.
 
 | Function                         | Signature       | Description                                                                                                                                                                                              |
 | :------------------------------- | :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__iN_record_output | `void(i64,i8*)` | Adds an integer result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.        |
+| __quantum__rt__int_record_output | `void(i64,i32,i8*)` | Adds an integer result to the generated output. The second parameter defines the integer precision, and the third one a string label for the result value. Depending on the output schema, the label is included in the output or omitted.        |
 
 The following output recording functions can appear if you opt into supporting
 real-time floating point computations.
 
 | Function                            | Signature       | Description                                                                                                                                                                                                                    |
 | :---------------------------------- | :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__fN_record_output | `void(f64,i8*)` | Adds a double precision floating point value result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted. |
+| __quantum__rt__record_output | `void(f64,i32,i8*)` | Adds a double precision floating point value result to the generated output. The second parameter defines the floating-point precision, and the third one defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted. |
 
 Additionally, a backend can provide more `rt` functions that can be used by
 Adaptive Profile programs in accordance with the classical data types that it
