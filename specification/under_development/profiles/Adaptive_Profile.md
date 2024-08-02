@@ -60,9 +60,7 @@ support more advanced adaptive computations:
 The use of these optional features is represented as a [module
 flag](#module-flags-metadata) in the program IR. Any backend that supports
 capabilities 1-4 and as many of capabilities 5-9 as it desires is considered as
-supporting Adaptive Profile programs. The optional capabilities supported by
-different backends along with details about that support are captured in this
-[document](./Adaptive_Hardware/providers.md#backend-support-for-adaptive-profile).
+supporting Adaptive Profile programs. 
 Ideally, static analysis/verification tools should be able to understand what
 capabilities of the Adaptive Profile a backend is implementing and should run a
 verification pass to ensure Adaptive Profile programs that are using
@@ -186,9 +184,7 @@ entry-point function.
 A backend can choose to support an extended Adaptive Profile that may include
 instructions for classical computations on atomic data types, including integer
 and floating-point arithmetics. The behavior in the case of an overflow or
-underflow may be undefined. Backend providers are encouraged to capture optional
-profile capabilities including any supported data types in this
-[document](./Adaptive_Hardware/providers.md#backend-support-for-adaptive-profile).
+underflow may be undefined.
 All LLVM instructions that must be available to support an extended Adapative
 Profile including classical computations are listed in the section on [classical
 instructions](#classical-instructions).
@@ -339,9 +335,7 @@ bitcode file that contains the following:
   declarations
 - [module flags](#module-flags-metadata) that contain information that a
   compiler or backend may need to process the bitcode. These include module
-  flags that indicate which features of the Adaptive Profile are used. A back
-  end can list which module flags they support in the following
-  [document](./Adaptive_Hardware/providers.md#backend-support-for-adaptive-profile).
+  flags that indicate which features of the Adaptive Profile are used.
 
 The human-readable LLVM IR for the bitcode can be obtained using standard [LLVM
 tools](https://llvm.org/docs/CommandGuide/llvm-dis.html). For clarity, this
@@ -904,9 +898,7 @@ there is no assumption that the value in the virtual register always corresponds
 to a physical register. For example, when considering register coloring, the
 virtual register, `%0`, in the QIR program may refer to a value stored in RAM
 for most of its lifetime before being loaded into a register when an instruction
-operates on `%0`. backends should specify any constraints on classical compute
-support on this
-[page](./Adaptive_Hardware/providers.md#backend-support-for-adaptive-profile).
+operates on `%0`. 
 
 ## Error Messages
 
