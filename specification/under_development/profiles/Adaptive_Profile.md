@@ -183,161 +183,61 @@ entry-point function.
 
 ### Bullet 5: Classical Computations
 
-An Adaptive Profile program may include instructions or intrinsics for numeric
-and logical computations that don't involve allocating memory for aggregate data
-structures. These can include integer arithmetic calculations of a
-backend-specified width, floating point arithmetic calculations of a
-backend-specified width, logical operations on integers of a backend-specified
-width, or operations on fixed-point numbers via intrinsics. Front-ends can use
-any integer or floating point width when generating code, and it is the
-responsibility of a backend to provide a compile-time error message if the
-frontend uses an integer width greater than that which is supported.
+A backend can choose to support an extended Adaptive Profile that may include
+instructions for classical computations on atomic data types, including integer
+and floating-point arithmetics. The behavior in the case of an overflow or
+underflow may be undefined. Backend providers are encouraged to capture optional
+profile capabilities including any supported data types in this
+[document](./Adaptive_Hardware/providers.md#backend-support-for-adaptive-profile).
+All LLVM instructions that must be available to support an extended Adapative
+Profile including classical computations are listed in the section on [classical
+instructions](#classical-instructions).
 
-When an Adaptive Profile program indicates that it is using a particular data
-type, then instruction set (`qis`) functions or classical (`rt`) functions that
-a backend may support can now be called. For example, consider that if a backend
-supports integer computations and random number generation, then an adaptive
-profile qir program may have code like the following to do randomized
-benchmarking:
+Which data types are used in classical computations as part of an extended
+Adaptive Profile must be indicated in the form of [module
+flags](#module-flags-metadata). The module flag(s) specifically also include
+information about the bitwith(s) of the used data type(s). It is the
+responsiblity of the backend to provide a compile-time error message if any of
+the used data types or widths thereof are not supported.
 
-```llvm
-%0 = call i64 @__quantum__rt__rand_range(i64 0, i64 2)
-%1 = icmp eq i64 %0, 0
-br i1 %1, label %zero_rand_sequence, label %one_rand_sequence
-```
+If the program makes use of classical computations on a specific data type, it
+implies that variables of that data type may exist at any point in the program.
+Specifically, it is then also permitted to pass such variables as arguments to
+QIS functions, runtime functions, or [IR
+functions](#bullet-6-ir-defined-functions-and-function-calls) (if available), as
+illustrated in the [examples](#examples) section. Passing constant values of any
+data type as arguments to QIS and runtime functions is always permitted,
+regardless of whether classical computations on that data type are supported.
 
-By combining mid-circuit measurements with instructions on classical data types,
-you can conditionally apply gates based on logic using multiple mid-circuit
-measurements and boolean computations:
-
-```llvm
-  tail call void @__quantum__qis__h__body(%Qubit* null)
-  tail call void @__quantum__qis__mz__body(%Qubit* null, %Result* null)
-  tail call void @__quantum__qis__reset__body(%Qubit* null)
-  %0 = tail call i1 @__quantum__rt__read_result__body(%Result* null)
-  tail call void @__quantum__qis__h__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*))
-  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*), %Result* nonnull inttoptr (i64 1 to %Result*))
-  tail call void @__quantum__qis__reset__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*))
-  %1 = tail call i1 @__quantum__rt__read_result__body(%Result* nonnull inttoptr (i64 1 to %Result*))
-  %2 = and i1 %0, %1
-  br i1 %2, label %then, label %continue
-
-then:                                   ; preds = %entry
-  tail call void @__quantum__qis__x__body(%Qubit* nonnull inttoptr (i64 2 to %Qubit*))
-  br label %continue__1.i.i.i
-
-continue:
-...
-```
-
-An Adaptive Profile program must indicate which classical data types must be
-supported to execute it. This is done by setting the corresponding [module
-flags](#module-flags-metadata) to indicate what classical types are supported.
-Any program like the previous one that uses instructions on classical data types
-must have the appropriate module flag set. 
-
-For each data type being supported, some corresponding instructions must be
-supported, as detailed in the table below. For each datatype, any caveats on the
-ability to support certain instructions or where major differences in the
-behavior of the backend's execution from the semantics of the LLVM instruction
-should be noted in this
-[document](./Adaptive_Hardware/providers.md#backend-support-for-adaptive-profile):
-
-An Adaptive Profile program using integer computations must specify the
-corresponding [module flag](#module-flags-metadata). The use of integer
-constants in calls to QIS functions is supported regardless of whether integer
-computations in general are supported. However, integer values can only be
-passed to IR functions - if IR functions are supported, if the backend also
-supports integer computations.
-
-| LLVM Instruction | Context and Purpose                                                   | Note                                                                                       |
-|:-----------------|:----------------------------------------------------------------------|:-------------------------------------------------------------------------------------------|
-| `add`            | Used to add two integers together.                                    |                                                                                            |
-| `sub`            | Used to subtract two integers.                                        |                                                                                            |
-| `mul`            | Used to multiply integers                                             |                                                                                            |
-| `udiv`           | Used for unsigned division.                                           | Can cause real-time errors.                                                                |
-| `sdiv`           | Used for signed division.                                             | Can cause real-time errors.                                                                |
-| `urem`           | Used for unsigned remainder division.                                 | Can cause real-time errors.                                                                |
-| `srem`           | Used for signed remainder division.                                   | Can cause real-time errors.                                                                |
-| `and`            | Bitwise and of two integers.                                          |                                                                                            |
-| `or`             | Bitwise or of two integers.                                           |                                                                                            |
-| `xor`            | Bitwise xor of two integers.                                          |                                                                                            |
-| `shl`            | a left bit shift on a register or number.                             |                                                                                            |
-| `lshr`           | Shifts a number the specified number of bits to the right.            | No sign extension.                                                                         |
-| `ashr`           | Shifts a number the specified number of bits to the right.            | Does sign extension.                                                                       |
-| `icmp`           | Performs signed or unsigned integer comparisons.                      | Different options are: `eq`, `ne`, `slt`, `sgt`, `sle`, `sge`, `ult`, `ugt`, `ule`, `uge`. |
-| `zext`           | zero extend an iM to an iN where N>M                                  |                                                                                            |
-| `sext`           | signed zero extend an iM to an iN where N>M                           |                                                                                            |
-| `select`         | conditionally select the value in a register based on a boolean value |                                                                                            |
-| `phi`            | assign a value to a register based on control-flow                    |                                                                                            |
-
-If an Adaptive Profile program has support for floating point computations on
-floating-point numbers, then the following instructions are supported.
-
-| LLVM Instruction | Context and Purpose               | Note                        |
-| :--------------- | :-------------------------------- | :-------------------------- |
-| `fadd`           | Used to add two floats together.  |                             |
-| `fsub`           | Used to subtract floats integers. |                             |
-| `fmul`           | Used to multiply floats           |                             |
-| `fdiv`           | Used for floating point division. | Can cause real-time errors. |
-|                  |                                   |                             |
-
-Finally, an Adaptive Profile program using computations on fixed-point numbers,
-can use the following intrinsics:
-
-| LLVM Intrinsic       | Context and Purpose                                  | Note                        |
-| :------------------- | :--------------------------------------------------- | :-------------------------- |
-| `llvm.smul.fix.*`    | Used to multiply two signed fixed point numbers.     |                             |
-| `llvm.smul.fix.sat*` | Same as above but clamps to min/max number in scale. |                             |
-| `llvm.umul.fix.*`    | Used to multiply two unsigned fixed point numbers.   |                             |
-| `llvm.umul.fix.sat*` | Same as above but clamps to min/max number in scale. |                             |
-| `llvm.sdiv.fix.*`    | Used to divide two signed fixed point numbers.       | Can cause real-time errors. |
-| `llvm.sdiv.fix.sat*` | Same as above but clamps to min/max number in scale. |                             |
-| `llvm.udiv.fix.*`    | Used to divide two unsigned fixed point numbers.     | Can cause real-time errors. |
-| `llvm.udiv.fix.sat*` | Same as above but clamps to min/max number in scale. |                             |
-|                      |                                                      |                             |
+<!-- FIXME:
+Allow to define and use global constants for (only) the supported data types.
+-->
 
 ### Bullet 6: IR-defined functions and function calls
 
-An Adaptive Profile program may use IR-defined functions and function calls. For
-example, consider that with IR-defined functions if a backend has a `Cnot` gate
-in its instruction set, then a program that liberally uses `Swap` operations can
-define a function and call it as follows:
+A backend can choose to support an extended Adaptive Profile that includes
+IR-defined functions, that is functions whose implementation is defined as part
+of the program IR. An Adaptive Profile program that includes IR-defined functions
+must indicate this in the form of a [module flag](#module-flags-metadata).
 
-```llvm
-define void @swap(%Qubit* %arg1, %Qubit* %arg2) {
-call void __quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
-call void __quantum__qis__cnot__body(%Qubit* %arg2, %Qubit* %arg1)
-call void __quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
-}
+IR-defined functions may take arguments of type `%Qubit`
+and `%Result`, and it may either return a value of type `%Result` or choose to
+have a `void` return type. If [classical computations](#bullet-5-classical-computations)
+are supported in addition to IR-defined functions, then values of the supported
+data type(s) may also be passed as arguments to, and returned from, an
+IR-function.
 
-define void @main() {
-...
-call void @swap(%Qubit* null, %Qubit* nonnull inttoptr (1 to %Qubit*))
-...
-}
-```
+The body of an IR-defined function may use any of the available [classical
+instructions](#classical-instructions). It may call QIS function and other IR
+functions. In contrast to the [entry point function](#entry-point-definition),
+an IR-defined function may *not* contain any calls to [output
+recording](#output-recording) functions, but it may call any other available
+runtime function.
 
-Moreover, classical functions can be defined in the IR assuming that a backend
-has opted into supporting classical computations:
-
-```llvm
-define i64 @triple(i64 %0) {
-%1 = mul i64 %0, 3
-ret i64 %1
-}
-
-define void @main() {
-...
-%0 = call void @triple(i64 2)
-...
-}
-```
-
-The only restriction on IR functions and definitions is that you cannot have
-dynamically allocated `%Qubit*`  arguments, they must still be constant
-`%Qubit*` id's. An Adaptive Profile program using this feature must have a
-module flag set like the following: `!{i32 1, !"ir_functions", i1 true}`.
+<!-- FIXME: 
+Within the body of an IR-defined function, values of type `%Qubit` and `%Result`
+can only occur in calls to other functions. - same for entry points
+-->
 
 ### Bullet 7: Backwards branching
 
@@ -624,12 +524,11 @@ it must satisfy the following three requirements:
 - All functions must return `void`, `iN`, or `fN` types (`i1` and `i64` for
   example) and can only take in `%Qubit*`, `%Result*`, `iN`, or `fN` types as
   arguments. Additionally, arguments to the quantum instruction set cannot have
-  dynamically computed arguments by default. They can however consume constant values
-  of any data type. Dynamically
-  computed arguments can be supplied to instruction set functions when adaptive
-  profile programs use a classical data type from **Bullet 5**. Functions that
-  measure qubits must take the qubit pointer(s) as well as the result pointer(s)
-  as arguments.
+  dynamically computed arguments by default. They can however consume constant
+  values of any data type. Dynamically computed arguments can be supplied to
+  instruction set functions when adaptive profile programs use a classical data
+  type from **Bullet 5**. Functions that measure qubits must take the qubit
+  pointer(s) as well as the result pointer(s) as arguments.
 
 - Functions that perform a measurement of one or more qubit(s) must be marked
   with a custom function attribute named `irreversible`. The use of
@@ -662,14 +561,43 @@ See also the section on [data types and values](#data-types-and-values) for more
 information about the creation and usage of LLVM values.
 
 Supporting [optional capabilities](#optional-capabilities) requires additional
-LLVM instructions to be supported. The LLVM instructions required for each of
-the optional capabilities are listed in the respective section above.
+LLVM instructions to be supported. The following tables list the
+instructions required for each of the optional capabilities.
 
-<!--
-The following subsections list the
-instructions required for each of the optional capabilities. 
--->
+If an Adaptive Profile program has support for integer computations,
+then the following instructions are supported:
 
+| LLVM Instruction | Context and Purpose                                                   | Note                                                                                       |
+|:-----------------|:----------------------------------------------------------------------|:-------------------------------------------------------------------------------------------|
+| `add`            | Used to add two integers together.                                    |                                                                                            |
+| `sub`            | Used to subtract two integers.                                        |                                                                                            |
+| `mul`            | Used to multiply integers                                             |                                                                                            |
+| `udiv`           | Used for unsigned division.                                           | Can cause real-time errors.                                                                |
+| `sdiv`           | Used for signed division.                                             | Can cause real-time errors.                                                                |
+| `urem`           | Used for unsigned remainder division.                                 | Can cause real-time errors.                                                                |
+| `srem`           | Used for signed remainder division.                                   | Can cause real-time errors.                                                                |
+| `and`            | Bitwise and of two integers.                                          |                                                                                            |
+| `or`             | Bitwise or of two integers.                                           |                                                                                            |
+| `xor`            | Bitwise xor of two integers.                                          |                                                                                            |
+| `shl`            | a left bit shift on a register or number.                             |                                                                                            |
+| `lshr`           | Shifts a number the specified number of bits to the right.            | No sign extension.                                                                         |
+| `ashr`           | Shifts a number the specified number of bits to the right.            | Does sign extension.                                                                       |
+| `icmp`           | Performs signed or unsigned integer comparisons.                      | Different options are: `eq`, `ne`, `slt`, `sgt`, `sle`, `sge`, `ult`, `ugt`, `ule`, `uge`. |
+| `zext`           | zero extend an iM to an iN where N>M                                  |                                                                                            |
+| `sext`           | signed zero extend an iM to an iN where N>M                           |                                                                                            |
+| `select`         | conditionally select the value in a register based on a boolean value |                                                                                            |
+| `phi`            | assign a value to a register based on control-flow                    |                                                                                            |
+
+If an Adaptive Profile program has support for floating point computations on
+floating-point numbers, then the following instructions are supported:
+
+| LLVM Instruction | Context and Purpose               | Note                        |
+| :--------------- | :-------------------------------- | :-------------------------- |
+| `fadd`           | Used to add two floats together.  |                             |
+| `fsub`           | Used to subtract floats integers. |                             |
+| `fmul`           | Used to multiply floats           |                             |
+| `fdiv`           | Used for floating point division. | Can cause real-time errors. |
+|                  |                                   |                             |
 
 ## Runtime Functions
 
@@ -695,13 +623,6 @@ real-time floating point computations.
 | Function                            | Signature       | Description                                                                                                                                                                                                                    |
 | :---------------------------------- | :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | __quantum__rt__float_record_output | `void(f64,i32,i8*)` | Adds a floating-point value result to the generated output. The second parameter defines the floating-point precision, and the third one defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted. |
-
-The following output recording functions can appear if you opt into supporting
-real-time fixed-point computations.
-
-| Function                            | Signature       | Description                                                                                                                                                                                                                    |
-| :---------------------------------- | :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__fixedpoint_record_output | `void(f64,i32,i32, i8*)` | Adds a fixed-point value result to the generated output. The second parameter defines the fixed-point precision, the third parameter the fixed point scale, and the forth one defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted. |
 
 Additionally, a backend can provide more `rt` functions that can be used by
 Adaptive Profile programs in accordance with the classical data types that it
@@ -1000,10 +921,10 @@ supported by the backend, then a compile-time error message should be provided.
 The runtime error messages can occur when opting into features such as the
 classical computations in **Bullets 5**. An Adaptive Profile program that
 undergoes a real-time classical error (for example unchecked division by zero)
-has undefined behavior, and a backend is free to execute an undefined
-behavior. Programs can also check computations and provide error code by
-returning a value supported by a classical data type in a program, assuming a
-classical type specified in **Bullet 5** is supported.
+has undefined behavior, and a backend is free to execute an undefined behavior.
+Programs can also check computations and provide error code by returning a value
+supported by a classical data type in a program, assuming a classical type
+specified in **Bullet 5** is supported.
 
 ## LLVM 15 Opaque Pointers
 
@@ -1017,3 +938,74 @@ the Adaptive Profile other than that the signature of the measurement
 instruction must necessarily change to represent how measurement results are
 actually converted into `i1` values. See the discussion on this
 [upgrade](https://github.com/qir-alliance/qir-spec/issues/30).
+
+## Examples
+
+For example, consider a backend that supports integer computations and provides
+a runtime function for random number generation. Then an Adaptive Profile
+program may contain code like the following to do randomized benchmarking:
+
+```llvm
+%0 = call i64 @__quantum__rt__rand_range(i64 0, i64 2)
+%1 = icmp eq i64 %0, 0
+br i1 %1, label %zero_rand_sequence, label %one_rand_sequence
+```
+
+By combining mid-circuit measurements with instructions on classical data types,
+you can conditionally apply gates based on logic using multiple mid-circuit
+measurements and boolean computations:
+
+```llvm
+  tail call void @__quantum__qis__h__body(%Qubit* null)
+  tail call void @__quantum__qis__mz__body(%Qubit* null, %Result* null)
+  tail call void @__quantum__qis__reset__body(%Qubit* null)
+  %0 = tail call i1 @__quantum__rt__read_result__body(%Result* null)
+  tail call void @__quantum__qis__h__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*))
+  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*), %Result* nonnull inttoptr (i64 1 to %Result*))
+  tail call void @__quantum__qis__reset__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*))
+  %1 = tail call i1 @__quantum__rt__read_result__body(%Result* nonnull inttoptr (i64 1 to %Result*))
+  %2 = and i1 %0, %1
+  br i1 %2, label %then, label %continue
+
+then:                                   ; preds = %entry
+  tail call void @__quantum__qis__x__body(%Qubit* nonnull inttoptr (i64 2 to %Qubit*))
+  br label %continue__1.i.i.i
+
+continue:
+...
+```
+
+Consider a backend that supports IR-defined functions and provides a `cnot`
+instruction as part of the QIS, but not `swap`. Defining and calling a `swap`
+function may then greatly reduce code size for a program that involves frequent
+use of swaps between qubits:
+
+```llvm
+define void @swap(%Qubit* %arg1, %Qubit* %arg2) {
+call void __quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
+call void __quantum__qis__cnot__body(%Qubit* %arg2, %Qubit* %arg1)
+call void __quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
+}
+
+define void @main() {
+...
+call void @swap(%Qubit* null, %Qubit* nonnull inttoptr (1 to %Qubit*))
+...
+}
+```
+
+Moreover, classical functions can be defined in the IR assuming that a backend
+has opted into supporting classical computations:
+
+```llvm
+define i64 @triple(i64 %0) {
+%1 = mul i64 %0, 3
+ret i64 %1
+}
+
+define void @main() {
+...
+%0 = call void @triple(i64 2)
+...
+}
+```
