@@ -585,6 +585,7 @@ then the following instructions are supported:
 | `icmp`           | Performs signed or unsigned integer comparisons.                      | Different options are: `eq`, `ne`, `slt`, `sgt`, `sle`, `sge`, `ult`, `ugt`, `ule`, `uge`. |
 | `zext`           | zero extend an iM to an iN where N>M                                  |                                                                                            |
 | `sext`           | signed zero extend an iM to an iN where N>M                           |                                                                                            |
+| `trunc`           | truncate an iN to an iM where N>M                           |                                                                                            |
 | `select`         | conditionally select the value in a register based on a boolean value |                                                                                            |
 | `phi`            | assign a value to a register based on control-flow                    |                                                                                            |
 
@@ -597,6 +598,8 @@ floating-point numbers, then the following instructions are supported:
 | `fsub`           | Used to subtract floats integers. |                             |
 | `fmul`           | Used to multiply floats           |                             |
 | `fdiv`           | Used for floating point division. | Can cause real-time errors. |
+| `fptrunc`           | Floating point truncation from an fN to an fM where N>M |  |
+| `fpext`           | Floating point extenstion from an fM to an fN where N>M |  |
 |                  |                                   |                             |
 
 ## Runtime Functions
