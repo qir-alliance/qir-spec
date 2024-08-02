@@ -9,11 +9,8 @@ whether or not they support each feature via a ✓ or x.
 |                           | Placeholder Backend 0 | Placeholder Backend 1 | Placeholder Backend 2 | Placeholder Backend 3 |
 | :------------------------ | :-------------------- | :-------------------- | :-------------------- | :-------------------- |
 | qubit_resetting           | ✓                     | ?                     | ?                     | ?                     |
-| classical_ints            | ✓                     | ?                     | ?                     | ?                     |
-| classical_floats          | x                     | ?                     | ?                     | ?                     |
-| classical_fixed_points    | x                     | ?                     | ?                     | ?                     |
-| user_functions            | x                     | ?                     | ?                     | ?                     |
-| dynamic_float_args        | x                     | ?                     | ?                     | ?                     |
-| extern_functions          | ✓                     | ?                     | ?                     | ?                     |
+| int_computations            | ✓                     | ?                     | ?                     | ?                     |
+| float_computations          | x                     | ?                     | ?                     | ?                     |
+| ir_functions            | x                     | ?                     | ?                     | ?                     |
 | backwards_branching       | x                     | ?                     | ?                     | ?                     |
 | multiple_target_branching | x                     | ?                     | ?                     | ?                     |
