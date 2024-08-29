@@ -35,8 +35,8 @@ branching based on those booleans. The QIR Adaptive Profile in particular also
 requires that branches can be arbitrarily nested. This includes a requirement
 that it must be possible to perform a measurement within a branch, and then
 branch again on that measurement. As for the Base Profile, any Adaptive Profile
-is always garanteed to terminate, i.e. there are not control flow loops
-permitted that would lead to a potentially indefinitvely running program.
+is always garanteed to terminate, i.e. there are no control flow loops permitted
+that would lead to a potentially indefinitvely running program.
 
 Beyond the providing the required capabilities above, a backend can opt into one
 or more of the following [optional capabilities](#optional-capabilities) to
@@ -44,14 +44,14 @@ support more advanced adaptive computations:
 
 <!-- markdownlint-disable MD029 -->
 5. Computations on classical (non-composite) data types, specifically on
-   integers, floating-point numbers, or fixed-point numbers.
+   integers or floating-point numbers.
 6. IR-defined functions and calls of these functions at any point in the
    program.
 7. Backwards branching to express terminating loops. Non-terminating loops
    ("while"-loops) are not permitted within the Adaptive Profile, regardless of
    the support for this optional feature. It is specifically not permitted to
    have a loop that terminates only based on a measurement outcome.
-   Correspondinly, permitting for backward branching only makes sense when the
+   Correspondinly, permitting for backward branching mostly makes sense when the
    backend also supports computations on at least one classical data type.
 8. Multiple target branching.
 9. Multipe return points.
@@ -59,14 +59,13 @@ support more advanced adaptive computations:
 
 The use of these optional features is represented as a [module
 flag](#module-flags-metadata) in the program IR. Any backend that supports
-capabilities 1-4 and as many of capabilities 5-9 as it desires is considered as
-supporting Adaptive Profile programs. 
-Ideally, static analysis/verification tools should be able to understand what
-capabilities of the Adaptive Profile a backend is implementing and should run a
-verification pass to ensure Adaptive Profile programs that are using
-capabilities not supported by a backend are rejected with an informative
-message. More details about each of the aforementioned capabilities are outlined
-in the following sections.
+capabilities 1-4, and as many of capabilities 5-9 as it desires, is considered
+as supporting Adaptive Profile programs. Static analysis/verification tools
+should be able to determine what capabilities of the Adaptive Profile a backend
+is implementing and should run a verification pass to ensure Adaptive Profile
+programs that are using capabilities not supported by a backend are rejected
+with an informative message. More details about each of the aforementioned
+capabilities are outlined in the following sections.
 
 ## Mandatory Capabilities
 
@@ -125,9 +124,9 @@ for backward branching is enabled.
 While the Adaptive Profile requires that it must be possible to use a qubit
 after it was measured, the availability of a `reset` instruction depends on the
 QIS supported by the backend. If a single-qubit measurement is supported as part
-of the QIS, it is always possible to reset that qubit, if needed for qubit
-resuse later in the program, using forward branching as illustrated for example
-by the following IR snippet:
+of the QIS, it is always possible to reset that qubit, if needed for qubit reuse
+later in the program, using forward branching as illustrated for example by the
+following IR snippet:
 
 ```llvm
 ...
@@ -143,8 +142,9 @@ continue:
 
 Although forward branching can be useful when combined with purely classical
 operations within a quantum program, the real utility is being able to
-conditionally perform gates depending on measurement outcomes, for example when
-performing real-time error-correction as part of a quantum programs.
+conditionally perform quantum instructions depending on measurement outcomes,
+for example when performing real-time error-correction as part of a quantum
+programs.
 
 **Bullet 4: Program output** <br/>
 
@@ -184,65 +184,62 @@ entry-point function.
 A backend can choose to support an extended Adaptive Profile that may include
 instructions for classical computations on atomic data types, including integer
 and floating-point arithmetics. The behavior in the case of an overflow or
-underflow may be undefined.
-All LLVM instructions that must be available to support an extended Adapative
-Profile including classical computations are listed in the section on [classical
-instructions](#classical-instructions).
+underflow may be undefined. All LLVM instructions that must be available to
+support an extended Adapative Profile including classical computations are
+listed in the section on [classical instructions](#classical-instructions).
 
 Which data types are used in classical computations as part of an extended
 Adaptive Profile must be indicated in the form of [module
 flags](#module-flags-metadata). The module flag(s) specifically also include
 information about the bitwith(s) of the used data type(s). It is the
-responsiblity of the backend to provide a compile-time error message if any of
-the used data types or widths thereof are not supported.
+responsiblity of the backend to reject the program if any of the used data types
+or widths thereof are not supported.
 
-If the program makes use of classical computations on a specific data type, it
-implies that variables of that data type may exist at any point in the program.
-Specifically, it is then also permitted to pass such variables as arguments to
-QIS functions, runtime functions, or [IR
+Support for a classical data type implies that local variables of that data type
+may exist at any point in the program. Specifically, it is then also permitted
+to pass such variables as arguments to QIS functions, runtime functions, or [IR
 functions](#bullet-6-ir-defined-functions-and-function-calls) (if available), as
 illustrated in the [examples](#examples) section. Passing constant values of any
 data type as arguments to QIS and runtime functions is always permitted,
 regardless of whether classical computations on that data type are supported.
 
-<!-- FIXME:
-Allow to define and use global constants for (only) the supported data types.
--->
+In addition to local variables, global constants may be defined for any of the
+supported classical data types. Such global constants may be used anywhere in
+the program where a value of this type can be used.
 
 ### Bullet 6: IR-defined functions and function calls
 
 A backend can choose to support an extended Adaptive Profile that includes
 IR-defined functions, that is functions whose implementation is defined as part
-of the program IR. An Adaptive Profile program that includes IR-defined functions
-must indicate this in the form of a [module flag](#module-flags-metadata).
+of the program IR. An Adaptive Profile program that includes IR-defined
+functions must indicate this in the form of a [module
+flag](#module-flags-metadata).
 
-IR-defined functions may take arguments of type `%Qubit`
-and `%Result`, and it may either return a value of type `%Result` or choose to
-have a `void` return type. If [classical computations](#bullet-5-classical-computations)
-are supported in addition to IR-defined functions, then values of the supported
-data type(s) may also be passed as arguments to, and returned from, an
-IR-function.
+IR-defined functions may take arguments of type `%Qubit*` and `%Result*`, and it
+may either return a value of type `%Result` or choose to have a `void` return
+type. If [classical computations](#bullet-5-classical-computations) are
+supported in addition to IR-defined functions, then values of the supported data
+type(s) may also be passed as arguments to, and returned from, an IR-defined
+function. Since the adaptive profile does not include support for composite data
+types, such as tuples and arrays, they cannot be passed to or returned from
+IR-defined functions.
 
 The body of an IR-defined function may use any of the available [classical
-instructions](#classical-instructions). It may call QIS function and other IR
-functions. In contrast to the [entry point function](#entry-point-definition),
-an IR-defined function may *not* contain any calls to [output
-recording](#output-recording) functions, but it may call any other available
-runtime function.
-
-<!-- FIXME: 
-Within the body of an IR-defined function, values of type `%Qubit` and `%Result`
-can only occur in calls to other functions. - same for entry points
--->
+instructions](#classical-instructions). It may call QIS functions and other
+IR-defined functions. In contrast to the [entry point
+function](#entry-point-definition), an IR-defined function may *not* contain any
+calls to [output recording](#output-recording) functions, but it may call any
+other available runtime function. Just like for the entry point function, values
+of type `%Qubit*` and `%Result*` may only occur in calls to other functions;
+qubit values of these types that are passed as arguments cannot be assigned to
+local variables, that is they cannot be aliased.
 
 ### Bullet 7: Backwards branching
 
-Opting into this capability releases the restriction on backwards branching so
-that a more compact representation of loops can be expressed in programs. Here
-is a program that implements a loop via a backwards branch that performs
-coinflips with a qubit and exits the program when the coin flip produces a 1. It
-is up to a backend to enforce that a program using backwards branching does not
-cause non-termination.
+Opting into this capability relieves the restriction on backwards branching so
+that a more compact representation of loops can be expressed in programs. Any
+use of this optional capability must be indicated in the form of [module
+flags](#module-flags-metadata) in the program IR.
 
 Proving non-termination with a static analysis may be impossible due to the
 capabilities forming a Turing-complete subset of LLVM. Since there is no static
@@ -266,54 +263,106 @@ exit:
 }
 ...
 ```
+<!--
+Since the Adaptive Profile does not allow for any composite data types,
+supporting backwards branching necessarily requires supporting non-constant
+values to be used to identify a qubit or result value. For example, the
+following IR expresses a loop that flips the state of qubit 1 to 4, if qubit 0
+is in a non-zero state:
 
-An Adaptive Profile program using this feature must have a module flag set like
-the following: `!{i32 1, !"backwards_branching", i1 true}`.
+```llvm
+...
+define void @simple_loop() {
+entry:
+  br label %loop_body
+loop_body:                          ; preds = %loop_body, %entry
+  %0 = phi i64 [ 0, %entry ], [ %1, %loop_body ]
+  %1 = add i64 %0, 1
+  call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* nonnull inttoptr (i64 %1 to %Qubit*))
+  %2 = icmp sle i64 %1, 4
+  br i1 %2, label %loop_body, label %loop_exit
+loop_exit:                          ; preds = %loop_body
+  ...
+}
+...
+```
+
+To ensure termination of the program, the condition for exiting the loop must
+not depend on any quantum measurements, since these are non-deterministic in
+general. Enforcing this restriction can be done with a static analysis tool,
+whereby any expression that may depend on a quantum measurement must be assumed
+to depend on it. 
+-->
+
+<!--FIXME: "dynamic" qubit indexing allowed here? allowed anywhere else? if not, what can we do with loops?? -->
+<!--FIXME: alternative: allow for potential non-termination and the backend deals with this by having a time-out. -->
+<!--FIXME: update the module flag depending on which of the two versions - or both - is supported. -->
+<!--FIXME: update the data types and values section to say qubits and results must be constant -->
+<!--FIXME: update this section here to require that the value used to access qubits and results must not depend on a measurement -->
 
 ### Bullet 8: Multiple Target Branching
 
-It can be desirable to support control constructs that indicate how a
-computation can lead to branching to one of *many* different control flow paths.
+It can be desirable to support control flow constructs that indicate how a
+computation can lead to branching to one of *many* different execution paths.
 Having such a construct exposed in the IR allows for more aggressive
-optimization considerations where it is easy to gather that gates being
-performed on the same qubits across different blocks can have no control flow
-dependencies. As such, a backend can opt into switch instruction support so that
-more aggressive static analysis and optimization are possible. To make such a
-construct useful, some amount of integer computation support (**Bullet 5**) must
-be supported. In the snippet below, we can imagine that mid-circuit measurement
-fed into classical computations producing `%val` and that each target block has
-conditional quantum operations.
+optimizations across different blocks without any dependencies between them. A
+backend may hence opt into supporting switch instructions to facilitate such
+optimizations. An Adaptive Profile program that includes switch instructions
+must indicate this in the form of a [module flag](#module-flags-metadata).
+
+For this capability to be practically useful, integer computations must be
+supported as well (**Bullet 5**). For example, the snippet below causes a jump
+to a block `onzero`, `onone`, `ontwo`, or `otherwise` respectively, depending on
+the value of an integer variable `%val`:
 
 ```llvm
- Implement a jump table:
 switch i32 %val, label %otherwise [ i32 0, label %onzero
                                     i32 1, label %onone
                                     i32 2, label %ontwo ]
 ```
 
-An Adaptive Profile program using this feature must have a module flag set like
-the following: `!{i32 1, !"multiple_target_branching", i1 true}`.
+The variable `%val` may, for example, depend on measurement results or a global
+constant. We refer to the [LLVM language
+reference](https://llvm.org/docs/LangRef.html#switch-instruction) for more
+information about the switch instruction.
+
+<!--FIXME: check that the entry point section allows for entry point arguments - global constants as the alternative? -->
 
 ### Bullet 9: Multiple Return Points
 
-As an optional feature, Adaptive Profile programs can have multiple return
-points in the entry point function. For example, an adpative profile program can
-contain code like:
+A backend my choose to support multiple return points in an entry point
+function, and IR-defined functions if the optional capability in **Bullet 6** is
+supported. This eliminates the need to create `phi` nodes for the purpose of
+propagating the computed output to a single final block. Any use of this
+optional capability must be indicated in the form of [module
+flags](#module-flags-metadata) in the program IR.
+
+A return statement is necessarily always the last statement in a block. For each
+block that contains returns a zero exit code in the entry point function, that
+same block must also contain the necessary calls to [output recording
+functions](#output-recording) to ensure the correct program output is recorded.
+If the block returns a non-zero exit code, calls to these functions may be
+omitted, implying that no output will be recorded in this case.
+
+For example, an Adpative Profile program that uses this optional capability may
+contain a logic like this:
 
 ```llvm
-...
-define i32 @simple_br() local_unnamed_addr #0 {
+@0 = internal constant [1 x i8] c"0\00"
+
+define i32 @main() local_unnamed_addr #0 {
 entry:
-  br i1 label %error, label %exit
+  tail call void @__quantum__qis__mz__body(%Qubit* null, %Result* null)
+  %0 = tail call i1 @__quantum__qis__read_result__body(%Result* null)
+  br i1 %0, label %error, label %cont
 error:
-  ret 2
+  ; qubits should be in a zero state at the end of the program
+  ret 1
 exit:
+  call void @__quantum__rt__result_record_output(%Result* null, i8* getelementptr inbounds ([1 x i8], [1 x i8]* @0, i32 0, i32 0))
   ret 0
 }
 ```
-
-An Adaptive Profile program using this feature must have a module flag set like
-the following: `!{i32 1, !"multiple_return_points", i1 true}`.
 
 ## Program Structure
 
@@ -555,11 +604,11 @@ See also the section on [data types and values](#data-types-and-values) for more
 information about the creation and usage of LLVM values.
 
 Supporting [optional capabilities](#optional-capabilities) requires additional
-LLVM instructions to be supported. The following tables list the
-instructions required for each of the optional capabilities.
+LLVM instructions to be supported. The following tables list the instructions
+required for each of the optional capabilities.
 
-If an Adaptive Profile program has support for integer computations,
-then the following instructions are supported:
+If an Adaptive Profile program has support for integer computations, then the
+following instructions are supported:
 
 | LLVM Instruction | Context and Purpose                                                   | Note                                                                                       |
 |:-----------------|:----------------------------------------------------------------------|:-------------------------------------------------------------------------------------------|
@@ -670,10 +719,19 @@ mid-circuit measurements via (**Bullet 2**) or by classical instructions and
 calls (**Bullet 5**) if a backend supports these features. This implies the
 following:
 
-- Call arguments can be constant values, `inttoptr` casts, `getelementptr`
-  instructions that are inlined into a call instruction, or classical registers.
-- backends can have various numeric data types used in their instructions if
-  they opt in to using the classical types specified in  **Bullet 5**.
+- Variables of boolean type may be defined, even if the backend supports none of
+  the optional extensions to the Adapative Profile.
+- Values of type `%Qubit*` and `%Result*` may only occur in function calls;
+  specifically, local variables of these types cannot be created regardless of
+  which optional extensions are supported by the targeted backend. See also the
+  subsequent paragraphs for more detail.
+- Variables of numeric data types may be defined if the backend supports the
+  extension in **Bullet 5**. Such variables may be used in the supported [LLVM
+  instructions](#classical-instructions) acting on that data type, or in
+  function calls.
+- Call arguments can be constant values, classical variables, as well as
+  `inttoptr` casts or `getelementptr` instructions that are inlined into a call
+  instruction.
 
 Constants of any type are permitted as part of a function call. What data types
 occur in the program hence depends on what QIS functions are used in addition to
