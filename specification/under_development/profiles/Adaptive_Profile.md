@@ -20,7 +20,7 @@ must support the following [mandatory capabilities](#mandatory-capabilities):
 1. It can execute a sequence of quantum instructions that transform the quantum
    state.
 2. A backend must support applying a measurement operation at any point in the
-   exeuction of the program. Qubits not undergoing the measurement should not
+   execution of the program. Qubits not undergoing the measurement should not
    have their state affected.
 3. A backend must be able to apply quantum instructions conditionally on a
    measurement outcome. Specifically, forward branching using the LLVM branch
@@ -35,8 +35,8 @@ branching based on those booleans. The QIR Adaptive Profile in particular also
 requires that branches can be arbitrarily nested. This includes a requirement
 that it must be possible to perform a measurement within a branch, and then
 branch again on that measurement. As for the Base Profile, any Adaptive Profile
-is always garanteed to terminate, i.e. there are no control flow loops permitted
-that would lead to a potentially indefinitvely running program.
+is always guaranteed to terminate, i.e. there are no control flow loops
+permitted that would lead to a potentially indefinitely running program.
 
 Beyond the providing the required capabilities above, a backend can opt into one
 or more of the following [optional capabilities](#optional-capabilities) to
@@ -51,10 +51,10 @@ support more advanced adaptive computations:
    ("while"-loops) are not permitted within the Adaptive Profile, regardless of
    the support for this optional feature. It is specifically not permitted to
    have a loop that terminates only based on a measurement outcome.
-   Correspondinly, permitting for backward branching mostly makes sense when the
-   backend also supports computations on at least one classical data type.
+   Correspondingly, permitting for backward branching mostly makes sense when
+   the backend also supports computations on at least one classical data type.
 8. Multiple target branching.
-9. Multipe return points.
+9. Multiple return points.
 <!-- markdownlint-enable MD029 -->
 
 The use of these optional features is represented as a [module
@@ -103,7 +103,7 @@ apply additional quantum instructions to the same qubit(s).
 
 **Bullet 3: Forward Branching** <br/>
 
-Additionally, the Adapative Profile requires that it must be possible to take
+Additionally, the Adaptive Profile requires that it must be possible to take
 action based on a measurement result. Specifically, it must be possible to
 execute subsequent quantum instructions conditionally on the produced `%Result`
 value. To that end, a runtime function must be provided that converts a
@@ -117,7 +117,7 @@ values. While arbitrary nesting of branches must be supported, an Adaptive
 Profile program must ensure that the program terminates. Unless the profile
 makes use of the optional capability of backward branching (**Bullet 7**), the
 control flow structure of a program is hence a tree without any cycles. A static
-analysis to detemine the validity of the program should check for cycles in the
+analysis to determine the validity of the program should check for cycles in the
 control flow graph and reject any program with a cycle as invalid unless support
 for backward branching is enabled.
 
@@ -130,8 +130,8 @@ following IR snippet:
 
 ```llvm
 ...
-  tail call void @__quantum__qis__mz__body(%Qubit* null, %Result* null)
-  %0 = tail call i1 @__quantum__rt__read_result__body(%Result* null)
+  tail call void @__quantum__qis__mz__body(%Qubit* null, %Result* writeonly null)
+  %0 = tail call i1 @__quantum__rt__read_result(%Result* readonly null)
   br i1 %0, label %then, label %continue
 then:                                   ; preds = ...
   tail call void @__quantum__qis__x__body(%Qubit* null)
@@ -185,23 +185,23 @@ A backend can choose to support an extended Adaptive Profile that may include
 instructions for classical computations on atomic data types, including integer
 and floating-point arithmetics. The behavior in the case of an overflow or
 underflow may be undefined. All LLVM instructions that must be available to
-support an extended Adapative Profile including classical computations are
-listed in the section on [classical instructions](#classical-instructions).
+support an extended Adaptive Profile including classical computations are listed
+in the section on [classical instructions](#classical-instructions).
 
 Which data types are used in classical computations as part of an extended
 Adaptive Profile must be indicated in the form of [module
 flags](#module-flags-metadata). The module flag(s) specifically also include
-information about the bitwith(s) of the used data type(s). It is the
-responsiblity of the backend to reject the program if any of the used data types
-or widths thereof are not supported.
+information about the bitwidth(s) of the used data type(s). It is the
+responsibility of the backend to reject the program if any of the used data
+types or widths thereof are not supported.
 
 Support for a classical data type implies that local variables of that data type
 may exist at any point in the program. Specifically, it is then also permitted
-to pass such variables as arguments to QIS functions, runtime functions, or [IR
-functions](#bullet-6-ir-defined-functions-and-function-calls) (if available), as
-illustrated in the [examples](#examples) section. Passing constant values of any
-data type as arguments to QIS and runtime functions is always permitted,
-regardless of whether classical computations on that data type are supported.
+to pass such variables as arguments to QIS functions, runtime functions, or
+IR-defined functions (**Bullet 6**) if available, as illustrated in the
+[examples](#examples) section. Passing constant values of any data type as
+arguments to QIS and runtime functions is always permitted, regardless of
+whether classical computations on that data type are supported.
 
 In addition to local variables, global constants may be defined for any of the
 supported classical data types. Such global constants may be used anywhere in
@@ -228,11 +228,11 @@ The body of an IR-defined function may use any of the available [classical
 instructions](#classical-instructions). It may call QIS functions and other
 IR-defined functions. In contrast to the [entry point
 function](#entry-point-definition), an IR-defined function may *not* contain any
-calls to [output recording](#output-recording) functions, but it may call any
-other available runtime function. Just like for the entry point function, values
-of type `%Qubit*` and `%Result*` may only occur in calls to other functions;
-qubit values of these types that are passed as arguments cannot be assigned to
-local variables, that is they cannot be aliased.
+calls to [output recording](#output-recording) or initialization functions, but
+it may call other runtime functions. Just like for the entry point function,
+values of type `%Qubit*` and `%Result*` may only occur in calls to other
+functions; qubit values of these types that are passed as arguments cannot be
+assigned to local variables, that is they cannot be aliased.
 
 ### Bullet 7: Backwards branching
 
@@ -249,19 +249,15 @@ process with a timeout that will kill an executing Adaptive Profile program if
 it takes too much time).
 
 ```llvm
-...
-define void @simple_loop() local_unnamed_addr #0 {
-entry:
+  ...
   br label %loop
 loop:
   call void @__quantum__qis__h__body(%Qubit* null)
-  call void @__quantum__qis__mz__body(%Qubit* null, %Result* null)
-  %0 = call i1 @__quantum__rt__read_result__body(%Result* null)
-  br i1 %0, label %exit, label %loop
-exit:
-  ret void
-}
-...
+  call void @__quantum__qis__mz__body(%Qubit* null, %Result* writeonly null)
+  %0 = call i1 @__quantum__rt__read_result(%Result* readonly null)
+  br i1 %0, label %cont, label %loop
+cont:
+  ...
 ```
 <!--
 Since the Adaptive Profile does not allow for any composite data types,
@@ -344,23 +340,23 @@ functions](#output-recording) to ensure the correct program output is recorded.
 If the block returns a non-zero exit code, calls to these functions may be
 omitted, implying that no output will be recorded in this case.
 
-For example, an Adpative Profile program that uses this optional capability may
+For example, an Adaptive Profile program that uses this optional capability may
 contain a logic like this:
 
 ```llvm
-@0 = internal constant [1 x i8] c"0\00"
+@0 = internal constant [2 x i8] c"0\00"
 
-define i32 @main() local_unnamed_addr #0 {
+define i64 @main() local_unnamed_addr #0 {
 entry:
-  tail call void @__quantum__qis__mz__body(%Qubit* null, %Result* null)
-  %0 = tail call i1 @__quantum__qis__read_result__body(%Result* null)
-  br i1 %0, label %error, label %cont
+  tail call void @__quantum__qis__mz__body(%Qubit* null, %Result* writeonly null)
+  %0 = tail call i1 @__quantum__rt__read_result(%Result* readonly null)
+  br i1 %0, label %error, label %exit
 error:
   ; qubits should be in a zero state at the end of the program
-  ret 1
+  ret i64 1
 exit:
-  call void @__quantum__rt__result_record_output(%Result* null, i8* getelementptr inbounds ([1 x i8], [1 x i8]* @0, i32 0, i32 0))
-  ret 0
+  call void @__quantum__rt__result_record_output(%Result* null, i8* getelementptr inbounds ([2 x i8], [2 x i8]* @0, i32 0, i32 0))
+  ret i64 0
 }
 ```
 
@@ -373,8 +369,12 @@ bitcode file that contains the following:
 - global constants that store [string labels](#output-recording) needed for
   certain output schemas that may be ignored if the [output
   schema](../output_schemas/) does not make use of them
+- optionally, and only if classical computations (**Bullet 5**) are supported,
+  global constants of the supported classical data types
 - the [entry point definition](#entry-point-definition) that contains the
   program logic
+- optionally, and only if IR-defined functions (**Bullet 6**) are supported,
+  additional functions that are called from the entry point function
 - declarations of the [QIS functions](#quantum-instruction-set) used by the
   program
 - declarations of [runtime functions](#runtime-functions) used for
@@ -383,8 +383,8 @@ bitcode file that contains the following:
   the entry point, and optionally additional information about other function
   declarations
 - [module flags](#module-flags-metadata) that contain information that a
-  compiler or backend may need to process the bitcode. These include module
-  flags that indicate which features of the Adaptive Profile are used.
+  compiler or backend may need to process the bitcode, including module flags
+  that indicate which features of the Adaptive Profile are used
 
 The human-readable LLVM IR for the bitcode can be obtained using standard [LLVM
 tools](https://llvm.org/docs/CommandGuide/llvm-dis.html). For clarity, this
@@ -395,27 +395,29 @@ differences in the human-readable format depending on the LLVM version. These
 differences are irrelevant when using standard tools to load, manipulate, and/or
 execute bitcode.
 
-The code below illustrates how a simple program looks within an Adaptive Profile
-representation:
+The code below illustrates how a simple program implementing a teleport chain
+looks within a minimal Adaptive Profile representation:
 
 ```llvm
-; ModuleID = './QSharpVersion/qir/Example.ll'
-source_filename = "./QSharpVersion/qir/Example.ll"
-
-; declare fundamanetal quantum types supported by the profile
+; type definitions
 
 %Result = type opaque
 %Qubit = type opaque
 
-; constants for output labeling
+; global constants (labels for output recording)
 
 @0 = internal constant [5 x i8] c"0_t0\00"
 @1 = internal constant [5 x i8] c"0_t1\00"
 
-; Entry point for teleport chain program utilizaing the minimal Adaptive Profile + bullet 8
+; entry point definition
 
-define void @TeleportChain__DemonstrateTeleportationUsingPresharedEntanglement() local_unnamed_addr #0 {
+define i64 @TeleportChain() local_unnamed_addr #0 {
 entry:
+  ; calls to initialize the execution environment
+  call void @__quantum__rt__initialize(i8* null)
+  br label %body
+
+body:                                       ; preds = %entry
   tail call void @__quantum__qis__h__body(%Qubit* null)
   tail call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* nonnull inttoptr (i64 1 to %Qubit*))
   tail call void @__quantum__qis__h__body(%Qubit* nonnull inttoptr (i64 2 to %Qubit*))
@@ -424,57 +426,62 @@ entry:
   tail call void @__quantum__qis__cnot__body(%Qubit* nonnull inttoptr (i64 3 to %Qubit*), %Qubit* nonnull inttoptr (i64 5 to %Qubit*))
   tail call void @__quantum__qis__cnot__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*), %Qubit* nonnull inttoptr (i64 2 to %Qubit*))
   tail call void @__quantum__qis__h__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*))
-  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*), %Result* null)
+  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*), %Result* writeonly null)
   tail call void @__quantum__qis__reset__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*))
-  %0 = tail call i1 @__quantum__qis__read_result__body(%Result* null)
-  br i1 %0, label %then0__1.i.i.i, label %continue__1.i.i.i
+  %0 = tail call i1 @__quantum__rt__read_result(%Result* readonly null)
+  br i1 %0, label %then__1, label %continue__1
 
 ; conditional quantum gate (only one in this block, but many can appear and the full quantum instruction set should be usable)
-then0__1.i.i.i:                                   ; preds = %entry
+then__1:                                   ; preds = %body
   tail call void @__quantum__qis__z__body(%Qubit* nonnull inttoptr (i64 4 to %Qubit*))
-  br label %continue__1.i.i.i
+  br label %continue__1
 
-continue__1.i.i.i:                                ; preds = %then0__1.i.i.i, %entry
-  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 2 to %Qubit*), %Result* nonnull inttoptr (i64 1 to %Result*))
+continue__1:                               ; preds = %then__1, %body
+  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 2 to %Qubit*), %Result* writeonly nonnull inttoptr (i64 1 to %Result*))
   tail call void @__quantum__qis__reset__body(%Qubit* nonnull inttoptr (i64 2 to %Qubit*))
-  %1 = tail call i1 @__quantum__qis__read_result__body(%Result* nonnull inttoptr (i64 1 to %Result*))
-  br i1 %1, label %then0__2.i.i.i, label %TeleportChain__TeleportQubitUsingPresharedEntanglement__body.2.exit.i
+  %1 = tail call i1 @__quantum__rt__read_result(%Result* readonly nonnull inttoptr (i64 1 to %Result*))
+  br i1 %1, label %then__2, label %continue__2
 
-then0__2.i.i.i:                                   ; preds = %continue__1.i.i.i
+then__2:                                   ; preds = %continue__1
   tail call void @__quantum__qis__x__body(%Qubit* nonnull inttoptr (i64 4 to %Qubit*))
-  br label %TeleportChain__TeleportQubitUsingPresharedEntanglement__body.2.exit.i
+  br label %continue__2
 
-TeleportChain__TeleportQubitUsingPresharedEntanglement__body.2.exit.i: ; preds = %then0__2.i.i.i, %continue__1.i.i.i
+continue__2:                               ; preds = %then__2, %continue__1
   tail call void @__quantum__qis__cnot__body(%Qubit* nonnull inttoptr (i64 4 to %Qubit*), %Qubit* nonnull inttoptr (i64 3 to %Qubit*))
   tail call void @__quantum__qis__h__body(%Qubit* nonnull inttoptr (i64 4 to %Qubit*))
-  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 4 to %Qubit*), %Result* nonnull inttoptr (i64 2 to %Result*))
+  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 4 to %Qubit*), %Result* writeonly nonnull inttoptr (i64 2 to %Result*))
   tail call void @__quantum__qis__reset__body(%Qubit* nonnull inttoptr (i64 4 to %Qubit*))
-  %2 = tail call i1 @__quantum__qis__read_result__body(%Result* nonnull inttoptr (i64 2 to %Result*))
-  br i1 %2, label %then0__1.i.i1.i, label %continue__1.i.i2.i
+  %2 = tail call i1 @__quantum__rt__read_result(%Result* readonly nonnull inttoptr (i64 2 to %Result*))
+  br i1 %2, label %then__3, label %continue__3
 
-then0__1.i.i1.i:                                  ; preds = %TeleportChain__TeleportQubitUsingPresharedEntanglement__body.2.exit.i
+then__3:                                   ; preds = %continue__2
   tail call void @__quantum__qis__z__body(%Qubit* nonnull inttoptr (i64 5 to %Qubit*))
-  br label %continue__1.i.i2.i
+  br label %continue__3
 
-continue__1.i.i2.i:                               ; preds = %then0__1.i.i1.i, %TeleportChain__TeleportQubitUsingPresharedEntanglement__body.2.exit.i
-  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 3 to %Qubit*), %Result* nonnull inttoptr (i64 3 to %Result*))
+continue__3:                               ; preds = %then__3, %continue__2
+  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 3 to %Qubit*), %Result* writeonly nonnull inttoptr (i64 3 to %Result*))
   tail call void @__quantum__qis__reset__body(%Qubit* nonnull inttoptr (i64 3 to %Qubit*))
-  %3 = tail call i1 @__quantum__qis__read_result__body(%Result* nonnull inttoptr (i64 3 to %Result*))
-  br i1 %3, label %then0__2.i.i3.i, label %TeleportChain__DemonstrateTeleportationUsingPresharedEntanglement__body.1.exit
+  %3 = tail call i1 @__quantum__rt__read_result(%Result* readonly nonnull inttoptr (i64 3 to %Result*))
+  br i1 %3, label %then__4, label %continue__4
 
-then0__2.i.i3.i:                                  ; preds = %continue__1.i.i2.i
+then__4:                                   ; preds = %continue__3
   tail call void @__quantum__qis__x__body(%Qubit* nonnull inttoptr (i64 5 to %Qubit*))
-  br label %TeleportChain__DemonstrateTeleportationUsingPresharedEntanglement__body.1.exit
+  br label %continue__4
 
-TeleportChain__DemonstrateTeleportationUsingPresharedEntanglement__body.1.exit: ; preds = %continue__1.i.i2.i, %then0__2.i.i3.i
-  tail call void @__quantum__qis__mz__body(%Qubit* null, %Result* nonnull inttoptr (i64 4 to %Result*))
+continue__4:                                   ; preds = %continue__3, %then__4
+  tail call void @__quantum__qis__mz__body(%Qubit* null, %Result* writeonly nonnull inttoptr (i64 4 to %Result*))
   tail call void @__quantum__qis__reset__body(%Qubit* null)
-  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 5 to %Qubit*), %Result* nonnull inttoptr (i64 5 to %Result*))
+  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 5 to %Qubit*), %Result* writeonly nonnull inttoptr (i64 5 to %Result*))
   tail call void @__quantum__qis__reset__body(%Qubit* nonnull inttoptr (i64 5 to %Qubit*))
+  br label %exit
+
+exit:
   call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 4 to %Result*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @0, i32 0, i32 0))
   call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 5 to %Result*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @1, i32 0, i32 0))
-  ret void
+  ret i64 0
 }
+
+; declarations of QIS functions
 
 declare void @__quantum__qis__cnot__body(%Qubit*, %Qubit*) local_unnamed_addr
 
@@ -486,15 +493,21 @@ declare void @__quantum__qis__z__body(%Qubit*) local_unnamed_addr
 
 declare void @__quantum__qis__reset__body(%Qubit*) local_unnamed_addr
 
+declare void @__quantum__qis__mz__body(%Qubit*, %Result* writeonly) #1
+
+; declarations of runtime functions
+
+declare void @__quantum__rt__initialize(i8*)
+
+declare i1 @__quantum__rt__read_result(%Result* readonly)
+
 declare void @__quantum__rt__result_record_output(%Result*, i8*)
-
-declare void @__quantum__qis__mz__body(%Qubit*, %Result*)
-
-declare i1 @__quantum__qis__read_result__body(%Result*)
 
 ; attributes
 
 attributes #0 = { "entry_point" "qir_profiles"="adaptive_profile" "output_labeling_schema"="schema_id" "required_num_qubits"="6" "required_num_results"="6" }
+
+attributes #1 = { "irreversible" }
 
 ; module flags
 
@@ -513,8 +526,8 @@ attributes #0 = { "entry_point" "qir_profiles"="adaptive_profile" "output_labeli
 !10 = !{i32 1, !"multiple_return_points", i1 false}
 ```
 
-The program performs gate teleportation, and it uses conditional single qubit
-gates and mid-circuit measurements to effect control flow.
+The program performs gate teleportation involving mid-circuit measurements and
+conditionally applied quantum instructions.
 
 For the sake of clarity, the code above does not contain any [debug
 symbols](https://releases.llvm.org/13.0.0/docs/tutorial/MyFirstLanguageFrontend/LangImpl09.html?highlight=debug%20symbols).
@@ -538,26 +551,37 @@ LLVM standard. The entry point is identified by a custom function attribute; the
 section on [attributes](#attributes) defines which attributes must be attached
 to the entry point function.
 
-An entry point function may not take any parameters and must either return void
-in case the program has no failure conditions or must return an exit code in the
-form of a 64-bit integer. In the case that a shot fails either because the entry
-point function returns an integer value indicating that the program caught an
-error or because an instruction caused an uncaught error (for example a `div`
-instruction fails due to division by 0), then the output format should indicate
-that the shot failed with output for the shot appearing as `ERROR Code: ival`
-where `ival` is the error code from the Adaptive Profile program or `ERROR
-message` in the case that an uncaught failure occurs, and the message is chosen
-by the backend.
+An entry point function may not take any parameters and must  must return an
+exit code in the form of a 64-bit integer. The exit code `0` must be used to
+indicate a successful execution of the quantum program. Any other value of the
+exit code indicates a failure during execution. The program IR must use exit
+codes within the range `1` to `63` to indicate a failure; exit codes that are
+larger than `63` are reserved for execution failures detected by the executing
+backend. The recorded output always contains the exit code for each shot. If a
+shot fails, no other output values may be recorded. See the [output
+schemas](../output_schemas/) for more detail.
 
-The Adaptive Profile program makes no restrictions on the structure of basic
-blocks within the entry point function, other than that a block cannot jump to a
-previously encountered block in the control flow graph unless a backend opts
-into **Bullet 8**. By default Adaptive Profile programs limit branching to only
-express forward branching and nested conditionality. Additionally, the only
-functions that can be called by default in the entry block are `qis` or `rt`
-functions defined in the instruction set and profile. This restriction is
-removed if a backend opts into **Bullet 6** which allows for IR-defined
-functions.
+The Adaptive Profile program makes no restrictions on the structure of [basic
+blocks](https://en.wikipedia.org/wiki/Basic_block) within the entry point
+function, other than that a block cannot jump to a previously encountered block
+in the control flow graph unless it makes use of the optionally supported
+capability in **Bullet 7**. Execution starts at the entry block and follows the
+[control flow graph](https://en.wikipedia.org/wiki/Control-flow_graph) defined
+by the block terminators ending when a block terminates in a return (`ret`)
+statement. Block names/block identifiers may be chosen arbitrarily, and the
+order in which blocks are listed in the function definition is irrelevant for
+execution.
+
+The entry block contains the necessary call to initialize the execution
+environment as the first instruction to ensure that all used qubits are set to a
+zero-state. Calls to runtime functions for initialization may only appear at the
+beginning of the program. All subsequent instructions are either function calls,
+or any of the supported [LLVM instructions](#classical-instructions). Calls to
+[output recording functions](#output-recording) may only be followed by calls to
+other output recording functions and the return statement. Calls to QIS
+functions, other runtime functions, or IR-defined functions (**Bullet 6**) if
+available, can occur at any point after initialization and before output
+recording.
 
 ## Quantum Instruction Set
 
@@ -642,7 +666,7 @@ floating-point numbers, then the following instructions are supported:
 | `fmul`           | Used to multiply floats           |                             |
 | `fdiv`           | Used for floating point division. | Can cause real-time errors. |
 | `fptrunc`           | Floating point truncation from an fN to an fM where N>M |  |
-| `fpext`           | Floating point extenstion from an fM to an fN where N>M |  |
+| `fpext`           | Floating point extension from an fM to an fN where N>M |  |
 |                  |                                   |                             |
 
 ## Runtime Functions
@@ -652,6 +676,7 @@ The following runtime functions must be supported by all backends:
 | Function                            | Signature            | Description                                                                                                                                                                                                                                                  |
 | :---------------------------------- | :------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | __quantum__rt__initialize           | `void(i8*)`          | Initializes the execution environment. Sets all qubits to a zero-state if they are not dynamically managed.                                                                                                                                                 |
+| __quantum__rt__read_result | `i1(%Result* readonly)` | Reads the value of the measurement result given as argument and converts it to a boolean value. |
 | __quantum__rt__tuple_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of a tuple and how many tuple elements it has. The second parameter defines a string label for the tuple. Depending on the output schema, the label is included in the output or omitted.  |
 | __quantum__rt__array_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of an array and how many array elements it has. The second parameter defines a string label for the array. Depending on the output schema, the label is included in the output or omitted. |
 | __quantum__rt__result_record_output | `void(%Result*,i8*)` | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
@@ -720,7 +745,7 @@ calls (**Bullet 5**) if a backend supports these features. This implies the
 following:
 
 - Variables of boolean type may be defined, even if the backend supports none of
-  the optional extensions to the Adapative Profile.
+  the optional extensions to the Adaptive Profile.
 - Values of type `%Qubit*` and `%Result*` may only occur in function calls;
   specifically, local variables of these types cannot be created regardless of
   which optional extensions are supported by the targeted backend. See also the
@@ -1010,19 +1035,19 @@ measurements and boolean computations:
 
 ```llvm
   tail call void @__quantum__qis__h__body(%Qubit* null)
-  tail call void @__quantum__qis__mz__body(%Qubit* null, %Result* null)
+  tail call void @__quantum__qis__mz__body(%Qubit* null, %Result* writeonly null)
   tail call void @__quantum__qis__reset__body(%Qubit* null)
-  %0 = tail call i1 @__quantum__rt__read_result__body(%Result* null)
+  %0 = tail call i1 @__quantum__rt__read_result(%Result* readonly null)
   tail call void @__quantum__qis__h__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*))
-  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*), %Result* nonnull inttoptr (i64 1 to %Result*))
+  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*), %Result* writeonly nonnull inttoptr (i64 1 to %Result*))
   tail call void @__quantum__qis__reset__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*))
-  %1 = tail call i1 @__quantum__rt__read_result__body(%Result* nonnull inttoptr (i64 1 to %Result*))
+  %1 = tail call i1 @__quantum__rt__read_result(%Result* readonly nonnull inttoptr (i64 1 to %Result*))
   %2 = and i1 %0, %1
   br i1 %2, label %then, label %continue
 
-then:                                   ; preds = %entry
+then: 
   tail call void @__quantum__qis__x__body(%Qubit* nonnull inttoptr (i64 2 to %Qubit*))
-  br label %continue__1.i.i.i
+  br label %continue
 
 continue:
 ...
