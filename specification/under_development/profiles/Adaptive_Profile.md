@@ -664,7 +664,7 @@ LLVM instructions must be supported:
 | `fmul`           | Multiplies two floating-point values.          |                             |
 | `fdiv`           | Divides two floating-point values. | Division by zero leads to undefined behavior, no support for `NaN`. |
 | `fpext .. to`           | Casts a value of floating-point type to a larger floating-point type. | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported. |
-| `fptrunc .. to`           | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported. |  |
+| `fptrunc .. to`  | Casts a value of floating-point type to a smaller floating-point type.         | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported. |
 
 If the backend chooses to support multiple target branching, the following LLVM
 instruction must be supported:
