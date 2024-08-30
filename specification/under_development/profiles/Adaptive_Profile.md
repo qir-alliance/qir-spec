@@ -302,8 +302,8 @@ It can be desirable to support control flow constructs that indicate how a
 computation can lead to branching to one of *many* different execution paths.
 Having such a construct exposed in the IR allows for more aggressive
 optimizations across different blocks without any dependencies between them. A
-backend may hence opt into supporting switch instructions to facilitate such
-optimizations. An Adaptive Profile program that includes switch instructions
+backend may hence opt into supporting `switch` instructions to facilitate such
+optimizations. An Adaptive Profile program that includes `switch` instructions
 must indicate this in the form of a [module flag](#module-flags-metadata).
 
 For this capability to be practically useful, integer computations must be
@@ -588,15 +588,11 @@ recording.
 For a quantum instruction set to be fully compatible with the Adaptive Profile,
 it must satisfy the following three requirements:
 
-- All functions must return `void`, `iN`, or `fN` types (`i1` and `i64` for
-  example) and can only take in `%Qubit*`, `%Result*`, `iN`, or `fN` types as
-  arguments. Additionally, arguments to the quantum instruction set cannot have
-  dynamically computed arguments by default. They can however consume constant
-  values of any data type. Dynamically computed arguments can be supplied to
-  instruction set functions when adaptive profile programs use a classical data
-  type from **Bullet 5**. Functions that measure qubits must take the qubit
-  pointer(s) as well as the result pointer(s) as arguments.
-
+- All functions must return `void`, or any of the supported classical data types
+  (**Bullet 5**).
+- Functions may take values of any type as arguments. Functions that measure
+  qubits must take the qubit pointer(s) as well as the result pointer(s) as
+  arguments and return `void`.
 - Functions that perform a measurement of one or more qubit(s) must be marked
   with a custom function attribute named `irreversible`. The use of
   [attributes](#attributes) in general is outlined in the corresponding section.
@@ -610,11 +606,9 @@ targeting](../Compilation_And_Targeting.md).
 
 ## Classical Instructions
 
-Without any optional capabilities, the same classical LLVM instructions must be
-supported as the ones required by the Base Profile. However, some of the
-restrictions in the Base Profile no longer apply for the adaptive profile.
-Specifically, the following table lists all classical instructions and their use
-for an Adaptive Profile without any optional capabilities:
+The following table lists all classical instructions the must be supported to
+execute a minimal Adaptive Profile program, that is a program that does not make
+use of any optional capabilities:
 
 | LLVM Instruction         | Context and Purpose                                                                              | Rules for Usage                                                                                             |
 | :----------------------- | :----------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------- |
@@ -627,47 +621,61 @@ for an Adaptive Profile without any optional capabilities:
 See also the section on [data types and values](#data-types-and-values) for more
 information about the creation and usage of LLVM values.
 
-Supporting [optional capabilities](#optional-capabilities) requires additional
-LLVM instructions to be supported. The following tables list the instructions
-required for each of the optional capabilities.
+Additional LLVM instructions, as listed below, must be supported to enable
+classical computations (**Bullet 4**) and multiple target branching (**Bullet
+8**).
 
-If an Adaptive Profile program has support for integer computations, then the
-following instructions are supported:
+If a backend chooses to support integer computations, then the following LLVM
+instructions must be supported:
 
 | LLVM Instruction | Context and Purpose                                                   | Note                                                                                       |
 |:-----------------|:----------------------------------------------------------------------|:-------------------------------------------------------------------------------------------|
-| `add`            | Used to add two integers together.                                    |                                                                                            |
-| `sub`            | Used to subtract two integers.                                        |                                                                                            |
-| `mul`            | Used to multiply integers                                             |                                                                                            |
-| `udiv`           | Used for unsigned division.                                           | Can cause real-time errors.                                                                |
-| `sdiv`           | Used for signed division.                                             | Can cause real-time errors.                                                                |
-| `urem`           | Used for unsigned remainder division.                                 | Can cause real-time errors.                                                                |
-| `srem`           | Used for signed remainder division.                                   | Can cause real-time errors.                                                                |
-| `and`            | Bitwise and of two integers.                                          |                                                                                            |
-| `or`             | Bitwise or of two integers.                                           |                                                                                            |
-| `xor`            | Bitwise xor of two integers.                                          |                                                                                            |
-| `shl`            | a left bit shift on a register or number.                             |                                                                                            |
-| `lshr`           | Shifts a number the specified number of bits to the right.            | No sign extension.                                                                         |
-| `ashr`           | Shifts a number the specified number of bits to the right.            | Does sign extension.                                                                       |
-| `icmp`           | Performs signed or unsigned integer comparisons.                      | Different options are: `eq`, `ne`, `slt`, `sgt`, `sle`, `sge`, `ult`, `ugt`, `ule`, `uge`. |
-| `zext`           | zero extend an iM to an iN where N>M                                  |                                                                                            |
-| `sext`           | signed zero extend an iM to an iN where N>M                           |                                                                                            |
-| `trunc`           | truncate an iN to an iM where N>M                           |                                                                                            |
-| `select`         | conditionally select the value in a register based on a boolean value |                                                                                            |
-| `phi`            | assign a value to a register based on control-flow                    |                                                                                            |
+| `add`            | Adds two signed or unsigned integers.                                    | Overflow behavior is undefined, no support for `nuw` and/or `nsw`.                                                                                         |
+| `sub`            | Subtracts two signed or unsigned integers.                                        | Underflow behavior is undefined, no support for `nuw` and/or `nsw`.                                                                                           |
+| `mul`            | Multiplies two integers.                       | Overflow/underflow behavior is undefined, no support for `nuw` and/or `nsw`.                                                                                             |
+| `udiv`           | Divides two unsigned integers.                                           | Division by zero leads to undefined behavior.                                                                 |
+| `sdiv`           | Divides two signed integers.                                             | Division by zero and overflow leads to undefined behavior.                                                               |
+| `urem`           | Computes the remainder of a division of two unsigned integers.                                 | Division by zero leads to undefined behavior.                                                                |
+| `srem`           | Computes the remainder of a division of two signed integers.                                   | Division by zero and overflow leads to undefined behavior.                                                                |
+| `and`            | Computes the bitwise logical AND of two integers.                                          |                                                                                            |
+| `or`             | Computes the bitwise logical OR of two integers.                                           |                                                                                            |
+| `xor`            | Computes the bitwise logical exclusive OR (XOR) of two integers.                                          |                                                                                            |
+| `shl`            | Computes a bitwise left shift of an integer.                             | Behavior when shifting more bits that the bitwidth of the integer is undefined, no support for `nuw`.                                                                                            |
+| `lshr`           | Computes a bitwise right shift of an unsigned integer.            | Behavior when shifting more bits that the bitwidth of the integer is undefined, no support for `exact`.                                                                          |
+| `ashr`           | Computes a bitwise right shift of a signed integer.            |  Behavior when shifting more bits that the bitwidth of the integer is undefined, no support for `exact`.                                                                      |
+| `icmp`           | Compares two signed or unsigned integers.                      | All condition codes as listed in the [LLVM Language Reference](https://llvm.org/docs/LangRef.html#icmp-instruction) must be supported. |
+| `zext .. to`           | Extends an integer value to create an integer of greater bitwidth by filling the added bits with zero.                                  | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported.                                                             |
+| `sext .. to`           | Extends an integer value to create an integer of greater bitwidth by filling the added bits with the sign bit of the integer.               | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported.                                                                                            |
+| `trunc .. to`           | Truncates the highest order bits of an integer to create an integer of smaller bitwidth.                          | Behavior if the truncation changes the value of the integer is undefined, no support for `nuw` and/or `nsw`. May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported.                                                                                       |
+| `select`         | Evaluates to one of two integer values depending on a boolean condition. |                                                                                            |
+| `phi`            | Implement the φ node in the SSA graph representing the function.                   | Must be at the start of a basic block, or preceded by other `phi` instructions.                                                                                           |
 
-If an Adaptive Profile program has support for floating point computations on
-floating-point numbers, then the following instructions are supported:
+For more information about any of these instructions, we refer to the
+corresponding section in the [LLVM Language
+Reference](https://llvm.org/docs/LangRef.html).
+
+If a backend chooses to support floating point computations, then the following
+LLVM instructions must be supported:
 
 | LLVM Instruction | Context and Purpose               | Note                        |
 | :--------------- | :-------------------------------- | :-------------------------- |
-| `fadd`           | Used to add two floats together.  |                             |
-| `fsub`           | Used to subtract floats integers. |                             |
-| `fmul`           | Used to multiply floats           |                             |
-| `fdiv`           | Used for floating point division. | Can cause real-time errors. |
-| `fptrunc`           | Floating point truncation from an fN to an fM where N>M |  |
-| `fpext`           | Floating point extension from an fM to an fN where N>M |  |
-|                  |                                   |                             |
+| `fadd`           | Adds two floating-point values.  |                             |
+| `fsub`           | Subtracts two floating-point values. |                             |
+| `fmul`           | Multiplies two floating-point values.          |                             |
+| `fdiv`           | Divides two floating-point values. | Division by zero leads to undefined behavior, no support for `NaN`. |
+| `fpext .. to`           | Casts a value of floating-point type to a larger floating-point type. | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported. |
+| `fptrunc .. to`           | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported. |  |
+
+If the backend chooses to support multiple target branching, the following LLVM
+instruction must be supported:
+
+| LLVM Instruction | Context and Purpose               | Note                        |
+| :--------------- | :-------------------------------- | :-------------------------- |
+| `switch`           | Transfers control flow to one of several different blocks depending on an integer value.  | The integer value that determines the block to jump to must be a constant value unless integer computations are supported.                |
+
+See also the [LLVM Language
+Reference](https://llvm.org/docs/LangRef.html#switch-instruction) for more
+information about the `switch` instruction.
 
 ## Runtime Functions
 
@@ -929,7 +937,7 @@ program.
   the program uses branch instructions that causes "backwards" jumps in the
   control flow.
 - A flag named `"multiple_target_branching"`  with a constant `true` or `false`
-  value of type `i1` indicating if the program uses the switch instruction in
+  value of type `i1` indicating if the program uses the `switch` instruction in
   llvm.
 
 These flags are attached as `llvm.module.flags` metadata to the module. They can
