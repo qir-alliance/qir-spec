@@ -704,23 +704,18 @@ additional runtime function must be available:
 | :---------------------------------- | :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | __quantum__rt__float_record_output | `void(f64,i8*)` | Records a floating-point value in the generated output. The second parameter defines the string label for the value. Depending on the output schema, the label is included in the output or omitted. |
 
-### Initialization
-
-*A [workstream](https://github.com/qir-alliance/qir-spec/issues/11) to specify
-how to initialize the execution environment is currently in progress. As part of
-that workstream, this paragraph and the listed initialization function(s) will
-be updated.*
-
 ### Output Recording
 
 The program output of a quantum application is defined by a sequence of calls to
 runtime functions that record the values produced by the computation,
 specifically calls to the runtime functions ending in `record_output` listed in
 the tables [above](#runtime-functions). In the case of the Adaptive Profile,
-these calls are contained within the final block of the entry point function,
-i.e. the block that terminates in a return instruction. In the case that
-conditional data needs to be returned, then phi instructions are expected to be
-used to move conditional data into the final block of the entry-point function.
+these calls are contained within each block terminating in a return (`ret`)
+statement in the entry point function. Unless the backend supports multiple
+return points (**Bullet 9**), there is a single block that contains all calls to
+output recording functions followed by the final return statements. Multiple
+return statements in the application code can be replaced with suitable `phi`
+nodes by the compiler to propagate the data into that block.
 
 For all output recording functions, the `i8*` argument must be a non-null
 pointer to a global constant that contains a null-terminated string. A backend
@@ -744,10 +739,9 @@ of the `"output_labeling_schema"` attribute attached to the entry point.
 
 ## Data Types and Values
 
-Within the Adaptive Profile, defining local variables is supported via reading
-mid-circuit measurements via (**Bullet 2**) or by classical instructions and
-calls (**Bullet 5**) if a backend supports these features. This implies the
-following:
+Within the Adaptive Profile, local variables are created when reading
+mid-circuit measurements (**Bullet 2**) or to store classical computations
+(**Bullet 5**) if supported. This implies the following:
 
 - Variables of boolean type may be defined, even if the backend supports none of
   the optional extensions to the Adaptive Profile.
@@ -763,144 +757,45 @@ following:
   `inttoptr` casts or `getelementptr` instructions that are inlined into a call
   instruction.
 
-Constants of any type are permitted as part of a function call. What data types
-occur in the program hence depends on what QIS functions are used in addition to
-the runtime functions for initialization and output recording. Constant values
-of type `i64` in particular may be used as part of calls to output recording
-functions; see the section on [output recording](#output-recording) for more
+Constants of any type are permitted as arguments to QIS and runtime functions.
+Constant values of type `i64`, for example, are used and permitted as part of
+calls to output recording functions regardless of whether integer computations
+are supported; see the section on [output recording](#output-recording) for more
 details.
-
-The `%Qubit*` and `%Result*` data types must be supported by all backends.
-Qubits and results can occur only as arguments in function calls and are
-represented as a pointer of type `%Qubit*` and `%Result*` respectively, where
-the pointer itself identifies the qubit or result value rather than a memory
-location where the value is stored: a 64-bit integer constant is cast to the
-appropriate pointer type. A more detailed elaboration on the purpose of this
-representation is given in the next subsection. The integer constant that is
-cast must be in the interval `[0, numQubits)` for `%Qubit*` and `[0,
-numResults)` for `%Result*`, where `numQubits` and `numResults` are the required
-number of qubits and results defined by the corresponding [entry point
-attributes](#attributes). Since backends may look at the values of the
-`required_num_qubits` and `required_num_results` attributes to determine whether
-a program can be executed, it is recommended to index qubits and results
-consecutively so that there are no unused values within these ranges.
 
 ### Qubit and Result Usage
 
-Qubits and result values are represented as opaque pointers in the bitcode,
-which may only ever be dereferenced as part of a runtime function
-implementation. In general, the QIR specification distinguishes between two
-kinds of pointers for representing a qubit or result value, as explained in more
-detail [here](../Execution.md), and either one, though not both, may be used
-throughout a bitcode file. A [module flag](#module-flags-metadata) in the
-bitcode indicates which kinds of pointers are used to represent qubits and
-result values.
-
-The first kind of pointer points to a valid memory location that is managed
-dynamically during program execution, meaning the necessary memory is allocated
-and freed by the runtime. The second kind of pointer merely identifies a qubit
-or result value by a constant integer encoded in the pointer itself. To be
+The `%Qubit*` and `%Result*` data types must be supported by all backends.
+Qubits and results can occur only as arguments in function calls and are
+represented as a pointer of type `%Qubit*` and `%Result*` respectively. To be
 compliant with the Adaptive Profile specification, the program must not make use
-of dynamic qubit or result management, meaning it must use only the second kind
-of pointer; qubits and results must be identified by a constant integer value
-that is bitcast to a pointer to match the expected type. How such an integer
-value is interpreted and specifically how it relates to hardware resources is
-ultimately up to the executing backend.
+of dynamic qubit or result management, meaning qubits and results must be
+identified by a constant integer value that is bitcast to a pointer to match the
+expected type. How such an integer value is interpreted and specifically how it
+relates to hardware resources is ultimately up to the executing backend.
 
-Additionally, the Adaptive Profile imposes the following restrictions on qubit
-and result usage:
-
-- Qubits must not be used after they have been passed as arguments to a function
-  that performs an irreversible action. Such functions are marked with the
-  `irreversible` attribute in their declaration.
-
-- Results can only be used either as `writeonly` arguments, as arguments to
-  [output recording functions](#output-recording), or as arguments to the
-  measurement result to boolean conversion function (**Bullet 2**). We refer to
-  the [LLVM
-  documentation](https://llvm.org/docs/LangRef.html#function-attributes)
-  regarding how to use the `writeonly` attribute.
+The integer constant that is cast must be in the interval `[0, numQubits)` for
+`%Qubit*` and `[0,numResults)` for `%Result*`, where `numQubits` and
+`numResults` are the required number of qubits and results defined by the
+corresponding [entry point attributes](#attributes). Since backends may look at
+the values of the `required_num_qubits` and `required_num_results` attributes to
+determine whether a program can be executed, it is recommended to index qubits
+and results consecutively so that there are no unused values within these
+ranges.
 
 ## Attributes
 
-The following custom attributes must be attached to the entry point function:
-
-- An attribute named `"entry_point"` identifying the function as the starting
-  point of a quantum program
-- An attribute named `"qir_profiles"` with the value `"adaptive_profile"`
-  identifying the profile the entry point has been compiled for
-- An attribute named `"output_labeling_schema"` with an arbitrary string value
-  that identifies the schema used by a [compiler
-  frontend](https://en.wikipedia.org/wiki/Compiler#Front_end) that produced the
-  IR to label the recorded output
-- An attribute named `"required_num_qubits"` indicating the number of qubits
-  used by the entry point
-- An attribute named `"required_num_results"` indicating the maximal number of
-  measurement results that need to be stored while executing the entry point
-  function
-
-Optionally, additional attributes may be attached to the entry point. Any custom
-function attributes attached to the entry point should be reflected as metadata
-in the program output; this includes both mandatory and optional attributes but
-not parameter attributes or return value attributes. This in particular implies
-that the [labeling schema](#output-recording) used in the recorded output can be
-identified by looking at the metadata in the produced output. See the
-specification of the [output schemas](../output_schemas/) for more information
-about how metadata is represented in the output schema.
-
-Custom function attributes will show up as part of an [attribute
-group](https://releases.llvm.org/13.0.1/docs/LangRef.html#attrgrp) in the IR.
-Attribute groups are numbered in such a way that they can be easily referenced
-by multiple function definitions or global variables. Consumers of adaptive
-profile-compliant programs must not rely on a particular numbering but instead,
-look for the function to which an attribute with the name `"entry_point"` is
-attached to determine which one to invoke when the program is launched.
-
-Both the `"entry_point"` attribute and the `"output_labeling_schema"` attribute
-can only be attached to a function definition; they are invalid on a function
-that is declared but not defined. For the Adaptive Profile, this implies that
-they can occur only in one place.
-
-Within the restrictions imposed by the Adaptive Profile, the number of qubits
-that are needed to execute the quantum program must be known at compile time.
-This number is captured in the form of the `"required_num_qubits"` attribute
-attached to the entry point. The value of the attribute must be the string
-representation of a non-negative 64-bit integer constant.
-
-Similarly, the number of measurement results that need to be stored when
-executing the entry point function is captured by the `"required_num_results"`
-attribute.
-
-Beyond the entry point-specific requirements related to attributes, custom
-attributes may optionally be attached to any of the declared functions. The
-`irreversible` attribute in particular impacts how the program logic in the
-entry point is structured, as described in the section about the [entry point
-definition](#entry-point-definition). Furthermore, the following [LLVM
-attributes](https://llvm.org/docs/LangRef.html#function-attributes) may be used
-according to their intended purpose on function declarations and call sites:
-`inlinehint`, `nofree`, `norecurse`, `readnone`, `readonly`, `writeonly`, and
-`argmemonly`.
+The attribute usage and requirements of the Adaptive Profile remain the same as
+defined in the [Base Profile](./Base_Profile.md#attributes).
 
 ## Module Flags Metadata
 
-The following [module
-flags](https://llvm.org/docs/LangRef.html#module-flags-metadata) must be added
-to the QIR bitcode:
-
-- a flag with the string identifier `"qir_major_version"` that contains a
-  constant value of type `i32`
-- a flag with the string identifier `"qir_minor_version"` that contains a
-  constant value of type `i32`
-- a flag with the string identifier `"dynamic_qubit_management"` that contains a
-  constant `true` or `false` value of type `i1`
-- a flag with the string identifier `"dynamic_result_management"` that contains
-  a constant `true` or `false` value of type `i1`
-
-The following [module
-flags](https://llvm.org/docs/LangRef.html#module-flags-metadata) may be added to
-the QIR bitcode to indicate support/use of optional capabilities. A lack of
-these module flags indicates that these capabilities are not used in the
-program.
+The Adaptive Profile requires the same mandatory module flags as specified in
+the [Base Profile](./Base_Profile.md#module-flags-metadata). Additionally, the
+following [module
+flags](https://llvm.org/docs/LangRef.html#module-flags-metadata) may be defined
+to indicate the use of optional capabilities. A lack of these module flags
+indicates that these capabilities are not used in the program.
 
 - a flag with the string identifier `"int_computations"` that contains a string
   value where the string value is a comma-separated list of the supported/used
@@ -916,77 +811,26 @@ program.
   floating point numbers of all listed precisions must be supported by the
   executing backend. An empty value indicates that no floating-point
   computations are supported/used.
-- a flag with the string identifier `"fixedpoint_computations"` that contains a
-  string value where the string value is a comma-separated list of the
-  supported/used fixed-point precision(s). For example, `!0 = !{i32 5,
-  !"fixedpoint_computations", !"i4,i8"}`. The value of this module flag may only
-  be non-empty if integer computations are supported. To support fixed-point
-  arithmetic for a precision `N`, a backend must be able to perform integer
-  computations with precision `2N`, and it must be able to process constant
-  integer values of type `i32` being passed as scale. See also the [LLVM
-  Language
-  Reference](https://llvm.org/docs/LangRef.html#fixed-point-arithmetic-intrinsics).
-  An empty value indicates that no fixed-point computations are supported/used.
 - A flag named `"ir_functions"` that contains a constant `true` or `false` value
   of type `i1` value indicating if subroutines may be expressed a functions
   which can be called from the entry-point.
-- A flag named `"backwards_branching"`  with a boolean i1 value indicating if
-  the program uses branch instructions that causes "backwards" jumps in the
-  control flow.
+- A flag named `"backwards_branching"`  with a boolean `i1` value indicating if
+  the program uses branch instructions that cause cycles in the control flow
+  graph.
 - A flag named `"multiple_target_branching"`  with a constant `true` or `false`
   value of type `i1` indicating if the program uses the `switch` instruction in
   llvm.
 
-These flags are attached as `llvm.module.flags` metadata to the module. They can
-be queried using the standard LLVM tools and follow the LLVM specification in
-behavior and purpose. Since module flags impact whether different modules can be
-merged and how, additional module flags may be added to the bitcode only if
-their behavior is set to `Warning`, `Append`, `AppendUnique`, `Max`, or `Min`.
-It is at the discretion of the maintainers for various components in the QIR
-stack to discard module flags that are not explicitly required or listed as
-optional flags in the QIR specification.
-
-### Specification Version
-
-The required flags `"qir_major_version"` and `"qir_minor_version"` identify the
-major and minor versions of the specification that the QIR bitcode adheres to.
-
-- Since the QIR specification may introduce breaking changes when updating to a
-  new major version, the behavior of the `"qir_major_version"` flag must be set
-  to `Error`; merging two modules that adhere to different major versions must
-  fail.
-
-- The QIR specification is intended to be backward compatible within the same
-  major version but may introduce additional features as part of newer minor
-  versions. The behavior of the `"qir_minor_version"` flag must hence be `Max`
-  so that merging two modules compiled for different minor versions results in a
-  module that adheres to the newer of the two versions.
-
-### Memory Management
-
-Each bitcode file contains the information whether pointers of type `%Qubit*`
-and `%Result*` point to a valid memory location, or whether a pointer merely
-encodes an integer constant that identifies which qubit or result the value
-refers to. This information is represented in the form of the two module flags
-named `"dynamic_qubit_management"` and `"dynamic_result_management"`. Within the
-same bitcode module, there can never be a mixture of the two different kinds of
-pointers. The behavior of both module flags correspondingly must be set to
-`Error`. As detailed in the section on [qubit and result
-usage](#qubit-and-result-usage), an Adaptive Profile-compliant program must not
-make use of dynamic qubit or result management. The value of both module flags
-hence must be set to `false`.
-
-For `i1`, `i64`, `f64`, ... values created by mid-circuit measurement, extern
-functions, or classical computations the assumption is that while a `%Result*`
-may point to a valid memory location in RAM or some other memory pool, by
-default, instructions performed on virtual registers with these data types
-correspond to these values being stored in integer or floating registers when an
-instruction is executed. Before a virtual register is used in an instruction,
-there is no assumption that the value in the virtual register always corresponds
-to a physical register. For example, when considering register coloring, the
-virtual register, `%0`, in the QIR program may refer to a value stored in RAM
-for most of its lifetime before being loaded into a register when an instruction
-operates on `%0`. 
+For non-constant integer and floating-point values the assumption is that while
+a `%Result*` may point to a valid memory location in RAM or some other memory
+pool, by default, instructions performed on virtual registers with these data
+types correspond to these values being stored in integer or floating registers
+when an instruction is executed. Before a virtual register is used in an
+instruction, there is no assumption that the value in the virtual register
+always corresponds to a physical register. For example, when considering
+register coloring, the virtual register, `%0`, in the QIR program may refer to a
+value stored in RAM for most of its lifetime before being loaded into a register
+when an instruction operates on `%0`.
 
 ## Error Messages
 
@@ -1008,19 +852,6 @@ has undefined behavior, and a backend is free to execute an undefined behavior.
 Programs can also check computations and provide error code by returning a value
 supported by a classical data type in a program, assuming a classical type
 specified in **Bullet 5** is supported.
-
-## LLVM 15 Opaque Pointers
-
-The transition of LLVM in LLVM 15 and on means that the `%Result*` and `%Qubit*`
-representations of qubits and measurement results will no longer be valid.
-Establishing a baseline LLVM version is not the point of this workstream. After
-discussions around LLVM 15 and on support resolve, this spec will be updated on
-how to indicate an Adaptive Profile program pre-LLVM 15 and for LLVM 15 and on.
-The changes to these pointer representations are orthogonal to the concerns of
-the Adaptive Profile other than that the signature of the measurement
-instruction must necessarily change to represent how measurement results are
-actually converted into `i1` values. See the discussion on this
-[upgrade](https://github.com/qir-alliance/qir-spec/issues/30).
 
 ## Examples
 
