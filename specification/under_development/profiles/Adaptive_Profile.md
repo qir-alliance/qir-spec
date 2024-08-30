@@ -683,29 +683,26 @@ The following runtime functions must be supported by all backends:
 
 | Function                            | Signature            | Description                                                                                                                                                                                                                                                  |
 | :---------------------------------- | :------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__initialize           | `void(i8*)`          | Initializes the execution environment. Sets all qubits to a zero-state if they are not dynamically managed.                                                                                                                                                 |
-| __quantum__rt__read_result | `i1(%Result* readonly)` | Reads the value of the measurement result given as argument and converts it to a boolean value. |
+| __quantum__rt__initialize           | `void(i8*)`          | Initializes the execution environment. Sets all qubits to a zero-state if they are not dynamically managed.                                     |
+| __quantum__rt__read_result | `i1(%Result* readonly)` | Reads the value of the given measurement result and converts it to a boolean value. |
 | __quantum__rt__tuple_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of a tuple and how many tuple elements it has. The second parameter defines a string label for the tuple. Depending on the output schema, the label is included in the output or omitted.  |
 | __quantum__rt__array_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of an array and how many array elements it has. The second parameter defines a string label for the array. Depending on the output schema, the label is included in the output or omitted. |
 | __quantum__rt__result_record_output | `void(%Result*,i8*)` | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
+| __quantum__rt__bool_record_output | `void(i1,i8*)` | Adds a boolean value to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
 
-The following output recording functions can appear if you opt into supporting
-real-time integer calculations.
+If a backend chooses to support integer computations, then the following
+additional runtime function must be available:
 
-| Function                         | Signature       | Description                                                                                                                                                                                              |
+| Function                         | Signature       | Description                                                            |
 | :------------------------------- | :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__int_record_output | `void(i64,i32,i8*)` | Adds an integer result to the generated output. The second parameter defines the integer precision, and the third one a string label for the result value. Depending on the output schema, the label is included in the output or omitted.        |
+| __quantum__rt__int_record_output | `void(i64,i8*)` | Records an integer value in the generated output. The second parameter defines the string label for the value. Depending on the output schema, the label is included in the output or omitted.        |
 
-The following output recording functions can appear if you opt into supporting
-real-time floating point computations.
+If a backend chooses to support floating-point computations, then the following
+additional runtime function must be available:
 
-| Function                            | Signature       | Description                                                                                                                                                                                                                    |
+| Function                            | Signature       | Description     |
 | :---------------------------------- | :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__float_record_output | `void(f64,i32,i8*)` | Adds a floating-point value result to the generated output. The second parameter defines the floating-point precision, and the third one defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted. |
-
-Additionally, a backend can provide more `rt` functions that can be used by
-Adaptive Profile programs in accordance with the classical data types that it
-supports.
+| __quantum__rt__float_record_output | `void(f64,i8*)` | Records a floating-point value in the generated output. The second parameter defines the string label for the value. Depending on the output schema, the label is included in the output or omitted. |
 
 ### Initialization
 
