@@ -219,7 +219,7 @@ functions must indicate this in the form of a [module
 flag](#module-flags-metadata).
 
 IR-defined functions may take arguments of type `%Qubit*` and `%Result*`, and it
-may either return a value of type `%Result` or choose to have a `void` return
+must have `void` return
 type. If [classical computations](#bullet-5-classical-computations) are
 supported in addition to IR-defined functions, then values of the supported data
 type(s) may also be passed as arguments to, and returned from, an IR-defined
@@ -518,7 +518,7 @@ attributes #1 = { "irreversible" }
 
 ; module flags
 
-!llvm.module.flags = !{!0, !1, !2, !3, !4, !5, !6, !7, !8, !9, !10}
+!llvm.module.flags = !{!0, !1, !2, !3, !4, !5, !6, !7, !8, !9}
 
 !0 = !{i32 1, !"qir_major_version", i32 1}
 !1 = !{i32 7, !"qir_minor_version", i32 0}
@@ -526,11 +526,10 @@ attributes #1 = { "irreversible" }
 !3 = !{i32 1, !"dynamic_result_management", i1 false}
 !4 = !{i32 5, !"int_computations", !""}
 !5 = !{i32 5, !"float_computations", !""}
-!6 = !{i32 5, !"fixedpoint_computations", !""}
-!7 = !{i32 1, !"ir_functions", i1 false}
-!8 = !{i32 1, !"backwards_branching", i2 0}
-!9 = !{i32 1, !"multiple_target_branching", i1 false}
-!10 = !{i32 1, !"multiple_return_points", i1 false}
+!6 = !{i32 1, !"ir_functions", i1 false}
+!7 = !{i32 1, !"backwards_branching", i2 0}
+!8 = !{i32 1, !"multiple_target_branching", i1 false}
+!9 = !{i32 1, !"multiple_return_points", i1 false}
 ```
 
 The program performs gate teleportation involving mid-circuit measurements and
@@ -554,9 +553,9 @@ when the program is executed, referred to as "entry point" in the rest of this
 profile specification. The name of this function may be chosen freely, as long
 as it is a valid [global
 identifier](https://llvm.org/docs/LangRef.html#identifiers) according to the
-LLVM standard. The entry point is identified by a custom function attribute; the
-section on [attributes](#attributes) defines which attributes must be attached
-to the entry point function.
+LLVM standard. The entry point is identified by a custom function attribute; 
+as mentioned in the section on [attributes](#attributes), this is the same
+set of attributes as in the base profile.
 
 An entry point function may not take any parameters and must  must return an
 exit code in the form of a 64-bit integer. The exit code `0` must be used to
@@ -809,7 +808,12 @@ there are no unused values within these ranges.
 ## Attributes
 
 The attribute usage and requirements of the Adaptive Profile remain the same as
-defined in the [Base Profile](./Base_Profile.md#attributes).
+defined in the [Base Profile](./Base_Profile.md#attributes). The one change
+from base profile is that there are additional relevant attributes (the base
+profile only included `inlinehint`, `nofree`, `norecurse`, `readnone`, `readonly`, `writeonly`, and
+`argmemonly`)
+that can be used on  functions, depending on the exact instructions supported via using the
+extensions in the Adaptive Profile.
 
 ## Module Flags Metadata
 
@@ -847,6 +851,9 @@ indicates that these capabilities are not used in the program.
 - A flag named `"multiple_target_branching"`  with a constant `true` or `false`
   value of type `i1` indicating if the program uses the `switch` instruction in
   llvm.
+- A flag named `"multiple_return_points"`  with a constant `true` or `false`
+  value of type `i1` indicating whether multiple return statements can apper in a 
+  function within the IR as defined [here](#bullet-9-multiple-return-points)
 
 ## Error Messages
 
