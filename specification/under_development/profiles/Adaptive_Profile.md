@@ -302,7 +302,6 @@ terminated with an error. If a backend supports the use of conditionally
 terminating loops, it is up to backend to force the termination of programs that
 would otherwise run indefinitely.
 
-<!--FIXME: update the module flag depending on which of the two versions - or both - is supported. -->
 
 ### Bullet 8: Multiple Target Branching
 
@@ -529,7 +528,7 @@ attributes #1 = { "irreversible" }
 !5 = !{i32 5, !"float_computations", !""}
 !6 = !{i32 5, !"fixedpoint_computations", !""}
 !7 = !{i32 1, !"ir_functions", i1 false}
-!8 = !{i32 1, !"backwards_branching", i1 false}
+!8 = !{i32 1, !"backwards_branching", i2 0}
 !9 = !{i32 1, !"multiple_target_branching", i1 false}
 !10 = !{i32 1, !"multiple_return_points", i1 false}
 ```
@@ -782,6 +781,19 @@ identified by an integer value that is bitcast to a pointer to match the
 expected type. How such an integer value is interpreted and specifically how it
 relates to hardware resources is ultimately up to the executing backend.
 
+<!--From prior version metadata:
+For non-constant integer and floating-point values the assumption is that while
+a `%Result*` may point to a valid memory location in RAM or some other memory
+pool, by default, instructions performed on virtual registers with these data
+types correspond to these values being stored in integer or floating registers
+when an instruction is executed. Before a virtual register is used in an
+instruction, there is no assumption that the value in the virtual register
+always corresponds to a physical register. For example, when considering
+register coloring, the virtual register, `%0`, in the QIR program may refer to a
+value stored in RAM for most of its lifetime before being loaded into a register
+when an instruction operates on `%0`.
+-->
+
 The integer value that is cast must be either a constant, or a phi node of
 integer type if [iterations](#bullet-7-backwards-branching) are used/supported.
 If the cast value is a phi node, it must not directly or indirectly depend on
@@ -825,23 +837,16 @@ indicates that these capabilities are not used in the program.
 - A flag named `"ir_functions"` that contains a constant `true` or `false` value
   of type `i1` value indicating if subroutines may be expressed a functions
   which can be called from the entry-point.
-- A flag named `"backwards_branching"`  with a boolean `i1` value indicating if
-  the program uses branch instructions that cause cycles in the control flow
-  graph.
+- A flag named `"backwards_branching"`  with an `i2` value indicating which
+  kinds of loops are supported. A value of `0` indicates that the control flow
+  graph does not contain any loops. A value of `1` indicates that iterations as
+  defined [here](#bullet-7-backwards-branching) are used. A value of `2`
+  indicates that conditionally terminating loops as described
+  [here](#bullet-7-backwards-branching) may occur. A value of `3` indicates that
+  both iterations and conditional loops may occur. 
 - A flag named `"multiple_target_branching"`  with a constant `true` or `false`
   value of type `i1` indicating if the program uses the `switch` instruction in
   llvm.
-
-For non-constant integer and floating-point values the assumption is that while
-a `%Result*` may point to a valid memory location in RAM or some other memory
-pool, by default, instructions performed on virtual registers with these data
-types correspond to these values being stored in integer or floating registers
-when an instruction is executed. Before a virtual register is used in an
-instruction, there is no assumption that the value in the virtual register
-always corresponds to a physical register. For example, when considering
-register coloring, the virtual register, `%0`, in the QIR program may refer to a
-value stored in RAM for most of its lifetime before being loaded into a register
-when an instruction operates on `%0`.
 
 ## Error Messages
 
