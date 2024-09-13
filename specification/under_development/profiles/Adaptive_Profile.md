@@ -34,9 +34,8 @@ support mid-circuit measurement, turning measurements into booleans, and
 branching based on those booleans. The QIR Adaptive Profile in particular also
 requires that branches can be arbitrarily nested. This includes a requirement
 that it must be possible to perform a measurement within a branch, and then
-branch again on that measurement. As for the Base Profile, any Adaptive Profile
-is always guaranteed to terminate, i.e. there are no control flow loops
-permitted that would lead to a potentially indefinitely running program.
+branch again on that measurement. However, it is not a requirement to support
+loops within the control flow graph.
 
 Beyond the providing the required capabilities above, a backend can opt into one
 or more of the following [optional capabilities](#optional-capabilities) to
@@ -47,15 +46,19 @@ support more advanced adaptive computations:
    integers or floating-point numbers.
 6. IR-defined functions and calls of these functions at any point in the
    program.
-7. Backwards branching to express terminating loops. Non-terminating loops
+7. Support for control flow loops (backwards branching).
+8. Multiple target branching.
+9. Multiple return points.
+<!-- markdownlint-enable MD029 -->
+
+<!-- Original version:
+7. Backwards branching to express control flow loops. Non-terminating loops
    ("while"-loops) are not permitted within the Adaptive Profile, regardless of
    the support for this optional feature. It is specifically not permitted to
    have a loop that terminates only based on a measurement outcome.
    Correspondingly, permitting for backward branching mostly makes sense when
    the backend also supports computations on at least one classical data type.
-8. Multiple target branching.
-9. Multiple return points.
-<!-- markdownlint-enable MD029 -->
+-->
 
 The use of these optional features is represented as a [module
 flag](#module-flags-metadata) in the program IR. Any backend that supports
@@ -226,13 +229,14 @@ IR-defined functions.
 
 The body of an IR-defined function may use any of the available [classical
 instructions](#classical-instructions). It may call QIS functions and other
-IR-defined functions. In contrast to the [entry point
-function](#entry-point-definition), an IR-defined function may *not* contain any
-calls to [output recording](#output-recording) or initialization functions, but
-it may call other runtime functions. Just like for the entry point function,
-values of type `%Qubit*` and `%Result*` may only occur in calls to other
-functions; qubit values of these types that are passed as arguments cannot be
-assigned to local variables, that is they cannot be aliased.
+IR-defined functions. However, any form of direct or indirect recursion is
+forbidden. In contrast to the [entry point function](#entry-point-definition),
+an IR-defined function may *not* contain any calls to [output
+recording](#output-recording) or initialization functions, but it may call other
+runtime functions. Just like for the entry point function, values of type
+`%Qubit*` and `%Result*` may only occur in calls to other functions; qubit
+values of these types that are passed as arguments cannot be assigned to local
+variables, that is they cannot be aliased.
 
 ### Bullet 7: Backwards branching
 
@@ -241,12 +245,44 @@ that a more compact representation of loops can be expressed in programs. Any
 use of this optional capability must be indicated in the form of [module
 flags](#module-flags-metadata) in the program IR.
 
-Proving non-termination with a static analysis may be impossible due to the
-capabilities forming a Turing-complete subset of LLVM. Since there is no static
-analysis that can prove termination then it is up to backends to enforce
-termination guarantees via a means of their choosing (for example a watchdog
-process with a timeout that will kill an executing Adaptive Profile program if
-it takes too much time).
+The Adaptive Profile distinguishes two kinds of loops; iterations over sequences
+of known length, and conditionally terminating loops.
+
+**Iterations** are primarily useful for a more compact representation of the
+code, since code size may be a limiting factor. Since the Adaptive Profile does
+not allow for any composite data types, supporting iterations necessarily
+requires supporting the use of `phi`-nodes to identify a qubit or result value.
+For example, the following IR expresses a loop that flips the state of qubit 1
+to 4, if qubit 0 is in a non-zero state:
+
+```llvm
+...
+define void @simple_loop() {
+entry:
+  br label %loop_body
+loop_body:                          ; preds = %loop_body, %entry
+  %0 = phi i64 [ 1, %entry ], [ %1, %loop_body ]
+  call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* nonnull inttoptr (i64 %0 to %Qubit*))
+  %1 = add i64 %0, 1
+  %2 = icmp sle i64 %1, 4
+  br i1 %2, label %loop_body, label %loop_exit
+loop_exit:                          ; preds = %loop_body
+  ...
+}
+...
+```
+
+In the case of an iteration, the value of a phi-node used to identify a qubit or
+result value must never depend on any quantum measurements. The same requirement
+exists for the condition for exiting the loop. This means that iterations can
+always be unrolled at compile time, and upon unrolling, all values used to
+identify a qubit or result value can be replaced by a constant. A static
+analysis tool can accurately enforce both of these requirements.
+
+**Conditionally terminating loops** may be used if indicated by the appropriate
+[module flag](#module-flags-metadata). These loops may break or continue
+depending on values that depend on a quantum measurement, as illustrated by the
+following code snippet.
 
 ```llvm
   ...
@@ -259,42 +295,14 @@ loop:
 cont:
   ...
 ```
-<!--
-Since the Adaptive Profile does not allow for any composite data types,
-supporting backwards branching necessarily requires supporting non-constant
-values to be used to identify a qubit or result value. For example, the
-following IR expresses a loop that flips the state of qubit 1 to 4, if qubit 0
-is in a non-zero state:
 
-```llvm
-...
-define void @simple_loop() {
-entry:
-  br label %loop_body
-loop_body:                          ; preds = %loop_body, %entry
-  %0 = phi i64 [ 0, %entry ], [ %1, %loop_body ]
-  %1 = add i64 %0, 1
-  call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* nonnull inttoptr (i64 %1 to %Qubit*))
-  %2 = icmp sle i64 %1, 4
-  br i1 %2, label %loop_body, label %loop_exit
-loop_exit:                          ; preds = %loop_body
-  ...
-}
-...
-```
+In contrast to iterations, they cannot be eliminated at compile time without
+assuming a hard limit for the number of iterations after which the execution is
+terminated with an error. If a backend supports the use of conditionally
+terminating loops, it is up to backend to force the termination of programs that
+would otherwise run indefinitely.
 
-To ensure termination of the program, the condition for exiting the loop must
-not depend on any quantum measurements, since these are non-deterministic in
-general. Enforcing this restriction can be done with a static analysis tool,
-whereby any expression that may depend on a quantum measurement must be assumed
-to depend on it. 
--->
-
-<!--FIXME: "dynamic" qubit indexing allowed here? allowed anywhere else? if not, what can we do with loops?? -->
-<!--FIXME: alternative: allow for potential non-termination and the backend deals with this by having a time-out. -->
 <!--FIXME: update the module flag depending on which of the two versions - or both - is supported. -->
-<!--FIXME: update the data types and values section to say qubits and results must be constant -->
-<!--FIXME: update this section here to require that the value used to access qubits and results must not depend on a measurement -->
 
 ### Bullet 8: Multiple Target Branching
 
@@ -770,18 +778,21 @@ Qubits and results can occur only as arguments in function calls and are
 represented as a pointer of type `%Qubit*` and `%Result*` respectively. To be
 compliant with the Adaptive Profile specification, the program must not make use
 of dynamic qubit or result management, meaning qubits and results must be
-identified by a constant integer value that is bitcast to a pointer to match the
+identified by an integer value that is bitcast to a pointer to match the
 expected type. How such an integer value is interpreted and specifically how it
 relates to hardware resources is ultimately up to the executing backend.
 
-The integer constant that is cast must be in the interval `[0, numQubits)` for
-`%Qubit*` and `[0,numResults)` for `%Result*`, where `numQubits` and
-`numResults` are the required number of qubits and results defined by the
-corresponding [entry point attributes](#attributes). Since backends may look at
-the values of the `required_num_qubits` and `required_num_results` attributes to
-determine whether a program can be executed, it is recommended to index qubits
-and results consecutively so that there are no unused values within these
-ranges.
+The integer value that is cast must be either a constant, or a phi node of
+integer type if [iterations](#bullet-7-backwards-branching) are used/supported.
+If the cast value is a phi node, it must not directly or indirectly depend on
+any quantum measurements. The integer constant that is cast must be in the
+interval `[0, numQubits)` for `%Qubit*` and `[0,numResults)` for `%Result*`,
+where `numQubits` and `numResults` are the required number of qubits and results
+defined by the corresponding [entry point attributes](#attributes). Since
+backends may look at the values of the `required_num_qubits` and
+`required_num_results` attributes to determine whether a program can be
+executed, it is recommended to index qubits and results consecutively so that
+there are no unused values within these ranges.
 
 ## Attributes
 
