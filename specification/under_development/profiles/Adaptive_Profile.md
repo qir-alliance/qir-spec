@@ -72,7 +72,7 @@ capabilities are outlined in the following sections.
 
 ## Mandatory Capabilities
 
-**Bullet 1: Quantum transformations** <br/>
+### Bullet 1: Quantum transformations
 
 The set of available instructions that transform the quantum state may vary
 depending on the targeted backend. The profile specification defines how to
@@ -87,7 +87,7 @@ role of the QIS, recommendations for front- and backend providers, as well as
 the distinction between runtime functions and quantum instructions, can be found
 in this [document](../Instruction_Set.md).
 
-**Bullet 2: Measurements** <br/>
+### Bullet 2: Measurements
 
 As for the Base Profile, a measurement function is a QIS function marked with an
 [`irreversible` attribute](./Base_Profile.md#quantum-instruction-set) that
@@ -104,7 +104,7 @@ supported QIS, without impacting the state of the non-measured qubits.
 Furthermore, it must be possible to use the measured qubit(s) afterwards and
 apply additional quantum instructions to the same qubit(s).
 
-**Bullet 3: Forward Branching** <br/>
+### Bullet 3: Forward Branching
 
 Additionally, the Adaptive Profile requires that it must be possible to take
 action based on a measurement result. Specifically, it must be possible to
@@ -149,7 +149,7 @@ conditionally perform quantum instructions depending on measurement outcomes,
 for example when performing real-time error-correction as part of a quantum
 programs.
 
-**Bullet 4: Program output** <br/>
+### Bullet 4: Program output
 
 The specifications of QIR and all its profiles need to accurately reflect the
 program intent. This includes being able to define and customize the program
@@ -301,7 +301,6 @@ assuming a hard limit for the number of iterations after which the execution is
 terminated with an error. If a backend supports the use of conditionally
 terminating loops, it is up to backend to force the termination of programs that
 would otherwise run indefinitely.
-
 
 ### Bullet 8: Multiple Target Branching
 
@@ -553,7 +552,7 @@ when the program is executed, referred to as "entry point" in the rest of this
 profile specification. The name of this function may be chosen freely, as long
 as it is a valid [global
 identifier](https://llvm.org/docs/LangRef.html#identifiers) according to the
-LLVM standard. The entry point is identified by a custom function attribute; 
+LLVM standard. The entry point is identified by a custom function attribute;
 as mentioned in the section on [attributes](#attributes), this is the same
 set of attributes as in the base profile.
 
@@ -810,10 +809,9 @@ there are no unused values within these ranges.
 The attribute usage and requirements of the Adaptive Profile remain the same as
 defined in the [Base Profile](./Base_Profile.md#attributes). The one change
 from base profile is that there are additional relevant attributes (the base
-profile only included `inlinehint`, `nofree`, `norecurse`, `readnone`, `readonly`, `writeonly`, and
-`argmemonly`)
-that can be used on  functions, depending on the exact instructions supported via using the
-extensions in the Adaptive Profile.
+profile only included `inlinehint`, `nofree`, `norecurse`, `readnone`, `readonly`,
+`writeonly`, and `argmemonly`) that can be used on  functions, depending on the
+exact instructions supported via using the extensions in the Adaptive Profile.
 
 ## Module Flags Metadata
 
@@ -847,12 +845,12 @@ indicates that these capabilities are not used in the program.
   defined [here](#bullet-7-backwards-branching) are used. A value of `2`
   indicates that conditionally terminating loops as described
   [here](#bullet-7-backwards-branching) may occur. A value of `3` indicates that
-  both iterations and conditional loops may occur. 
+  both iterations and conditional loops may occur.
 - A flag named `"multiple_target_branching"`  with a constant `true` or `false`
   value of type `i1` indicating if the program uses the `switch` instruction in
   llvm.
 - A flag named `"multiple_return_points"`  with a constant `true` or `false`
-  value of type `i1` indicating whether multiple return statements can apper in a 
+  value of type `i1` indicating whether multiple return statements can apper in a
   function within the IR as defined [here](#bullet-9-multiple-return-points)
 
 ## Error Messages
@@ -904,7 +902,7 @@ measurements and boolean computations:
   %2 = and i1 %0, %1
   br i1 %2, label %then, label %continue
 
-then: 
+then:
   tail call void @__quantum__qis__x__body(%Qubit* nonnull inttoptr (i64 2 to %Qubit*))
   br label %continue
 
