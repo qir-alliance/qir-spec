@@ -65,9 +65,9 @@ express this is defined in the section on [output recording](#output-recording).
 While it is sufficient for the QPU to do a final measurement of all qubits in a
 predefined order at the end of the program, only the selected subset will be
 reflected in the produced output schema. A suitable output schema can be
-generated in a post-processing step after the computation on the quantum
-processor itself has completed; customization of the program output hence does
-not require support on the QPU itself.
+generated during execution or in a post-processing step after the computation on
+the quantum processor itself has completed; customization of the program output
+hence does not require support on the QPU itself.
 
 The defined [output schemas](../output_schemas/) provide different options for
 how a backend may express the computed value(s). The exact schema can be freely
@@ -489,10 +489,10 @@ These flags are attached as `llvm.module.flags` metadata to the module. They can
 be queried using the standard LLVM tools and follow the LLVM specification in
 behavior and purpose. Since module flags impact whether different modules can be
 merged and how, additional module flags may be added to the bitcode only if
-their behavior is set to `Warning`, `Append`, `AppendUnique`, or `Max`.
-It is at the discretion of the maintainers for various components in the QIR
-stack to discard module flags that are not explicitly required or listed as
-optional flags in the QIR specification.
+their behavior is set to `Warning`, `Append`, `AppendUnique`, or `Max`. It is at
+the discretion of the maintainers for various components in the QIR stack to
+discard module flags that are not explicitly required or listed as optional
+flags in the QIR specification.
 
 ### Specification Version
 

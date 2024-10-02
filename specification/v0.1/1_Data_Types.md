@@ -68,8 +68,8 @@ with values of type `%Result*`:
 
 | Function                          | Signature                | Description |
 |-----------------------------------|--------------------------|-------------|
-| __quantum__rt__result_get_zero    | `%Result*()`             | Returns a constant representing a measurement result zero.
-| __quantum__rt__result_get_one     | `%Result*()`             | Returns a constant representing a measurement result one.
+| __quantum__rt__result_get_zero    | `%Result*()`             | Returns a constant representing a measurement result zero. |
+| __quantum__rt__result_get_one     | `%Result*()`             | Returns a constant representing a measurement result one.  |
 | __quantum__rt__result_equal       | `i1(%Result*, %Result*)` | Returns true if the two results are the same, and false if they are different. If a `%Result*` parameter is null, a runtime failure should occur. |
 | __quantum__rt__result_update_reference_count   | `void(%Result*, i32)` | Adds the given integer value to the reference count for the result. Deallocates the result if the reference count becomes 0. The behavior is undefined if the reference count becomes negative. The call should be ignored if the given `%Result*` is a null pointer. |
 
@@ -322,4 +322,4 @@ For all of these functions, if an `%Array*` pointer is null, a runtime failure
 should occur.
 
 ---
-_[Back to index](README.md)_
+*[Back to index](README.md)*

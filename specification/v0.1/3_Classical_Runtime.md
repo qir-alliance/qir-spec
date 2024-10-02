@@ -68,4 +68,4 @@ reference counts as hints or as simple no-ops.
   instance pointer and simply ignore the call if the pointer is null.
 
 ---
-_[Back to index](README.md)_
+*[Back to index](README.md)*
