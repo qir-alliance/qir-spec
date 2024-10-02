@@ -302,7 +302,6 @@ terminated with an error. If a backend supports the use of conditionally
 terminating loops, it is up to backend to force the termination of programs that
 would otherwise run indefinitely.
 
-
 ### Bullet 8: Multiple Target Branching
 
 It can be desirable to support control flow constructs that indicate how a
@@ -553,7 +552,7 @@ when the program is executed, referred to as "entry point" in the rest of this
 profile specification. The name of this function may be chosen freely, as long
 as it is a valid [global
 identifier](https://llvm.org/docs/LangRef.html#identifiers) according to the
-LLVM standard. The entry point is identified by a custom function attribute; 
+LLVM standard. The entry point is identified by a custom function attribute;
 as mentioned in the section on [attributes](#attributes), this is the same
 set of attributes as in the base profile.
 
@@ -810,10 +809,10 @@ there are no unused values within these ranges.
 The attribute usage and requirements of the Adaptive Profile remain the same as
 defined in the [Base Profile](./Base_Profile.md#attributes). The one change
 from base profile is that there are additional relevant attributes (the base
-profile only included `inlinehint`, `nofree`, `norecurse`, `readnone`, `readonly`, `writeonly`, and
-`argmemonly`)
-that can be used on  functions, depending on the exact instructions supported via using the
-extensions in the Adaptive Profile.
+profile only included `inlinehint`, `nofree`, `norecurse`, `readnone`,
+`readonly`, `writeonly`, and `argmemonly`) that can be used on  functions,
+depending on the exact instructions supported via using the extensions in the
+Adaptive Profile.
 
 ## Module Flags Metadata
 
@@ -847,13 +846,13 @@ indicates that these capabilities are not used in the program.
   defined [here](#bullet-7-backwards-branching) are used. A value of `2`
   indicates that conditionally terminating loops as described
   [here](#bullet-7-backwards-branching) may occur. A value of `3` indicates that
-  both iterations and conditional loops may occur. 
+  both iterations and conditional loops may occur.
 - A flag named `"multiple_target_branching"`  with a constant `true` or `false`
   value of type `i1` indicating if the program uses the `switch` instruction in
   llvm.
 - A flag named `"multiple_return_points"`  with a constant `true` or `false`
-  value of type `i1` indicating whether multiple return statements can apper in a 
-  function within the IR as defined [here](#bullet-9-multiple-return-points)
+  value of type `i1` indicating whether multiple return statements can apper in
+  a function within the IR as defined [here](#bullet-9-multiple-return-points).
 
 ## Error Messages
 
