@@ -45,4 +45,3 @@ jobs:
         # positives with terminology in quantum computing.
         strict: false
         incremental_files_only: true
-        config: 'utils/spelling_allowlist.json'
