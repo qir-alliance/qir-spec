@@ -557,7 +557,7 @@ LLVM standard. The entry point is identified by a custom function attribute;
 as mentioned in the section on [attributes](#attributes), this is the same
 set of attributes as in the base profile.
 
-An entry point function may not take any parameters and must  must return an
+An entry point function may not take any parameters and must return an
 exit code in the form of a 64-bit integer. The exit code `0` must be used to
 indicate a successful execution of the quantum program. Any other value of the
 exit code indicates a failure during execution. The program IR must use exit
