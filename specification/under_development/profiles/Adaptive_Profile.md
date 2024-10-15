@@ -654,11 +654,20 @@ instructions must be supported:
 | `sext .. to`           | Extends an integer value to create an integer of greater bitwidth by filling the added bits with the sign bit of the integer.               | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported.                                                                                            |
 | `trunc .. to`           | Truncates the highest order bits of an integer to create an integer of smaller bitwidth.                          | Behavior if the truncation changes the value of the integer is undefined, no support for `nuw` and/or `nsw`. May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported.                                                                                       |
 | `select`         | Evaluates to one of two integer values depending on a boolean condition. |                                                                                            |
-| `phi`            | Implement the φ node in the SSA graph representing the function.                   | Must be at the start of a basic block, or preceded by other `phi` instructions.                                                                                           |
 
 For more information about any of these instructions, we refer to the
 corresponding section in the [LLVM Language
 Reference](https://llvm.org/docs/LangRef.html).
+
+If a backend chooses to support looping, iterations or backward branching then the following LLVM
+instructions must be supported:
+
+| LLVM Instruction | Context and Purpose                                                                             | Note                                                                                       |
+|:-----------------|:------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------|
+| `phi`            | Assigns a local variables' data depending upon which branch caused entry to the basic block. | Must be at the start of a basic block, or preceded by other `phi` instructions.                                                                                           |
+
+If unfamiliar with phi nodes, [this entry](https://llvm.org/docs/LangRef.html#phi-instruction) in the Language 
+Reference can provide more details.
 
 If a backend chooses to support floating point computations, then the following
 LLVM instructions must be supported:
