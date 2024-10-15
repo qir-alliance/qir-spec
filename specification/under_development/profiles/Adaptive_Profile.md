@@ -20,8 +20,9 @@ must support the following [mandatory capabilities](#mandatory-capabilities):
 1. It can execute a sequence of quantum instructions that transform the quantum
    state.
 2. A backend must support applying a measurement operation at any point in the
-   execution of the program. Qubits not undergoing the measurement should not
-   have their state affected.
+   execution of the program. Qubits not undergoing the measurement and are not 
+   conjoined to its state, such as via entanglement, should not have their state 
+   affected.
 3. A backend must be able to apply quantum instructions conditionally on a
    measurement outcome. Specifically, forward branching using the LLVM branch
    instruction `br` must be supported, along with the necessary runtime function
