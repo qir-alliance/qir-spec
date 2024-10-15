@@ -730,7 +730,8 @@ statement in the entry point function. Unless the backend supports multiple
 return points (**Bullet 9**), there is a single block that contains all calls to
 output recording functions followed by the final return statements. Multiple
 return statements in the application code can be replaced with suitable `phi`
-nodes by the compiler to propagate the data into that block.
+nodes by the compiler to propagate the data into that block if all computation 
+is contained within a single function.
 
 For all output recording functions, the `i8*` argument must be a non-null
 pointer to a global constant that contains a null-terminated string. A backend
