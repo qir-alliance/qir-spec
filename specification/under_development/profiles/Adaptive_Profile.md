@@ -51,15 +51,6 @@ support more advanced adaptive computations:
 9. Multiple return points.
 <!-- markdownlint-enable MD029 -->
 
-<!-- Original version:
-7. Backwards branching to express control flow loops. Non-terminating loops
-   ("while"-loops) are not permitted within the Adaptive Profile, regardless of
-   the support for this optional feature. It is specifically not permitted to
-   have a loop that terminates only based on a measurement outcome.
-   Correspondingly, permitting for backward branching mostly makes sense when
-   the backend also supports computations on at least one classical data type.
--->
-
 The use of these optional features is represented as a [module
 flag](#module-flags-metadata) in the program IR. Any backend that supports
 capabilities 1-4, and as many of capabilities 5-9 as it desires, is considered
@@ -776,19 +767,6 @@ of dynamic qubit or result management, meaning qubits and results must be
 identified by an integer value that is bitcast to a pointer to match the
 expected type. How such an integer value is interpreted and specifically how it
 relates to hardware resources is ultimately up to the executing backend.
-
-<!--From prior version metadata:
-For non-constant integer and floating-point values the assumption is that while
-a `%Result*` may point to a valid memory location in RAM or some other memory
-pool, by default, instructions performed on virtual registers with these data
-types correspond to these values being stored in integer or floating registers
-when an instruction is executed. Before a virtual register is used in an
-instruction, there is no assumption that the value in the virtual register
-always corresponds to a physical register. For example, when considering
-register coloring, the virtual register, `%0`, in the QIR program may refer to a
-value stored in RAM for most of its lifetime before being loaded into a register
-when an instruction operates on `%0`.
--->
 
 The integer value that is cast must be either a constant, or a phi node of
 integer type if [iterations](#bullet-7-backwards-branching) are used/supported.
