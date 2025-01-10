@@ -1,6 +1,6 @@
 # Callables
 
-We use the term *callable* to mean a subroutine in the source language.
+We use the term _callable_ to mean a subroutine in the source language.
 Different source languages use different names for this concept.
 
 > [!NOTE]
