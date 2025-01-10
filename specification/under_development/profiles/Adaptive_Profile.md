@@ -63,7 +63,7 @@ capabilities are outlined in the following sections.
 
 ## Mandatory Capabilities
 
-**Bullet 1: Quantum transformations** <br/>
+### Bullet 1: Quantum transformations
 
 The set of available instructions that transform the quantum state may vary
 depending on the targeted backend. The profile specification defines how to
@@ -78,7 +78,7 @@ role of the QIS, recommendations for front- and backend providers, as well as
 the distinction between runtime functions and quantum instructions, can be found
 in this [document](../Instruction_Set.md).
 
-**Bullet 2: Measurements** <br/>
+### Bullet 2: Measurements
 
 As for the Base Profile, a measurement function is a QIS function marked with an
 [`irreversible` attribute](./Base_Profile.md#quantum-instruction-set) that
@@ -95,7 +95,7 @@ supported QIS, without impacting the state of the non-measured qubits.
 Furthermore, it must be possible to use the measured qubit(s) afterwards and
 apply additional quantum instructions to the same qubit(s).
 
-**Bullet 3: Forward Branching** <br/>
+### Bullet 3: Forward Branching
 
 Additionally, the Adaptive Profile requires that it must be possible to take
 action based on a measurement result. Specifically, it must be possible to
@@ -140,7 +140,7 @@ conditionally perform quantum instructions depending on measurement outcomes,
 for example when performing real-time error-correction as part of a quantum
 programs.
 
-**Bullet 4: Program output** <br/>
+### Bullet 4: Program output
 
 The specifications of QIR and all its profiles need to accurately reflect the
 program intent. This includes being able to define and customize the program
@@ -881,7 +881,7 @@ measurements and boolean computations:
   %2 = and i1 %0, %1
   br i1 %2, label %then, label %continue
 
-then: 
+then:
   tail call void @__quantum__qis__x__body(%Qubit* nonnull inttoptr (i64 2 to %Qubit*))
   br label %continue
 
