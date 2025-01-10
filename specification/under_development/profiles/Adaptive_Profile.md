@@ -328,8 +328,6 @@ constant. We refer to the [LLVM language
 reference](https://llvm.org/docs/LangRef.html#switch-instruction) for more
 information about the switch instruction.
 
-<!--FIXME: check that the entry point section allows for entry point arguments - global constants as the alternative? -->
-
 ### Bullet 9: Multiple Return Points
 
 A backend my choose to support multiple return points in an entry point
@@ -903,7 +901,7 @@ measurements and boolean computations:
   %2 = and i1 %0, %1
   br i1 %2, label %then, label %continue
 
-then: 
+then:
   tail call void @__quantum__qis__x__body(%Qubit* nonnull inttoptr (i64 2 to %Qubit*))
   br label %continue
 
