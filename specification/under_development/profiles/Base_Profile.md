@@ -26,7 +26,9 @@ fundamentally consist of unitary transformations of the quantum state as well as
 measurements at the end of the program. More details about each of the bullets
 are outlined below.
 
-**Bullet 1: Quantum transformations** <br/>
+## Mandatory Capabilities
+
+### Bullet 1: Quantum transformations
 
 The set of available instructions that transform the quantum state may vary
 depending on the targeted backend. The profile specification defines how to
@@ -41,7 +43,7 @@ the QIS, recommendations for front- and backend providers, as well as the
 distinction between runtime functions and quantum instructions can be found in
 [this document](../Instruction_Set.md).
 
-**Bullet 2: Measurements** <br/>
+### Bullet 2: Measurements
 
 The second requirement should be taken to mean that a Base Profile compliant
 program does *not* apply instructions to a qubit after it has been measured;
@@ -54,7 +56,7 @@ to measure only a subset of all available qubits at a time.
 - Executing a Base Profile compliant program does not require support for
 applying quantum instructions dependent on measurement outcomes.
 
-**Bullet 3: Program output** <br />
+### Bullet 3: Program output
 
 The QIR specification and its profiles describe a mechanism to accurately
 reflect program intent with regard to program output. The Base Profile

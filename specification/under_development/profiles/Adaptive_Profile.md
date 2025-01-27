@@ -51,15 +51,6 @@ support more advanced adaptive computations:
 9. Multiple return points.
 <!-- markdownlint-enable MD029 -->
 
-<!-- Original version:
-7. Backwards branching to express control flow loops. Non-terminating loops
-   ("while"-loops) are not permitted within the Adaptive Profile, regardless of
-   the support for this optional feature. It is specifically not permitted to
-   have a loop that terminates only based on a measurement outcome.
-   Correspondingly, permitting for backward branching mostly makes sense when
-   the backend also supports computations on at least one classical data type.
--->
-
 The use of these optional features is represented as a [module
 flag](#module-flags-metadata) in the program IR. Any backend that supports
 capabilities 1-4, and as many of capabilities 5-9 as it desires, is considered
@@ -72,7 +63,7 @@ capabilities are outlined in the following sections.
 
 ## Mandatory Capabilities
 
-**Bullet 1: Quantum transformations** <br/>
+### Bullet 1: Quantum transformations
 
 The set of available instructions that transform the quantum state may vary
 depending on the targeted backend. The profile specification defines how to
@@ -87,7 +78,7 @@ role of the QIS, recommendations for front- and backend providers, as well as
 the distinction between runtime functions and quantum instructions, can be found
 in this [document](../Instruction_Set.md).
 
-**Bullet 2: Measurements** <br/>
+### Bullet 2: Measurements
 
 As for the Base Profile, a measurement function is a QIS function marked with an
 [`irreversible` attribute](./Base_Profile.md#quantum-instruction-set) that
@@ -104,7 +95,7 @@ supported QIS, without impacting the state of the non-measured qubits.
 Furthermore, it must be possible to use the measured qubit(s) afterwards and
 apply additional quantum instructions to the same qubit(s).
 
-**Bullet 3: Forward Branching** <br/>
+### Bullet 3: Forward Branching
 
 Additionally, the Adaptive Profile requires that it must be possible to take
 action based on a measurement result. Specifically, it must be possible to
@@ -149,7 +140,7 @@ conditionally perform quantum instructions depending on measurement outcomes,
 for example when performing real-time error-correction as part of a quantum
 programs.
 
-**Bullet 4: Program output** <br/>
+### Bullet 4: Program output
 
 The specifications of QIR and all its profiles need to accurately reflect the
 program intent. This includes being able to define and customize the program
@@ -779,19 +770,6 @@ identified by an integer value that is bitcast to a pointer to match the
 expected type. How such an integer value is interpreted and specifically how it
 relates to hardware resources is ultimately up to the executing backend.
 
-<!--From prior version metadata:
-For non-constant integer and floating-point values the assumption is that while
-a `%Result*` may point to a valid memory location in RAM or some other memory
-pool, by default, instructions performed on virtual registers with these data
-types correspond to these values being stored in integer or floating registers
-when an instruction is executed. Before a virtual register is used in an
-instruction, there is no assumption that the value in the virtual register
-always corresponds to a physical register. For example, when considering
-register coloring, the virtual register, `%0`, in the QIR program may refer to a
-value stored in RAM for most of its lifetime before being loaded into a register
-when an instruction operates on `%0`.
--->
-
 The integer value that is cast must be either a constant, or a phi node of
 integer type if [iterations](#bullet-7-backwards-branching) are used/supported.
 If the cast value is a phi node, it must not directly or indirectly depend on
@@ -903,7 +881,7 @@ measurements and boolean computations:
   %2 = and i1 %0, %1
   br i1 %2, label %then, label %continue
 
-then: 
+then:
   tail call void @__quantum__qis__x__body(%Qubit* nonnull inttoptr (i64 2 to %Qubit*))
   br label %continue
 
