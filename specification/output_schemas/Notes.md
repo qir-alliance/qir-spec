@@ -122,25 +122,25 @@ END\t0
 
 define void @main() #0 {
 entry:
-  call void @__quantum__rt__initialize(i8* null)
-  call void @__quantum__qis__h__body(%Qubit* null)
-  call void @__quantum__qis__mz__body(%Qubit* null, %Result* null)
-  call void @__quantum__qis__mz__body(%Qubit* null, %Result* inttoptr (i64 2 to %Result*))
-  call void @__quantum__rt__array_record_output(i64 2, i8* getelementptr inbounds ([5 x i8], [5 x i8]* @0, i32 0, i32 0))
-  call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 1 to %Result*), i8* getelementptr inbounds ([7 x i8], [7 x i8]* @1, i32 0, i32 0))
-  call void @__quantum__rt__result_record_output(%Result* null, i8* getelementptr inbounds ([7 x i8], [7 x i8]* @2, i32 0, i32 0))
-  call void @__quantum__rt__array_record_output(i64 3, i8* getelementptr inbounds ([5 x i8], [5 x i8]* @3, i32 0, i32 0))
-  call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 4 to %Result*), i8* getelementptr inbounds ([7 x i8], [7 x i8]* @4, i32 0, i32 0))
-  call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 3 to %Result*), i8* getelementptr inbounds ([7 x i8], [7 x i8]* @5, i32 0, i32 0))
-  call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 2 to %Result*), i8* getelementptr inbounds ([7 x i8], [7 x i8]* @6, i32 0, i32 0))
+  call void @__quantum__rt__initialize(ptr null)
+  call void @__quantum__qis__h__body(ptr null)
+  call void @__quantum__qis__mz__body(ptr null, ptr null)
+  call void @__quantum__qis__mz__body(ptr null, ptr inttoptr (i64 2 to ptr))
+  call void @__quantum__rt__array_record_output(i64 2, ptr @0)
+  call void @__quantum__rt__result_record_output(ptr inttoptr (i64 1 to ptr), ptr @1)
+  call void @__quantum__rt__result_record_output(ptr null, ptr @2)
+  call void @__quantum__rt__array_record_output(i64 3, ptr @3)
+  call void @__quantum__rt__result_record_output(ptr inttoptr (i64 4 to ptr), ptr @4)
+  call void @__quantum__rt__result_record_output(ptr inttoptr (i64 3 to ptr), ptr @5)
+  call void @__quantum__rt__result_record_output(ptr inttoptr (i64 2 to ptr), ptr @6)
   ret void
 }
 
-declare void @__quantum__rt__initialize(i8*)
+declare void @__quantum__rt__initialize(ptr)
 
-declare void @__quantum__qis__h__body(%Qubit*)
+declare void @__quantum__qis__h__body(ptr)
 
-declare void @__quantum__qis__mz__body(%Qubit*, %Result* writeonly) #1
+declare void @__quantum__qis__mz__body(ptr, ptr writeonly) #1
 
 declare void @__quantum__rt__array_record_output(i64, i8*)
 

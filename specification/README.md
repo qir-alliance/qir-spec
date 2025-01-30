@@ -58,3 +58,24 @@ We know that many current targets will not support the full breadth of possible
 quantum programs that can be expressed in this representation. We define a
 sequence of specification _profiles_ that define coherent subsets of
 functionality that a specific target can support.
+
+## Version Compatibility
+
+QIR specification versions are not intended to map one-to-one with specific
+LLVM versions. However, QIR version 2.0 uses the opaque pointers, and
+therefore is compatible with LLVM versions 16.0 and above. To use versions
+of LLVM prior to 16.0, follow QIR version 1.0 with typed pointers.
+
+Of note, LLVM versions 16.0 and above can still consume typed pointers, so
+QIR 2.0 toolchains using these newer LLVM versions should still be able to
+consume QIR 1.0 programs. QIR 2.0 programs cannot be consumed by QIR 1.0
+toolchains.
+
+The table below describes this compatibility:
+
+Input | Output | Tooling
+-- | -- | --
+QIR v1.0 | QIR v1.0 | Use LLVM 15 or earlier
+QIR v1.0 | QIR v2.0 | Use LLVM 16 or later
+QIR v2.0 | QIR v2.0 | Use LLVM 16 or later
+QIR v2.0 | QIR v1.0 | NOT SUPPORTED
