@@ -115,9 +115,6 @@ representation:
 ```llvm
 ; type definitions
 
-%Result = type opaque
-%Qubit = type opaque
-
 ; global constants (labels for output recording)
 
 @0 = internal constant [3 x i8] c"r1\00"
@@ -128,45 +125,45 @@ representation:
 define i64 @Entry_Point_Name() #0 {
 entry:
   ; calls to initialize the execution environment
-  call void @__quantum__rt__initialize(i8* null)
+  call void @__quantum__rt__initialize(ptr null)
   br label %body
 
 body:                                     ; preds = %entry
   ; calls to QIS functions that are not irreversible
-  call void @__quantum__qis__h__body(%Qubit* null)
-  call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* inttoptr (i64 1 to %Qubit*))
+  call void @__quantum__qis__h__body(ptr null)
+  call void @__quantum__qis__cnot__body(ptr null, ptr inttoptr (i64 1 to ptr))
   br label %measurements
 
 measurements:                             ; preds = %body
   ; calls to QIS functions that are irreversible
-  call void @__quantum__qis__mz__body(%Qubit* null, %Result* writeonly null)
-  call void @__quantum__qis__mz__body(%Qubit* inttoptr (i64 1 to %Qubit*), %Result* writeonly inttoptr (i64 1 to %Result*))
+  call void @__quantum__qis__mz__body(ptr null, ptr writeonly null)
+  call void @__quantum__qis__mz__body(ptr inttoptr (i64 1 to ptr), ptr writeonly inttoptr (i64 1 to ptr))
   br label %output
 
 output:                                   ; preds = %measurements
   ; calls to record the program output
-  call void @__quantum__rt__tuple_record_output(i64 2, i8* null)
-  call void @__quantum__rt__result_record_output(%Result* null, i8* getelementptr inbounds ([3 x i8], [3 x i8]* @0, i32 0, i32 0))
-  call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 1 to %Result*), i8* getelementptr inbounds ([3 x i8], [3 x i8]* @1, i32 0, i32 0))
+  call void @__quantum__rt__tuple_record_output(i64 2, ptr null)
+  call void @__quantum__rt__result_record_output(ptr null, getelementptr inbounds ([3 x i8], ptr @0, i32 0, i32 0))
+  call void @__quantum__rt__result_record_output(ptr inttoptr (i64 1 to ptr), getelementptr inbounds ([3 x i8], ptr @1, i32 0, i32 0))
 
   ret i64 0
 }
 
 ; declarations of QIS functions
 
-declare void @__quantum__qis__h__body(%Qubit*)
+declare void @__quantum__qis__h__body(ptr)
 
-declare void @__quantum__qis__cnot__body(%Qubit*, %Qubit*)
+declare void @__quantum__qis__cnot__body(ptr, ptr)
 
-declare void @__quantum__qis__mz__body(%Qubit*, %Result* writeonly) #1
+declare void @__quantum__qis__mz__body(ptr, ptr writeonly) #1
 
 ; declarations of runtime functions for initialization and output recording
 
-declare void @__quantum__rt__initialize(i8*)
+declare void @__quantum__rt__initialize(ptr)
 
-declare void @__quantum__rt__tuple_record_output(i64, i8*)
+declare void @__quantum__rt__tuple_record_output(i64, ptr)
 
-declare void @__quantum__rt__result_record_output(%Result*, i8*)
+declare void @__quantum__rt__result_record_output(ptr, ptr)
 
 ; attributes
 
@@ -178,7 +175,7 @@ attributes #1 = { "irreversible" }
 
 !llvm.module.flags = !{!0, !1, !2, !3}
 
-!0 = !{i32 1, !"qir_major_version", i32 1}
+!0 = !{i32 1, !"qir_major_version", i32 2}
 !1 = !{i32 7, !"qir_minor_version", i32 0}
 !2 = !{i32 1, !"dynamic_qubit_management", i1 false}
 !3 = !{i32 1, !"dynamic_result_management", i1 false}
@@ -234,7 +231,7 @@ one to the other. Both blocks consist (only) of calls to [QIS
 functions](#quantum-instruction-set). Any number of such calls may be performed.
 To be compatible with the Base Profile the called functions must return void.
 Any arguments to invoke them must be inlined into the call itself; they must be
-constants or pointers of type `%Qubit*` or `%Result*`.
+constants or pointers of type `ptr`.
 
 The only difference between these two blocks is that the first one contains only
 calls to functions that are *not* marked as irreversible by an attribute on the
@@ -267,8 +264,8 @@ must satisfy the following three requirements:
   with an custom function attribute named `irreversible`. The use of
   [attributes](#attributes) in general is outlined in the corresponding section.
 
-- Parameters of type `%Result*` must be `writeonly` parameters; only the runtime
-  function `__quantum__rt__result_record_output` used for [output
+- Parameters of type `ptr` identifying results must be `writeonly` parameters;
+  only the runtime function `__quantum__rt__result_record_output` used for [output
   recording](#output-recording) may read a measurement result.
 
 For more information about the relation between a profile specification and the
@@ -288,8 +285,8 @@ within a Base Profile compliant program:
 | `call`                   | Used within a basic block to invoke any one of the declared QIS functions and runtime functions. | May optionally be preceded by a [`tail` marker](https://llvm.org/docs/LangRef.html#call-instruction).       |
 | `br`                     | Used to branch from one basic block to another.                                                  | The branching must be unconditional and occurs as the final instruction of a block to jump to the next one. |
 | `ret`                    | Used to return the exit code of the program.                                                     | Must occur (only) as the last instruction of the final block in an entry point.                             |
-| `inttoptr`               | Used to cast an `i64` integer value to either a `%Qubit*` or a `%Result*`.                       | May be used as part of a function call only.                                                                |
-| `getelementptr inbounds` | Used to create an `i8*` to pass a constant string for the purpose of labeling an output value.   | May be used as part of a call to an output recording function only.                                         |
+| `inttoptr`               | Used to cast an `i64` integer value to a `ptr`.                                                  | May be used as part of a function call only.                                                                |
+| `getelementptr inbounds` | Used to create a `ptr` to pass a constant string for the purpose of labeling an output value.    | May be used as part of a call to an output recording function only.                                         |
 
 See also the section on [data types and values](#data-types-and-values) for more
 information about the creation and usage of LLVM values.
@@ -302,10 +299,10 @@ program:
 
 | Function                            | Signature            | Description                                                                                                                                                                                                                                                  |
 | :---------------------------------- | :------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__initialize           | `void(i8*)`          | Initializes the execution environment. Sets all qubits to a zero-state if they are not dynamically managed.                                                                                                                                                  |
-| __quantum__rt__tuple_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of a tuple and how many tuple elements it has. The second parameter defines a string label for the tuple. Depending on the output schema, the label is included in the output or omitted.  |
-| __quantum__rt__array_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of an array and how many array elements it has. The second parameter defines a string label for the array. Depending on the output schema, the label is included in the output or omitted. |
-| __quantum__rt__result_record_output | `void(%Result*,i8*)` | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
+| __quantum__rt__initialize           | `void(ptr)`          | Initializes the execution environment. Sets all qubits to a zero-state if they are not dynamically managed.                                                                                                                                                  |
+| __quantum__rt__tuple_record_output  | `void(i64,ptr)`      | Inserts a marker in the generated output that indicates the start of a tuple and how many tuple elements it has. The second parameter defines a string label for the tuple. Depending on the output schema, the label is included in the output or omitted.  |
+| __quantum__rt__array_record_output  | `void(i64,ptr)`      | Inserts a marker in the generated output that indicates the start of an array and how many array elements it has. The second parameter defines a string label for the array. Depending on the output schema, the label is included in the output or omitted. |
+| __quantum__rt__result_record_output | `void(ptr,ptr)` | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
 
 ### Initialization
 
@@ -323,13 +320,13 @@ to the runtime functions ending in `record_output` listed in the table
 contained within the final block of an entry point function, i.e. the block that
 terminates in a return instruction.
 
-For all output recording functions, the `i8*` argument must be a non-null
+For all output recording functions, the `ptr` argument must be a non-null
 pointer to a global constant that contains a null-terminated string. A unique
 string must be used for each call to an output recording function within the
 same entry point. A backend may ignore that argument if it guarantees that the
 order of the recorded output matches the order defined by the quantum program.
 Conversely, certain output schemas do not require the recorded output to be
-listed in a particular order. For those schemas, the `i8*` argument serves as a
+listed in a particular order. For those schemas, the `ptr` argument serves as a
 label that permits the compiler or tool that generated the labels to reconstruct
 the order intended by the program. [Compiler
 frontends](https://en.wikipedia.org/wiki/Compiler#Front_end) must always
@@ -362,15 +359,15 @@ of type `i64` in particular may be used as part of calls to output recording
 functions; see the section on [output recording](#output-recording) for more
 details.
 
-The `%Qubit*` and `%Result*` data types must be supported by all backends.
+The `ptr` data types must be supported by all backends.
 Qubits and results can occur only as arguments in function calls and are
-represented as a pointer of type `%Qubit*` and `%Result*` respectively, where
+represented as a pointer type, where
 the pointer itself identifies the qubit or result value rather than a memory
 location where the value is stored: a 64-bit integer constant is cast to the
 appropriate pointer type. A more detailed elaboration on the purpose of this
 representation is given in the next subsection. The integer constant that is
-cast must be in the interval `[0, numQubits)` for `%Qubit*` and `[0,
-numResults)` for `%Result*`, where `numQubits` and `numResults` are the required
+cast must be in the interval `[0, numQubits)` for qubits and `[0,
+numResults)` for results, where `numQubits` and `numResults` are the required
 number of qubits and results defined by the corresponding [entry point
 attributes](#attributes). Since backends may look at the values of the
 `required_num_qubits` and `required_num_results` attributes to determine whether
@@ -514,8 +511,8 @@ major and minor version of the specification that the QIR bitcode adheres to.
 
 ### Memory Management
 
-Each bitcode file contains the information whether pointers of type `%Qubit*`
-and `%Result*` point to a valid memory location, or whether a pointer merely
+Each bitcode file contains the information whether instances of `ptr` used for
+qubits and results point to a valid memory location, or whether a pointer merely
 encodes an integer constant that identifies which qubit or result the value
 refers to. This information is represented in the form of the two module flags
 named `"dynamic_qubit_management"` and `"dynamic_result_management"`. Within the
