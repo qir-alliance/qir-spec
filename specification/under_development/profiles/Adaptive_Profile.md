@@ -319,8 +319,6 @@ constant. We refer to the [LLVM language
 reference](https://llvm.org/docs/LangRef.html#switch-instruction) for more
 information about the switch instruction.
 
-<!--FIXME: check that the entry point section allows for entry point arguments - global constants as the alternative? -->
-
 ### Bullet 9: Multiple Return Points
 
 A backend my choose to support multiple return points in an entry point

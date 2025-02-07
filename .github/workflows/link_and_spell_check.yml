@@ -25,19 +25,16 @@ jobs:
           }
       shell: pwsh
     - name: markdownlint-cli
-      # cspell:words nosborn
-      uses: nosborn/github-action-markdown-cli@v2.0.0
+      uses: nosborn/github-action-markdown-cli@v3.3.0
       with:
         files: .
         config_file: 'utils/md_lint_config.yml'
     - name: Markdown link check
-      # cspell:words gaurav
-      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      uses: gaurav-nelson/github-action-markdown-link-check@1.0.15
       with:
         use-verbose-mode: 'yes'
       if: ${{ success() || failure() }}
     - name: "Check spelling in changed files"
-      # cspell:words streetsidesoftware
       uses: streetsidesoftware/cspell-action@v6
       with:
         inline: warning
