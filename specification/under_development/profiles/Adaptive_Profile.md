@@ -657,6 +657,7 @@ LLVM instructions must be supported:
 | `fsub`           | Subtracts two floating-point values. |                             |
 | `fmul`           | Multiplies two floating-point values.          |                             |
 | `fdiv`           | Divides two floating-point values. | Division by zero leads to undefined behavior, no support for `NaN`. |
+| `fcmp`           | Compares two floating-point | Comparision options are `olt`, `ole`, `ogt`, `oge`, `oeq`, `one`, `ord`, `ult`, `ule`, `ugt`, `uge`, `ueq`, `une`, `uno`, `false`, `true`. |
 | `fpext .. to`           | Casts a value of floating-point type to a larger floating-point type. | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported. |
 | `fptrunc .. to`  | Casts a value of floating-point type to a smaller floating-point type.         | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported. |
 
@@ -696,7 +697,7 @@ additional runtime function must be available:
 
 | Function                            | Signature       | Description     |
 | :---------------------------------- | :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__float_record_output | `void(f64,i8*)` | Records a floating-point value in the generated output. The second parameter defines the string label for the value. Depending on the output schema, the label is included in the output or omitted. |
+| __quantum__rt__float_record_output | `void(double,i8*)` | Records a floating-point value in the generated output. The second parameter defines the string label for the value. Depending on the output schema, the label is included in the output or omitted. |
 
 ### Output Recording
 
@@ -808,11 +809,11 @@ indicates that these capabilities are not used in the program.
 - a flag with the string identifier `"float_computations"` that contains a
   string value where the string value is a comma-separated list of the
   supported/used floating-point precision(s). For example, `!0 = !{i32 5,
-  !"float_computations", !"f32,f64"}`. The precision must be one of the LLVM
-  recognized values (f16, f32, f64, f80, or f128), and classical computations on
+  !"float_computations", !"float,double"}`. The precision must be one of the LLVM
+  recognized values (`half (f16)`, `float (f32)`, `double (f64)`, or `fp128`), and classical computations on
   floating point numbers of all listed precisions must be supported by the
   executing backend. An empty value indicates that no floating-point
-  computations are supported/used.
+  computations are supported/used. 
 - A flag named `"ir_functions"` that contains a constant `true` or `false` value
   of type `i1` value indicating if subroutines may be expressed a functions
   which can be called from the entry-point.
