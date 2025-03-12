@@ -113,8 +113,6 @@ The code below illustrates how a simple program looks within a Base Profile
 representation:
 
 ```llvm
-; type definitions
-
 ; global constants (labels for output recording)
 
 @0 = internal constant [3 x i8] c"r1\00"

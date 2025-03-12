@@ -395,8 +395,6 @@ The code below illustrates how a simple program implementing a teleport chain
 looks within a minimal Adaptive Profile representation:
 
 ```llvm
-; type definitions
-
 ; global constants (labels for output recording)
 
 @0 = internal constant [5 x i8] c"0_t0\00"
