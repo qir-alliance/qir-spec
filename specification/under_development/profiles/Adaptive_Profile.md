@@ -811,7 +811,7 @@ indicates that these capabilities are not used in the program.
 - A flag with the string identifier `"float_computations"` that contains a
   reference to another metadata node that contains a tuple of string literals
   of the supported/used floating-point precision(s). For example,
-  `!0 = !{i32 5, !"float_computations", !11}` and `!1 = !{!"f32", !"f64"}`.
+  `!0 = !{i32 5, !"float_computations", !1}` and `!1 = !{!"f32", !"f64"}`.
   The precision must be one of the LLVM recognized values (f16, f32, f64, f80,
   or f128), and classical computations on floating point numbers of all listed
   precisions must be supported by the executing backend. An empty value
