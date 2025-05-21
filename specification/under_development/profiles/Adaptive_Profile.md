@@ -519,7 +519,7 @@ attributes #1 = { "irreversible" }
 !8 = !{i32 1, !"multiple_target_branching", i1 false}
 !9 = !{i32 1, !"multiple_return_points", i1 false}
 !10 = !{!"i32", !"i64"}
-!11 = !{!"f32", !"f64"}
+!11 = !{!"float", !"double"}
 ```
 
 The program performs gate teleportation involving mid-circuit measurements and
@@ -698,7 +698,7 @@ additional runtime function must be available:
 
 | Function                            | Signature       | Description     |
 | :---------------------------------- | :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__float_record_output | `void(f64,i8*)` | Records a floating-point value in the generated output. The second parameter defines the string label for the value. Depending on the output schema, the label is included in the output or omitted. |
+| __quantum__rt__float_record_output | `void(double,i8*)` | Records a floating-point value in the generated output. The second parameter defines the string label for the value. Depending on the output schema, the label is included in the output or omitted. |
 
 ### Output Recording
 
@@ -811,9 +811,10 @@ indicates that these capabilities are not used in the program.
 - A flag with the string identifier `"float_computations"` that contains a
   reference to another metadata node that contains a tuple of string literals
   of the supported/used floating-point precision(s). For example,
-  `!0 = !{i32 5, !"float_computations", !1}` and `!1 = !{!"f32", !"f64"}`.
-  The precision must be one of the LLVM recognized values (f16, f32, f64, f80,
-  or f128), and classical computations on floating point numbers of all listed
+  `!0 = !{i32 5, !"float_computations", !1}` and `!1 = !{!"float", !"double"}`.
+  The precision must be one of the LLVM IEEE-754 floating-point types
+  ("half" (16-bit), "float" (32-bit), "double" (64-bit), "fp128" (128-bit)),
+  and classical computations on floating point numbers of all listed
   precisions must be supported by the executing backend. An empty value
   indicates that no floating-point computations are supported/used.
 - A flag named `"ir_functions"` that contains a constant `true` or `false` value
