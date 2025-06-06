@@ -26,7 +26,7 @@ its corresponding output record label.
 Here's an example of the output emitted for a single shot:
 
 ```log
-HEADER\tschema_name\tordered
+HEADER\tschema_name\tlabeled
 HEADER\tschema_version\t1.0
 START
 METADATA\tentry_point
@@ -142,7 +142,7 @@ The output for `3` shots would have the following form (using fabricated
 `METADATA` records):
 
 ```log
-HEADER\tschema_name\tordered
+HEADER\tschema_name\tlabeled
 HEADER\tschema_version\t1.0
 START
 METADATA\tentry_point
@@ -195,7 +195,7 @@ The output for `3` shots would have the following form (using fabricated
 `METADATA` records):
 
 ```log
-HEADER\tschema_name\tordered
+HEADER\tschema_name\tlabeled
 HEADER\tschema_version\t1.0
 START
 METADATA\tentry_point
@@ -255,7 +255,7 @@ The output for `3` shots would have the following form (using fabricated
 `METADATA` records):
 
 ```log
-HEADER\tschema_name\tordered
+HEADER\tschema_name\tlabeled
 HEADER\tschema_version\t1.0
 START
 METADATA\tentry_point
@@ -317,7 +317,7 @@ The output for one shot would have the following form (using fabricated
 `METADATA` records):
 
 ```log
-HEADER\tschema_name\tordered
+HEADER\tschema_name\tlabeled
 HEADER\tschema_version\t1.0
 START
 METADATA\tentry_point
