@@ -1,10 +1,10 @@
 # Callables
 
-We use the term _callable_ to mean a subroutine in the source language.
+We use the term *callable* to mean a subroutine in the source language.
 Different source languages use different names for this concept.
 
-> *Note:* <br/>
-The QIR specification permits the usage of subroutines as first class values,
+> [!NOTE]
+> The QIR specification permits the usage of subroutines as first class values,
 and includes the necessary expressiveness to e.g. provide runtime support for
 functor application. This introduces the need to define a common structure to
 represent callable values and their arguments. If the source language does not
@@ -389,4 +389,4 @@ callable values:
 | __quantum__rt__capture_update_alias_count | `void(%Callable*, i32)`                      | Invokes the function at index 1 in the memory management table of the callable with the capture tuple and the given 32-bit integer. Does nothing if the memory management table pointer or the function pointer at that index is null, or if the given `%Callable*` is a null pointer. |
 
 ---
-_[Back to index](README.md)_
+*[Back to index](README.md)*

@@ -26,7 +26,9 @@ fundamentally consist of unitary transformations of the quantum state as well as
 measurements at the end of the program. More details about each of the bullets
 are outlined below.
 
-**Bullet 1: Quantum transformations** <br/>
+## Mandatory Capabilities
+
+### Bullet 1: Quantum transformations
 
 The set of available instructions that transform the quantum state may vary
 depending on the targeted backend. The profile specification defines how to
@@ -41,7 +43,7 @@ the QIS, recommendations for front- and backend providers, as well as the
 distinction between runtime functions and quantum instructions can be found in
 [this document](../Instruction_Set.md).
 
-**Bullet 2: Measurements** <br/>
+### Bullet 2: Measurements
 
 The second requirement should be taken to mean that a Base Profile compliant
 program does *not* apply instructions to a qubit after it has been measured;
@@ -54,7 +56,7 @@ to measure only a subset of all available qubits at a time.
 - Executing a Base Profile compliant program does not require support for
 applying quantum instructions dependent on measurement outcomes.
 
-**Bullet 3: Program output** <br />
+### Bullet 3: Program output
 
 The QIR specification and its profiles describe a mechanism to accurately
 reflect program intent with regard to program output. The Base Profile
@@ -65,9 +67,9 @@ express this is defined in the section on [output recording](#output-recording).
 While it is sufficient for the QPU to do a final measurement of all qubits in a
 predefined order at the end of the program, only the selected subset will be
 reflected in the produced output schema. A suitable output schema can be
-generated in a post-processing step after the computation on the quantum
-processor itself has completed; customization of the program output hence does
-not require support on the QPU itself.
+generated during execution or in a post-processing step after the computation on
+the quantum processor itself has completed; customization of the program output
+hence does not require support on the QPU itself.
 
 The defined [output schemas](../output_schemas/Schemas.md) provide different options for
 how a backend may express the computed value(s). The exact schema can be freely
@@ -478,10 +480,10 @@ These flags are attached as `llvm.module.flags` metadata to the module. They can
 be queried using the standard LLVM tools and follow the LLVM specification in
 behavior and purpose. Since module flags impact whether different modules can be
 merged and how, additional module flags may be added to the bitcode only if
-their behavior is set to `Warning`, `Append`, `AppendUnique`, or `Max`.
-It is at the discretion of the maintainers for various components in the QIR
-stack to discard module flags that are not explicitly required or listed as
-optional flags in the QIR specification.
+their behavior is set to `Warning`, `Append`, `AppendUnique`, or `Max`. It is at
+the discretion of the maintainers for various components in the QIR stack to
+discard module flags that are not explicitly required or listed as optional
+flags in the QIR specification.
 
 ### Specification Version
 

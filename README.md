@@ -18,8 +18,8 @@ documentation to facilitate working with QIR.
 
 ### Asking and Answering Questions
 
-Have a question? This repository is great places to ask questions about QIR and
-the available tools to work with it. Your question will serve as resource to
+Have a question? This repository is a great place to ask questions about QIR and
+the available tools to work with it. Your question will serve as a resource to
 others searching for help. Please file an issue to ask your question
 [here](https://github.com/qir-alliance/qir-spec/issues/new).
 
@@ -51,7 +51,7 @@ have any questions or would like to revoke your consent, please contact
 [qiralliance@mail.com](mailto:qiralliance@mail.com).
 
 For more information about the development process for specifications under the
-QIR Alliance, please see the the governance policy available
+QIR Alliance, please see the governance policy available
 [here](https://github.com/qir-alliance/.github/blob/main/Governance.md).
 
 ### Contributing an Implementation
@@ -72,4 +72,4 @@ possible. Thank you for taking the time to contribute.
 This project has adopted the community specification [Code of
 Conduct](https://github.com/qir-alliance/.github/blob/main/Code_of_Conduct.md#contributor-covenant-code-of-conduct).
 Please contact [qiralliance@mail.com](mailto:qiralliance@mail.com) for Code of
-Conduct issues or inquires.
+Conduct issues or inquiries.
