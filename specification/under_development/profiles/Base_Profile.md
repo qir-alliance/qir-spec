@@ -71,9 +71,9 @@ generated during execution or in a post-processing step after the computation on
 the quantum processor itself has completed; customization of the program output
 hence does not require support on the QPU itself.
 
-The defined [output schemas](../output_schemas/Schemas.md) provide different options for
-how a backend may express the computed value(s). The exact schema can be freely
-chosen by the backend and is identified by a header record in the produced
+The defined [output schemas](../output_schemas/Schemas.md) provide different
+options for how a backend may express the computed value(s). The exact schema
+can be freely chosen by the backend and is identified by a header record in the produced
 output. Each output schema contains sufficient information to allow quantum
 programming frameworks to generate a user-friendly presentation of the returned
 values in the requested order, such as, e.g., a histogram of all results when
@@ -418,7 +418,7 @@ The following custom attributes must be attached to an entry point function:
   measurement results that need to be stored while executing the entry point
   function.
 - An attribute named `"output_labeling_format"` with an arbitrary string value
-  that identifies the format used by the [compiler 
+  that identifies the format used by the [compiler
   frontend](https://en.wikipedia.org/wiki/Compiler#Front_end) that produced the
   IR to label the recorded output.
 

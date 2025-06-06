@@ -2,17 +2,27 @@
 
 ## Types
 
-The types chosen in the output schemas represent the base data types for expressing computation in the context of quantum processing. The `RESULT` and `BOOL` entries, while they could have been expressed as integers, describe core domain concepts that are unambiguous and clear in their intent.
+The types chosen in the output schemas represent the base data types for
+expressing computation in the context of quantum processing. The `RESULT` and
+`BOOL` entries, while they could have been expressed as integers, describe core
+domain concepts that are unambiguous and clear in their intent.
 
 ## Output Type
 
-The effective ouput type for labeled output formats is determined by the labeling format employed as order is not guaranteed.
+The effective ouput type for labeled output formats is determined by the
+labeling format employed as order is not guaranteed.
 
-For ordered output, the output recording calls define an inferred type based on the order in which the output recording calls are made. If the ouput is defined and held within a container type, `TUPLE` or `ARRAY`, then the shot's output type is that containers type.
+For ordered output, the output recording calls define an inferred type based on
+the order in which the output recording calls are made. If the ouput is defined
+and held within a container type, `TUPLE` or `ARRAY`, then the shot's output
+type is that containers type.
 
-`TUPLE` is a container for values that may or may not have the same type. `ARRAY` is a container whose values are intended to be all of the same type. Having mixed values in an `ARRAY` entry has undefined behavior when being processed.
+`TUPLE` is a container for values that may or may not have the same type.
+`ARRAY` is a container whose values are intended to be all of the same type.
+Having mixed values in an `ARRAY` entry has undefined behavior when being processed.
 
-For output that isn't contained within a container type, the inferred output type is a `TUPLE` whose values are the entries found.
+For output that isn't contained within a container type, the inferred output
+type is a `TUPLE` whose values are the entries found.
 
 ### Output Type Examples using the Ordered Schema
 
@@ -37,7 +47,8 @@ OUTPUT\tRESULT\t0
 END\t0
 ```
 
-The inferred type of the following shot is also `TUPLE(ARRAY[RESULT], ARRAY[RESULT])` as the `ARRAY` entries are wrapped in a container:
+The inferred type of the following shot is also
+`TUPLE(ARRAY[RESULT], ARRAY[RESULT])` as the `ARRAY` entries are wrapped in a container:
 
 ```log
 START
