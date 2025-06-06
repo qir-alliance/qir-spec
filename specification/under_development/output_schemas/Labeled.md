@@ -10,7 +10,7 @@ The labeled output schema for asynchronous output emission is the same as the
 have a fourth element indicating the label of the record.
 
 A grammar that defines the structure and valid values for this format is
-available [here](./Grammars.md#labeled-and-async).
+available [here](./Grammars.md).
 
 Labels are needed for reconstruction of asynchronous output emission and are
 assigned by the front-end QIR generator. Order is not important for the `OUTPUT`
