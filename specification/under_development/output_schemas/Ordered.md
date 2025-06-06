@@ -83,7 +83,7 @@ entry point function. For each one of these attributes, a `METADATA` record must
 be emitted. The
 [base profile required attributes section](../profiles/Base_Profile.md#attributes)
 specifies the minimum set of attributes that will be present. Specific examples
-can be found in the [notes for implementors](./Notes#examples).
+can be found in the [notes for implementors](./Notes.md#output-type-examples-using-the-ordered-schema).
 
 Examples of `METADATA` records:
 
