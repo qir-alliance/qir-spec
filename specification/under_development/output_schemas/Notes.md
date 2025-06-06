@@ -87,7 +87,7 @@ END\t0
 
 The inferred type of the following shot is `ARRAY[ARRAY[RESULT]]`:
 
-```console
+```log
 START
 METADATA\tentry_point
 METADATA\trequired_num_qubits\t5
