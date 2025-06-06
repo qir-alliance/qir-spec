@@ -697,7 +697,7 @@ additional runtime function must be available:
 
 | Function                            | Signature       | Description     |
 | :---------------------------------- | :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__float_record_output | `void(double,i8*)` | Records a floating-point value in the generated output. The second parameter defines the string label for the value. Depending on the output schema, the label is included in the output or omitted. |
+| __quantum__rt__double_record_output | `void(double,i8*)` | Records a floating-point value in the generated output. The second parameter defines the string label for the value. Depending on the output schema, the label is included in the output or omitted. |
 
 ### Output Recording
 
@@ -810,7 +810,7 @@ indicates that these capabilities are not used in the program.
   string value where the string value is a comma-separated list of the
   supported/used floating-point precision(s). For example, `!0 = !{i32 5,
   !"float_computations", !"float,double"}`. The precision must be one of the LLVM
-  recognized values (`half (f16)`, `float (f32)`, `double (f64)`, or `fp128`), and classical computations on
+  recognized values (`half (f16)`, `float (f32)`, and `double (f64)`), and classical computations on
   floating point numbers of all listed precisions must be supported by the
   executing backend. An empty value indicates that no floating-point
   computations are supported/used. 
