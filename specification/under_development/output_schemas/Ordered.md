@@ -212,7 +212,7 @@ Produces output records that are exactly `"OUTPUT\tBOOL\tfalse"` or
 ### Integer
 
 ```llvm
-void @__quantum__rt__integer_record_output(i64, i8*)
+void @__quantum__rt__int_record_output(i64, i8*)
 ```
 
 Produces output records of the format `"OUTPUT\tINT\tn"` where `n` is the string
@@ -256,7 +256,7 @@ function:
 
 ```llvm
 @0 = internal constant [3 x i8] c"0_i\00"
-call void @__quantum__rt__integer_record_output(i64 %5, i8* getelementptr inbounds ([3 x i8], [3 x i8]* @0, i32 0, i32 0))
+call void @__quantum__rt__int_record_output(i64 %5, i8* getelementptr inbounds ([3 x i8], [3 x i8]* @0, i32 0, i32 0))
 ret void
 ```
 
@@ -427,10 +427,10 @@ containing an integer and result uses the following output recording functions:
 @6 = internal constant [8 x i8] c"6_a1t1r\00"
 call void @__quantum__rt__array_record_output(i64 2, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @0, i32 0, i32 0))
 call void @__quantum__rt__tuple_record_output(i64 2, i8* getelementptr inbounds ([6 x i8], [6 x i8]* @1, i32 0, i32 0))
-call void @__quantum__rt__integer_record_output(i64 %3, i8* getelementptr inbounds ([8 x i8], [8 x i8]* @2, i32 0, i32 0))
+call void @__quantum__rt__int_record_output(i64 %3, i8* getelementptr inbounds ([8 x i8], [8 x i8]* @2, i32 0, i32 0))
 call void @__quantum__rt__result_record_output(%Result* null, i8* getelementptr inbounds ([8 x i8], [8 x i8]* @3, i32 0, i32 0))
 call void @__quantum__rt__tuple_record_output(i64 2, i8* getelementptr inbounds ([6 x i8], [6 x i8]* @4, i32 0, i32 0))
-call void @__quantum__rt__integer_record_output(i64 %7, i8* getelementptr inbounds ([8 x i8], [8 x i8]* @5, i32 0, i32 0))
+call void @__quantum__rt__int_record_output(i64 %7, i8* getelementptr inbounds ([8 x i8], [8 x i8]* @5, i32 0, i32 0))
 call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 1 to %Result*), i8* getelementptr inbounds ([8 x i8], [8 x i8]* @6, i32 0, i32 0))
 ret void
 ```
