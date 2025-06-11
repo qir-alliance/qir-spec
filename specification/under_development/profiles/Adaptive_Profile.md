@@ -253,7 +253,8 @@ entry:
   br label %loop_body
 loop_body:                          ; preds = %loop_body, %entry
   %0 = phi i64 [ 1, %entry ], [ %1, %loop_body ]
-  call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* nonnull inttoptr (i64 %0 to %Qubit*))
+  %qptr = inttoptr i64 %0 to %Qubit*
+  call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* nonnull %qptr)
   %1 = add i64 %0, 1
   %2 = icmp sle i64 %1, 4
   br i1 %2, label %loop_body, label %loop_exit
