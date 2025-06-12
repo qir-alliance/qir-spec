@@ -330,7 +330,7 @@ optional capability must be indicated in the form of [module
 flags](#module-flags-metadata) in the program IR.
 
 A return statement is necessarily always the last statement in a block. For each
-block that contains returns a zero exit code in the entry point function, that
+block that returns a zero exit code in the entry point function, that
 same block must also contain the necessary calls to [output recording
 functions](#output-recording) to ensure the correct program output is recorded.
 If the block returns a non-zero exit code, calls to these functions may be
