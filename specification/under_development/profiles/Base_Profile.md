@@ -122,6 +122,7 @@ representation:
 
 @0 = internal constant [3 x i8] c"r1\00"
 @1 = internal constant [3 x i8] c"r2\00"
+@2 = internal constant [3 x i8] c"t0\00"
 
 ; entry point definition
 
@@ -145,7 +146,7 @@ measurements:                             ; preds = %body
 
 output:                                   ; preds = %measurements
   ; calls to record the program output
-  call void @__quantum__rt__tuple_record_output(i64 2, i8* null)
+  call void @__quantum__rt__tuple_record_output(i64 2, i8* getelementptr inbounds ([3 x i8], [3 x i8]* @2, i32 0, i32 0))
   call void @__quantum__rt__result_record_output(%Result* null, i8* getelementptr inbounds ([3 x i8], [3 x i8]* @0, i32 0, i32 0))
   call void @__quantum__rt__result_record_output(%Result* inttoptr (i64 1 to %Result*), i8* getelementptr inbounds ([3 x i8], [3 x i8]* @1, i32 0, i32 0))
 
@@ -303,9 +304,9 @@ program:
 | Function                            | Signature            | Description                                                                                                                                                                                                                                                  |
 | :---------------------------------- | :------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | __quantum__rt__initialize           | `void(i8*)`          | Initializes the execution environment. Sets all qubits to a zero-state if they are not dynamically managed.                                                                                                                                                  |
-| __quantum__rt__tuple_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of a tuple and how many tuple elements it has. The second parameter defines a string label for the tuple. Depending on the output schema, the label is included in the output or omitted.  |
-| __quantum__rt__array_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of an array and how many array elements it has. The second parameter defines a string label for the array. Depending on the output schema, the label is included in the output or omitted. |
-| __quantum__rt__result_record_output | `void(%Result*,i8*)` | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
+| __quantum__rt__tuple_record_output  | `void(i64, i8*)`      | Inserts a marker in the generated output that indicates the start of a tuple and how many tuple elements it has. The second parameter defines a string label for the tuple. Depending on the output schema, the label is included in the output or omitted.  |
+| __quantum__rt__array_record_output  | `void(i64, i8*)`      | Inserts a marker in the generated output that indicates the start of an array and how many array elements it has. The second parameter defines a string label for the array. Depending on the output schema, the label is included in the output or omitted. |
+| __quantum__rt__result_record_output | `void(%Result*, i8*)` | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
 
 ### Initialization
 
