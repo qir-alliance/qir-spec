@@ -328,9 +328,9 @@ METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t2\t0_a
 OUTPUT\tTUPLE\t2\t1_a0t
 OUTPUT\tINT\t42\t2_a0t0i
-OUTPUT\tRESULT\t3_a0t1r
+OUTPUT\tRESULT\t0\t3_a0t1r
 OUTPUT\tTUPLE\t2\t4_a1t
 OUTPUT\tINT\t33\t5_a1t0i
-OUTPUT\tRESULT\t1\6_a1t1r
+OUTPUT\tRESULT\t1\t6_a1t1r
 END\t0
 ```
