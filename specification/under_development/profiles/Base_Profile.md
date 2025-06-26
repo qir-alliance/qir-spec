@@ -19,7 +19,7 @@ a backend needs to support the following:
 1. It can execute a sequence of quantum instructions that transform the quantum
    state.
 2. It supports measuring the state of each qubit at the end of the program.
-3. It produces one of the specified [output schemas](../output_schemas/).
+3. It produces one of the specified [output schemas](../output_schemas/Schemas.md).
 
 These functionalities are necessary and sufficient for computations that
 fundamentally consist of unitary transformations of the quantum state as well as
@@ -86,8 +86,8 @@ contains (at least) the following:
 
 - the definitions of the opaque `Qubit` and `Result` types
 - global constants that store [string labels](#output-recording) needed for
-  certain output schemas that may be ignored if the [output
-  schema](../output_schemas/) does not make use of them
+  certain output schemas that may be ignored if the [output schema](../output_schemas/Schemas.md)
+  does not make use of them
 - the [entry point definition](#entry-point-definition) that contains the
   program logic
 - declarations of the [QIS functions](#quantum-instruction-set) used by the
@@ -301,9 +301,9 @@ The following runtime functions must be supported by all backends, and are the
 only runtime functions that may be used as part of a Base Profile compliant
 program:
 
-| Function                            | Signature            | Description                                                                                                                                                                                                                                                  |
-| :---------------------------------- | :------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__initialize           | `void(i8*)`          | Initializes the execution environment. Sets all qubits to a zero-state if they are not dynamically managed.                                                                                                                                                  |
+| Function                            | Signature             | Description                                                                                                                                                                                                                                                  |
+|:------------------------------------|:----------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| __quantum__rt__initialize           | `void(i8*)`           | Initializes the execution environment. Sets all qubits to a zero-state if they are not dynamically managed.                                                                                                                                                  |
 | __quantum__rt__tuple_record_output  | `void(i64, i8*)`      | Inserts a marker in the generated output that indicates the start of a tuple and how many tuple elements it has. The second parameter defines a string label for the tuple. Depending on the output schema, the label is included in the output or omitted.  |
 | __quantum__rt__array_record_output  | `void(i64, i8*)`      | Inserts a marker in the generated output that indicates the start of an array and how many array elements it has. The second parameter defines a string label for the array. Depending on the output schema, the label is included in the output or omitted. |
 | __quantum__rt__result_record_output | `void(%Result*, i8*)` | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
@@ -336,7 +336,7 @@ frontend, the choice of output schema is up to the backend. A backend may reject
 a program as invalid or fail execution if a label is missing.
 
 Both the output schema and the labeling format are identified by records present
-in the produced output. For more details, please refere to the [output schemas
+in the produced output. For more details, please refer to the [output schemas
 specification](../output_schemas/Schemas.md).
 
 ## Data Types and Values

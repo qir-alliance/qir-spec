@@ -27,7 +27,7 @@ must support the following [mandatory capabilities](#mandatory-capabilities):
    instruction `br` must be supported, along with the necessary runtime function
    to convert a measurement to an `i1` value and the LLVM instructions for
    computations on `i1` values defined in detail below.
-4. It must produce one of the specified [output schemas](../output_schemas/).
+4. It must produce one of the specified [output schemas](../output_schemas/Schemas.md).
 
 This means that at minimum, backends supporting Adaptive Profile programs should
 support mid-circuit measurement, turning measurements into booleans, and
@@ -149,10 +149,10 @@ explicitly expressing which values/measurements are returned by the program and
 in which order. How to express this is defined in the section on [output
 recording](#output-recording).
 
-The defined [output schemas](../output_schemas/) provide different options for
-how a backend may express the computed value(s). The exact schema can be freely
-chosen by the backend and is identified by a string label in the produced
-schema. Each output schema contains sufficient information to allow quantum
+The defined [output schemas](../output_schemas/Schemas.md) provide different
+options for how a backend may express the computed value(s). The exact schema
+can be freely chosen by the backend and is identified by a header record in the
+produced output. Each output schema contains sufficient information to allow quantum
 programming frameworks to generate a user-friendly presentation of the returned
 values in the requested order, such as, e.g., a histogram of all results when
 running the program multiple times.
@@ -363,7 +363,7 @@ bitcode file that contains the following:
 - the definitions of the opaque `Qubit` and `Result` types
 - global constants that store [string labels](#output-recording) needed for
   certain output schemas that may be ignored if the [output
-  schema](../output_schemas/) does not make use of them
+  schema](../output_schemas/Schemas.md) does not make use of them
 - optionally, and only if classical computations (**Bullet 5**) are supported,
   global constants of the supported classical data types
 - the [entry point definition](#entry-point-definition) that contains the
@@ -500,7 +500,7 @@ declare void @__quantum__rt__result_record_output(%Result*, i8*)
 
 ; attributes
 
-attributes #0 = { "entry_point" "qir_profiles"="adaptive_profile" "output_labeling_schema"="schema_id" "required_num_qubits"="6" "required_num_results"="6" }
+attributes #0 = { "entry_point" "qir_profiles"="adaptive_profile" "output_labeling_format"="format_id" "required_num_qubits"="6" "required_num_results"="6" }
 
 attributes #1 = { "irreversible" }
 
@@ -553,7 +553,7 @@ codes within the range `1` to `63` to indicate a failure; exit codes that are
 larger than `63` are reserved for execution failures detected by the executing
 backend. The recorded output always contains the exit code for each shot. If a
 shot fails, no other output values may be recorded. See the [output
-schemas](../output_schemas/) for more detail.
+schemas](../output_schemas/Schemas.md) for more detail.
 
 The Adaptive Profile program makes no restrictions on the structure of [basic
 blocks](https://en.wikipedia.org/wiki/Basic_block) within the entry point
@@ -675,14 +675,14 @@ information about the `switch` instruction.
 
 The following runtime functions must be supported by all backends:
 
-| Function                            | Signature            | Description                                                                                                                                                                                                                                                  |
-| :---------------------------------- | :------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__initialize           | `void(i8*)`          | Initializes the execution environment. Sets all qubits to a zero-state if they are not dynamically managed.                                     |
-| __quantum__rt__read_result | `i1(%Result* readonly)` | Reads the value of the given measurement result and converts it to a boolean value. |
-| __quantum__rt__tuple_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of a tuple and how many tuple elements it has. The second parameter defines a string label for the tuple. Depending on the output schema, the label is included in the output or omitted.  |
-| __quantum__rt__array_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of an array and how many array elements it has. The second parameter defines a string label for the array. Depending on the output schema, the label is included in the output or omitted. |
-| __quantum__rt__result_record_output | `void(%Result*,i8*)` | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
-| __quantum__rt__bool_record_output | `void(i1,i8*)` | Adds a boolean value to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
+| Function                            | Signature               | Description                                                                                                                                                                                                                                                  |
+|:------------------------------------|:------------------------|:-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| __quantum__rt__initialize           | `void(i8*)`             | Initializes the execution environment. Sets all qubits to a zero-state if they are not dynamically managed.                                                                                                                                                  |
+| __quantum__rt__read_result          | `i1(%Result* readonly)` | Reads the value of the given measurement result and converts it to a boolean value.                                                                                                                                                                          |
+| __quantum__rt__tuple_record_output  | `void(i64, i8*)`        | Inserts a marker in the generated output that indicates the start of a tuple and how many tuple elements it has. The second parameter defines a string label for the tuple. Depending on the output schema, the label is included in the output or omitted.  |
+| __quantum__rt__array_record_output  | `void(i64, i8*)`        | Inserts a marker in the generated output that indicates the start of an array and how many array elements it has. The second parameter defines a string label for the array. Depending on the output schema, the label is included in the output or omitted. |
+| __quantum__rt__result_record_output | `void(%Result*, i8*)`   | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
+| __quantum__rt__bool_record_output   | `void(i1, i8*)`         | Adds a boolean value to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                              |
 
 If a backend chooses to support integer computations, then the following
 additional runtime function must be available:
@@ -713,23 +713,16 @@ nodes by the compiler to propagate the data into that block.
 
 For all output recording functions, the `i8*` argument must be a non-null
 pointer to a global constant that contains a null-terminated string. A backend
-may ignore that argument if it guarantees that the order of the recorded output
-matches the order defined by the entry point. Conversely, certain output schemas
-do not require the recorded output to be listed in a particular order. For those
-schemas, the `i8*` argument serves as a label that permits the compiler or tool
-that generated the labels to reconstruct the order intended by the program.
-[Compiler frontends](https://en.wikipedia.org/wiki/Compiler#Front_end) must
-always generate these labels in such a way that the bitcode does not depend on
-the output schema; while choosing how to best label the program output is up to
-the frontend, the choice of output schema, on the other hand, is up to the
-backend. A backend may reject a program as invalid or fail execution if a label
-is missing.
+may ignore that argument depending on the  [output schema](../output_schemas/Schemas.md)
+it chooses to support. [Compiler frontends](https://en.wikipedia.org/wiki/Compiler#Front_end)
+must always generate these labels in such a way that the QIR program does not
+depend on the output schema. While choosing how to best label the program output
+is up to the frontend, the choice of output schema is up to the backend. A
+backend may reject a program as invalid or fail execution if a label is missing.
 
-Both the labeling schema and the output schema are identified by a metadata
-entry in the produced output. For the [output schema](../output_schemas/), that
-identifier matches the one listed in the corresponding specification. The
-identifier for the labeling schema, on the other hand, is defined by the value
-of the `"output_labeling_schema"` attribute attached to the entry point.
+Both the output schema and the labeling format are identified by records present
+in the produced output. For more details, please refer to the [output schemas
+specification](../output_schemas/Schemas.md).
 
 ## Data Types and Values
 

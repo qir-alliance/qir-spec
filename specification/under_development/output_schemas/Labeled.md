@@ -6,8 +6,8 @@ and support strings as arguments to functions.
 The labeled output schema for asynchronous output emission is the same as the
 [ordered schema](./Ordered.md) with the following changes:
 
-- `OUTPUT` records `RESULT`, `BOOL`, `INT`, `DOUBLE`, `TUPLE`, and `ARRAY`,
-have a fourth element indicating the label of the record.
+- In addition to a _data_type_ and a _data_value_, [`OUTPUT` records](./Ordered.md#output-records)
+have an additional element indicating the label of the record.
 
 A grammar that defines the structure and valid values for this format is
 available [here](./Grammars.md).
