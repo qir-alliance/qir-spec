@@ -17,5 +17,5 @@ records and support strings as arguments to functions.
 Grammars that define the structure and valid values for these schemas are
 available [here](./Grammars.md).
 
-Additonal information and examples for implementators can be found
+Additional information and examples for implementers can be found
 [here](./Notes.md).

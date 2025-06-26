@@ -9,11 +9,11 @@ domain concepts that are unambiguous and clear in their intent.
 
 ## Output Type
 
-The effective ouput type for labeled output formats is determined by the
+The effective output type for labeled output formats is determined by the
 labeling format employed as order is not guaranteed.
 
 For ordered output, the output recording calls define an inferred type based on
-the order in which the output recording calls are made. If the ouput is defined
+the order in which the output recording calls are made. If the output is defined
 and held within a container type, `TUPLE` or `ARRAY`, then the shot's output
 type is that containers type.
 
@@ -155,7 +155,7 @@ attributes #1 = { "irreversible" }
 !1 = !{i32 7, !"qir_minor_version", i32 0}
 ```
 
-Ouput for a single shot:
+Output for a single shot:
 
 ```log
 HEADER\tschema_name\tordered

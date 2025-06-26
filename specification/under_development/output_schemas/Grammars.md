@@ -2,7 +2,7 @@
 
 The ABNF grammars for the [Labeled](./Labeled.md) and [Ordered](./Ordered.md)
 define the technical content of the files. The details of the QIR calls and how
-they map to the input is coverred in the associated specifications. Type
+they map to the input is covered in the associated specifications. Type
 consistency cannot be defined for array elements and is a validation concern
 when consuming output.
 
@@ -18,7 +18,7 @@ file = header-schema-name EOL header-schema-version *(EOL header) 1*(EOL shot) [
 
 header-schema-name = HEADER-LIT TAB SCHEMA-NAME-LIT TAB (ORDERED-SCHEMA-LIT / LABELED-SCHEMA-LIT)
 
-header-schema-version = HEADER-LIT TAB SCHEMA-VERSION-LIT TAB field 
+header-schema-version = HEADER-LIT TAB SCHEMA-VERSION-LIT TAB field
 
 header = HEADER-LIT TAB field TAB field
 
