@@ -16,7 +16,7 @@ Labels are needed for reconstruction of asynchronous output emission and are
 assigned by the front-end QIR generator. Order is not important for the `OUTPUT`
 records within a `START`/`END` block. However, the responsibility of
 reconstructing the output based on the defined labeling format belongs to the
-party permforming the output labeling. The usage of `t0_0a` and `t2_2a` (and
+party performing the output labeling. The usage of `t0_0a` and `t2_2a` (and
 other values) are examples of a labeling format, and are only used as an
 example.
 
