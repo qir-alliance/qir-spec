@@ -102,7 +102,7 @@ END\t0
 
 ## QIR to Output Examples
 
-### Multiple Arrays
+### Multiple Arrays using the Labeled Schema
 
 ```llvm
 %Qubit = type opaque
@@ -110,11 +110,11 @@ END\t0
 
 @0 = internal constant [5 x i8] c"0_0a\00"
 @1 = internal constant [7 x i8] c"1_0a0r\00"
-@2 = internal constant [7 x i8] c"1_0a1r\00"
-@3 = internal constant [5 x i8] c"2_1a\00"
-@4 = internal constant [7 x i8] c"3_1a0r\00"
-@5 = internal constant [7 x i8] c"4_1a1r\00"
-@6 = internal constant [7 x i8] c"4_1a1r\00"
+@2 = internal constant [7 x i8] c"2_0a1r\00"
+@3 = internal constant [5 x i8] c"3_1a\00"
+@4 = internal constant [7 x i8] c"4_1a0r\00"
+@5 = internal constant [7 x i8] c"5_1a1r\00"
+@6 = internal constant [7 x i8] c"6_1a2r\00"
 
 define void @main() #0 {
 entry:
@@ -142,7 +142,7 @@ declare void @__quantum__rt__array_record_output(i64, i8*)
 
 declare void @__quantum__rt__result_record_output(%Result*, i8*)
 
-attributes #0 = { "entry_point" "required_num_qubits"="5" "required_num_results"="5" "qir_profiles"="base_profile" "output_labeling_schema"="schema_id" }
+attributes #0 = { "entry_point" "required_num_qubits"="5" "required_num_results"="5" "qir_profiles"="base_profile" "output_labeling_schema"="labeled" }
 attributes #1 = { "irreversible" }
 
 !llvm.module.flags = !{!0, !1, !2, !3}
@@ -154,19 +154,19 @@ attributes #1 = { "irreversible" }
 Output for a single shot:
 
 ```log
-HEADER\tschema_id\tordered
+HEADER\tschema_id\tlabeled
 HEADER\tschema_version\t1.0
 START
 METADATA\tentry_point
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
 METADATA\tqir_profiles\tbase_profile
-OUTPUT\tARRAY\t2
-OUTPUT\tRESULT\t0
-OUTPUT\tRESULT\t0
-OUTPUT\tARRAY\t3
-OUTPUT\tRESULT\t0
-OUTPUT\tRESULT\t0
-OUTPUT\tRESULT\t0
+OUTPUT\tARRAY\t2\t0_0a
+OUTPUT\tRESULT\t0\t1_0a0r
+OUTPUT\tRESULT\t0\t2_0a1r
+OUTPUT\tARRAY\t3\t3_1a
+OUTPUT\tRESULT\t0\t4_1a0r
+OUTPUT\tRESULT\t0\t5_1a1r
+OUTPUT\tRESULT\t0\t6_1a2r
 END\t0
 ```
