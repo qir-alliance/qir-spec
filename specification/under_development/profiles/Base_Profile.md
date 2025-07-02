@@ -171,7 +171,7 @@ declare void @__quantum__rt__result_record_output(%Result*, i8*)
 
 ; attributes
 
-attributes #0 = { "entry_point" "qir_profiles"="base_profile" "output_labeling_format"="format_id" "required_num_qubits"="2" "required_num_results"="2" }
+attributes #0 = { "entry_point" "qir_profiles"="base_profile" "output_labeling_schema"="schema_id" "required_num_qubits"="2" "required_num_results"="2" }
 
 attributes #1 = { "irreversible" }
 
@@ -418,7 +418,7 @@ The following custom attributes must be attached to an entry point function:
 - An attribute named `"required_num_results"` indicating the maximal number of
   measurement results that need to be stored while executing the entry point
   function.
-- An attribute named `"output_labeling_format"` with an arbitrary string value
+- An attribute named `"output_labeling_schema"` with an arbitrary string value
   that identifies the format used by the [compiler
   frontend](https://en.wikipedia.org/wiki/Compiler#Front_end) that produced the
   IR to label the recorded output.
@@ -436,7 +436,7 @@ compliant programs must not rely on a particular numbering, but instead look for
 functions to which an attribute with the name `"entry_point"` is attached to
 determine which function to invoke to execute a quantum program.
 
-Both the `"entry_point"` attribute and the `"output_labeling_format"` attribute
+Both the `"entry_point"` attribute and the `"output_labeling_schema"` attribute
 can only be attached to a function definition; they are invalid on a function
 
 Within the restrictions imposed by the Base Profile, the number of qubits that

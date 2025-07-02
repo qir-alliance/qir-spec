@@ -36,7 +36,6 @@ METADATA\tentry_point
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
 METADATA\tqir_profiles\tbase_profile
-METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t2
 OUTPUT\tRESULT\t0
 OUTPUT\tRESULT\t0
@@ -56,7 +55,6 @@ METADATA\tentry_point
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
 METADATA\tqir_profiles\tbase_profile
-METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tTUPLE\t2
 OUTPUT\tARRAY\t2
 OUTPUT\tRESULT\t0
@@ -76,7 +74,6 @@ METADATA\tentry_point
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
 METADATA\tqir_profiles\tbase_profile
-METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t2
 OUTPUT\tRESULT\t0
 OUTPUT\tRESULT\t0
@@ -93,7 +90,6 @@ METADATA\tentry_point
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
 METADATA\tqir_profiles\tbase_profile
-METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t2
 OUTPUT\tARRAY\t1
 OUTPUT\tRESULT\t0
@@ -146,7 +142,7 @@ declare void @__quantum__rt__array_record_output(i64, i8*)
 
 declare void @__quantum__rt__result_record_output(%Result*, i8*)
 
-attributes #0 = { "entry_point" "required_num_qubits"="5" "required_num_results"="5" "qir_profiles"="base_profile" "output_labeling_format"="format_id" }
+attributes #0 = { "entry_point" "required_num_qubits"="5" "required_num_results"="5" "qir_profiles"="base_profile" "output_labeling_schema"="schema_id" }
 attributes #1 = { "irreversible" }
 
 !llvm.module.flags = !{!0, !1, !2, !3}
@@ -158,14 +154,13 @@ attributes #1 = { "irreversible" }
 Output for a single shot:
 
 ```log
-HEADER\tschema_name\tordered
+HEADER\tschema_id\tordered
 HEADER\tschema_version\t1.0
 START
 METADATA\tentry_point
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
 METADATA\tqir_profiles\tbase_profile
-METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t2
 OUTPUT\tRESULT\t0
 OUTPUT\tRESULT\t0

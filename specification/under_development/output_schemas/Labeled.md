@@ -26,14 +26,13 @@ its corresponding output record label.
 Here's an example of the output emitted for a single shot:
 
 ```log
-HEADER\tschema_name\tlabeled
+HEADER\tschema_id\tlabeled
 HEADER\tschema_version\t1.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tTUPLE\t2\t0_t
 OUTPUT\tARRAY\t4\t1_t0a
 OUTPUT\tRESULT\t0\t2_t0a0r
@@ -142,14 +141,13 @@ The output for `3` shots would have the following form (using fabricated
 `METADATA` records):
 
 ```log
-HEADER\tschema_name\tlabeled
+HEADER\tschema_id\tlabeled
 HEADER\tschema_version\t1.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tINT\t42\t0_i
 END\t0
 START
@@ -157,7 +155,6 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tINT\t41\t0_i
 END\t0
 START
@@ -165,7 +162,6 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tINT\t42\t0_i
 END\t0
 ```
@@ -195,14 +191,13 @@ The output for `3` shots would have the following form (using fabricated
 `METADATA` records):
 
 ```log
-HEADER\tschema_name\tlabeled
+HEADER\tschema_id\tlabeled
 HEADER\tschema_version\t1.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t1\t0_0a
 OUTPUT\tRESULT\t0\t1_0a0r
 OUTPUT\tARRAY\t2\t2_1a
@@ -214,7 +209,6 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t1\t0_0a
 OUTPUT\tRESULT\t1\t1_0a0r
 OUTPUT\tARRAY\t2\t2_1a
@@ -226,7 +220,6 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t1\t0_0a
 OUTPUT\tRESULT\t0\t1_0a0r
 OUTPUT\tARRAY\t2\t2_1a
@@ -255,14 +248,13 @@ The output for `3` shots would have the following form (using fabricated
 `METADATA` records):
 
 ```log
-HEADER\tschema_name\tlabeled
+HEADER\tschema_id\tlabeled
 HEADER\tschema_version\t1.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tTUPLE\t2\t0_t
 OUTPUT\tRESULT\t0\t1_t0r
 OUTPUT\tDOUBLE\t0.42\t2_t1d
@@ -272,7 +264,6 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tTUPLE\t2\t0_t
 OUTPUT\tRESULT\t1\t1_t0r
 OUTPUT\tDOUBLE\t0.42\t2_t1d
@@ -282,7 +273,6 @@ METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tTUPLE\t2\t0_t
 OUTPUT\tRESULT\t0\t1_t0r
 OUTPUT\tDOUBLE\t0.25\t2_t1d
@@ -317,14 +307,13 @@ The output for one shot would have the following form (using fabricated
 `METADATA` records):
 
 ```log
-HEADER\tschema_name\tlabeled
+HEADER\tschema_id\tlabeled
 HEADER\tschema_version\t1.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
-METADATA\toutput_labeling_format\tformat_id
 OUTPUT\tARRAY\t2\t0_a
 OUTPUT\tTUPLE\t2\t1_a0t
 OUTPUT\tINT\t42\t2_a0t0i

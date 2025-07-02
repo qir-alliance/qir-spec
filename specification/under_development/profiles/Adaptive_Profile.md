@@ -500,7 +500,7 @@ declare void @__quantum__rt__result_record_output(%Result*, i8*)
 
 ; attributes
 
-attributes #0 = { "entry_point" "qir_profiles"="adaptive_profile" "output_labeling_format"="format_id" "required_num_qubits"="6" "required_num_results"="6" }
+attributes #0 = { "entry_point" "qir_profiles"="adaptive_profile" "output_labeling_schema"="schema_id" "required_num_qubits"="6" "required_num_results"="6" }
 
 attributes #1 = { "irreversible" }
 
