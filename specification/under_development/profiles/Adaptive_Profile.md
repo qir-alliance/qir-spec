@@ -810,7 +810,7 @@ indicates that these capabilities are not used in the program.
   string value where the string value is a comma-separated list of the
   supported/used floating-point precision(s). For example, `!0 = !{i32 5,
   !"float_computations", !"float,double"}`. The precision must be one of the LLVM
-  recognized values (`half (f16)`, `float (f32)`, and `double (f64)`), and classical computations on
+  recognized values (`half` (16-bit), `float` (32-bit), and `double` (64-bit)), and classical computations on
   floating point numbers of all listed precisions must be supported by the
   executing backend. An empty value indicates that no floating-point
   computations are supported/used. 
