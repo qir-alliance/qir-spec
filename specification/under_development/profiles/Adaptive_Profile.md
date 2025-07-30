@@ -253,7 +253,8 @@ entry:
   br label %loop_body
 loop_body:                          ; preds = %loop_body, %entry
   %0 = phi i64 [ 1, %entry ], [ %1, %loop_body ]
-  call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* nonnull inttoptr (i64 %0 to %Qubit*))
+  %qptr = inttoptr i64 %0 to %Qubit*
+  call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* nonnull %qptr)
   %1 = add i64 %0, 1
   %2 = icmp sle i64 %1, 4
   br i1 %2, label %loop_body, label %loop_exit
@@ -329,7 +330,7 @@ optional capability must be indicated in the form of [module
 flags](#module-flags-metadata) in the program IR.
 
 A return statement is necessarily always the last statement in a block. For each
-block that contains returns a zero exit code in the entry point function, that
+block that returns a zero exit code in the entry point function, that
 same block must also contain the necessary calls to [output recording
 functions](#output-recording) to ensure the correct program output is recorded.
 If the block returns a non-zero exit code, calls to these functions may be
@@ -853,6 +854,8 @@ specified in **Bullet 5** is supported.
 
 ## Examples
 
+### Classical Computations
+
 For example, consider a backend that supports integer computations and provides
 a runtime function for random number generation. Then an Adaptive Profile
 program may contain code like the following to do randomized benchmarking:
@@ -887,6 +890,8 @@ continue:
 ...
 ```
 
+### IR-defined functions and function calls
+
 Consider a backend that supports IR-defined functions and provides a `cnot`
 instruction as part of the QIS, but not `swap`. Defining and calling a `swap`
 function may then greatly reduce code size for a program that involves frequent
@@ -894,14 +899,15 @@ use of swaps between qubits:
 
 ```llvm
 define void @swap(%Qubit* %arg1, %Qubit* %arg2) {
-call void __quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
-call void __quantum__qis__cnot__body(%Qubit* %arg2, %Qubit* %arg1)
-call void __quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
+  call void @__quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
+  call void @__quantum__qis__cnot__body(%Qubit* %arg2, %Qubit* %arg1)
+  call void @__quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
+  ret void
 }
 
 define void @main() {
 ...
-call void @swap(%Qubit* null, %Qubit* nonnull inttoptr (1 to %Qubit*))
+  call void @swap(%Qubit* null, %Qubit* nonnull inttoptr (i64 1 to %Qubit*))
 ...
 }
 ```
@@ -911,13 +917,14 @@ has opted into supporting classical computations:
 
 ```llvm
 define i64 @triple(i64 %0) {
-%1 = mul i64 %0, 3
-ret i64 %1
+body:
+  %1 = mul i64 %0, 3
+  ret i64 %1
 }
 
 define void @main() {
 ...
-%0 = call void @triple(i64 2)
+%0 = call i64 @triple(i64 2)
 ...
 }
 ```
