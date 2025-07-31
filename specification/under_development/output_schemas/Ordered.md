@@ -93,6 +93,11 @@ METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
 ```
 
+`METADATA` records apply to all shots that follow them before the next set of
+`METADATA` records is observed. This allows specifying metadata just once without
+repeating it per shot. `METADATA` records be specified more than once, potentially
+once per shot.
+
 ### `OUTPUT` Records
 
 `OUTPUT` records represent an output value. Records of these type have two
@@ -164,17 +169,9 @@ METADATA\trequired_num_results\t5
 OUTPUT\tRESULT\t0
 END\t0
 START
-METADATA\tentry_point
-METADATA\tqir_profiles\tbase_profile
-METADATA\trequired_num_qubits\t5
-METADATA\trequired_num_results\t5
 OUTPUT\tRESULT\t1
 END\t0
 START
-METADATA\tentry_point
-METADATA\tqir_profiles\tbase_profile
-METADATA\trequired_num_qubits\t5
-METADATA\trequired_num_results\t5
 OUTPUT\tRESULT\t0
 END\t0
 ```
@@ -274,17 +271,9 @@ METADATA\trequired_num_results\t5
 OUTPUT\tINT\t42
 END\t0
 START
-METADATA\tentry_point
-METADATA\tqir_profiles\tbase_profile
-METADATA\trequired_num_qubits\t5
-METADATA\trequired_num_results\t5
 OUTPUT\tINT\t41
 END\t0
 START
-METADATA\tentry_point
-METADATA\tqir_profiles\tbase_profile
-METADATA\trequired_num_qubits\t5
-METADATA\trequired_num_results\t5
 OUTPUT\tINT\t42
 END\t0
 ```
@@ -328,10 +317,6 @@ OUTPUT\tRESULT\t1
 OUTPUT\tRESULT\t1
 END\t0
 START
-METADATA\tentry_point
-METADATA\tqir_profiles\tbase_profile
-METADATA\trequired_num_qubits\t5
-METADATA\trequired_num_results\t5
 OUTPUT\tARRAY\t1
 OUTPUT\tRESULT\t1
 OUTPUT\tARRAY\t2
@@ -339,10 +324,6 @@ OUTPUT\tRESULT\t1
 OUTPUT\tRESULT\t1
 END\t0
 START
-METADATA\tentry_point
-METADATA\tqir_profiles\tbase_profile
-METADATA\trequired_num_qubits\t5
-METADATA\trequired_num_results\t5
 OUTPUT\tARRAY\t1
 OUTPUT\tRESULT\t0
 OUTPUT\tARRAY\t2
@@ -383,19 +364,11 @@ OUTPUT\tRESULT\t0
 OUTPUT\tDOUBLE\t0.42
 END\t0
 START
-METADATA\tentry_point
-METADATA\tqir_profiles\tbase_profile
-METADATA\trequired_num_qubits\t5
-METADATA\trequired_num_results\t5
 OUTPUT\tTUPLE\t2
 OUTPUT\tRESULT\t1
 OUTPUT\tDOUBLE\t0.42
 END\t0
 START
-METADATA\tentry_point
-METADATA\tqir_profiles\tbase_profile
-METADATA\trequired_num_qubits\t5
-METADATA\trequired_num_results\t5
 OUTPUT\tTUPLE\t2
 OUTPUT\tRESULT\t0
 OUTPUT\tDOUBLE\t0.25
