@@ -27,7 +27,7 @@ must support the following [mandatory capabilities](#mandatory-capabilities):
    instruction `br` must be supported, along with the necessary runtime function
    to convert a measurement to an `i1` value and the LLVM instructions for
    computations on `i1` values defined in detail below.
-4. It must produce one of the specified [output schemas](../output_schemas/Schemas.md).
+4. It must produce one of the specified [output schemas](../output_schemas/).
 
 This means that at minimum, backends supporting Adaptive Profile programs should
 support mid-circuit measurement, turning measurements into booleans, and
@@ -149,7 +149,7 @@ explicitly expressing which values/measurements are returned by the program and
 in which order. How to express this is defined in the section on [output
 recording](#output-recording).
 
-The defined [output schemas](../output_schemas/Schemas.md) provide different
+The defined [output schemas](../output_schemas/) provide different
 options for how a backend may express the computed value(s). The exact schema
 can be freely chosen by the backend and is identified by a header record in the
 produced output. Each output schema contains sufficient information to allow quantum
@@ -364,7 +364,7 @@ bitcode file that contains the following:
 - the definitions of the opaque `Qubit` and `Result` types
 - global constants that store [string labels](#output-recording) needed for
   certain output schemas that may be ignored if the [output
-  schema](../output_schemas/Schemas.md) does not make use of them
+  schema](../output_schemas/) does not make use of them
 - optionally, and only if classical computations (**Bullet 5**) are supported,
   global constants of the supported classical data types
 - the [entry point definition](#entry-point-definition) that contains the
@@ -556,7 +556,7 @@ codes within the range `1` to `63` to indicate a failure; exit codes that are
 larger than `63` are reserved for execution failures detected by the executing
 backend. The recorded output always contains the exit code for each shot. If a
 shot fails, no other output values may be recorded. See the [output
-schemas](../output_schemas/Schemas.md) for more detail.
+schemas](../output_schemas/) for more detail.
 
 The Adaptive Profile program makes no restrictions on the structure of [basic
 blocks](https://en.wikipedia.org/wiki/Basic_block) within the entry point
@@ -717,7 +717,7 @@ nodes by the compiler to propagate the data into that block.
 
 For all output recording functions, the `i8*` argument must be a non-null
 pointer to a global constant that contains a null-terminated string. A backend
-may ignore that argument depending on the  [output schema](../output_schemas/Schemas.md)
+may ignore that argument depending on the  [output schema](../output_schemas/)
 it chooses to support. [Compiler frontends](https://en.wikipedia.org/wiki/Compiler#Front_end)
 must always generate these labels in such a way that the QIR program does not
 depend on the output schema. While choosing how to best label the program output
@@ -726,7 +726,7 @@ backend may reject a program as invalid or fail execution if a label is missing.
 
 Both the output schema and the labeling format are identified by records present
 in the produced output. For more details, please refer to the [output schemas
-specification](../output_schemas/Schemas.md).
+specification](../output_schemas/).
 
 ## Data Types and Values
 

@@ -19,7 +19,7 @@ a backend needs to support the following:
 1. It can execute a sequence of quantum instructions that transform the quantum
    state.
 2. It supports measuring the state of each qubit at the end of the program.
-3. It produces one of the specified [output schemas](../output_schemas/Schemas.md).
+3. It produces one of the specified [output schemas](../output_schemas/).
 
 These functionalities are necessary and sufficient for computations that
 fundamentally consist of unitary transformations of the quantum state as well as
@@ -71,7 +71,7 @@ generated during execution or in a post-processing step after the computation on
 the quantum processor itself has completed; customization of the program output
 hence does not require support on the QPU itself.
 
-The defined [output schemas](../output_schemas/Schemas.md) provide different
+The defined [output schemas](../output_schemas/) provide different
 options for how a backend may express the computed value(s). The exact schema
 can be freely chosen by the backend and is identified by a header record in the produced
 output. Each output schema contains sufficient information to allow quantum
@@ -86,7 +86,7 @@ contains (at least) the following:
 
 - the definitions of the opaque `Qubit` and `Result` types
 - global constants that store [string labels](#output-recording) needed for
-  certain output schemas that may be ignored if the [output schema](../output_schemas/Schemas.md)
+  certain output schemas that may be ignored if the [output schema](../output_schemas/)
   does not make use of them
 - the [entry point definition](#entry-point-definition) that contains the
   program logic
@@ -328,7 +328,7 @@ For all output recording functions, the `i8*` argument must be a non-null
 pointer to a global constant that contains a null-terminated string. A unique
 string must be used for each call to an output recording function within the
 same entry point. A backend may ignore that argument depending on the  [output
- schema](../output_schemas/Schemas.md) it chooses to support. [Compiler
+ schema](../output_schemas/) it chooses to support. [Compiler
 frontends](https://en.wikipedia.org/wiki/Compiler#Front_end) must always
 generate these labels in such a way that the QIR program does not depend on the
 output schema. While choosing how to best label the program output is up to the
@@ -337,7 +337,7 @@ a program as invalid or fail execution if a label is missing.
 
 Both the output schema and the labeling format are identified by records present
 in the produced output. For more details, please refer to the [output schemas
-specification](../output_schemas/Schemas.md).
+specification](../output_schemas/).
 
 ## Data Types and Values
 
