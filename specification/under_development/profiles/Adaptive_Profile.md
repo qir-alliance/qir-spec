@@ -253,7 +253,8 @@ entry:
   br label %loop_body
 loop_body:                          ; preds = %loop_body, %entry
   %0 = phi i64 [ 1, %entry ], [ %1, %loop_body ]
-  call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* nonnull inttoptr (i64 %0 to %Qubit*))
+  %qptr = inttoptr i64 %0 to %Qubit*
+  call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* nonnull %qptr)
   %1 = add i64 %0, 1
   %2 = icmp sle i64 %1, 4
   br i1 %2, label %loop_body, label %loop_exit
@@ -329,7 +330,7 @@ optional capability must be indicated in the form of [module
 flags](#module-flags-metadata) in the program IR.
 
 A return statement is necessarily always the last statement in a block. For each
-block that contains returns a zero exit code in the entry point function, that
+block that returns a zero exit code in the entry point function, that
 same block must also contain the necessary calls to [output recording
 functions](#output-recording) to ensure the correct program output is recorded.
 If the block returns a non-zero exit code, calls to these functions may be
@@ -512,12 +513,14 @@ attributes #1 = { "irreversible" }
 !1 = !{i32 7, !"qir_minor_version", i32 0}
 !2 = !{i32 1, !"dynamic_qubit_management", i1 false}
 !3 = !{i32 1, !"dynamic_result_management", i1 false}
-!4 = !{i32 5, !"int_computations", !""}
-!5 = !{i32 5, !"float_computations", !""}
+!4 = !{i32 5, !"int_computations", !10}
+!5 = !{i32 5, !"float_computations", !11}
 !6 = !{i32 1, !"ir_functions", i1 false}
 !7 = !{i32 1, !"backwards_branching", i2 0}
 !8 = !{i32 1, !"multiple_target_branching", i1 false}
 !9 = !{i32 1, !"multiple_return_points", i1 false}
+!10 = !{!"i32", !"i64"}
+!11 = !{!"float", !"double"}
 ```
 
 The program performs gate teleportation involving mid-circuit measurements and
@@ -657,6 +660,7 @@ LLVM instructions must be supported:
 | `fsub`           | Subtracts two floating-point values. |                             |
 | `fmul`           | Multiplies two floating-point values.          |                             |
 | `fdiv`           | Divides two floating-point values. | Division by zero leads to undefined behavior, no support for `NaN`. |
+| `fcmp`           | Compares two floating-point | Comparision options are `olt`, `ole`, `ogt`, `oge`, `oeq`, `one`, `ord`, `ult`, `ule`, `ugt`, `uge`, `ueq`, `une`, `uno`, `false`, `true`. |
 | `fpext .. to`           | Casts a value of floating-point type to a larger floating-point type. | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported. |
 | `fptrunc .. to`  | Casts a value of floating-point type to a smaller floating-point type.         | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported. |
 
@@ -696,7 +700,7 @@ additional runtime function must be available:
 
 | Function                            | Signature       | Description     |
 | :---------------------------------- | :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__float_record_output | `void(f64,i8*)` | Records a floating-point value in the generated output. The second parameter defines the string label for the value. Depending on the output schema, the label is included in the output or omitted. |
+| __quantum__rt__double_record_output | `void(double,i8*)` | Records a floating-point value in the generated output. The second parameter defines the string label for the value. Depending on the output schema, the label is included in the output or omitted. |
 
 ### Output Recording
 
@@ -792,20 +796,22 @@ flags](https://llvm.org/docs/LangRef.html#module-flags-metadata) may be defined
 to indicate the use of optional capabilities. A lack of these module flags
 indicates that these capabilities are not used in the program.
 
-- a flag with the string identifier `"int_computations"` that contains a string
-  value where the string value is a comma-separated list of the supported/used
-  integer precision(s). For example, `!0 = !{i32 5, !"int_computations",
-  !"i32,i64"}`. Classical computations on integers of all listed precisions must
-  be supported by the executing backend. An empty value indicates that no
-  integer computations are supported/used.
-- a flag with the string identifier `"float_computations"` that contains a
-  string value where the string value is a comma-separated list of the
-  supported/used floating-point precision(s). For example, `!0 = !{i32 5,
-  !"float_computations", !"f32,f64"}`. The precision must be one of the LLVM
-  recognized values (f16, f32, f64, f80, or f128), and classical computations on
-  floating point numbers of all listed precisions must be supported by the
-  executing backend. An empty value indicates that no floating-point
+- A flag with the string identifier `"int_computations"` that contains a
+  reference to another metadata node that contains a tuple of string literals
+  of the supported/used integer precision(s). For example,
+  `!0 = !{i32 5, !"int_computations", !1}` and `!1 = !{!"i32", !"i64"}`.
+  Classical computations on integers of all listed precisions must be supported
+  by the executing backend. An empty value indicates that no integer
   computations are supported/used.
+- A flag with the string identifier `"float_computations"` that contains a
+  reference to another metadata node that contains a tuple of string literals
+  of the supported/used floating-point precision(s). For example,
+  `!0 = !{i32 5, !"float_computations", !1}` and `!1 = !{!"float", !"double"}`.
+  The precision must be one of the LLVM IEEE-754 floating-point types up to 64-bits
+  (`half` (16-bit), `float` (32-bit), `double` (64-bit)),
+  and classical computations on floating point numbers of all listed
+  precisions must be supported by the executing backend. An empty value
+  indicates that no floating-point computations are supported/used.
 - A flag named `"ir_functions"` that contains a constant `true` or `false` value
   of type `i1` value indicating if subroutines may be expressed a functions
   which can be called from the entry-point.
@@ -846,6 +852,8 @@ specified in **Bullet 5** is supported.
 
 ## Examples
 
+### Classical Computations
+
 For example, consider a backend that supports integer computations and provides
 a runtime function for random number generation. Then an Adaptive Profile
 program may contain code like the following to do randomized benchmarking:
@@ -880,6 +888,8 @@ continue:
 ...
 ```
 
+### IR-defined functions and function calls
+
 Consider a backend that supports IR-defined functions and provides a `cnot`
 instruction as part of the QIS, but not `swap`. Defining and calling a `swap`
 function may then greatly reduce code size for a program that involves frequent
@@ -887,14 +897,15 @@ use of swaps between qubits:
 
 ```llvm
 define void @swap(%Qubit* %arg1, %Qubit* %arg2) {
-call void __quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
-call void __quantum__qis__cnot__body(%Qubit* %arg2, %Qubit* %arg1)
-call void __quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
+  call void @__quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
+  call void @__quantum__qis__cnot__body(%Qubit* %arg2, %Qubit* %arg1)
+  call void @__quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
+  ret void
 }
 
 define void @main() {
 ...
-call void @swap(%Qubit* null, %Qubit* nonnull inttoptr (1 to %Qubit*))
+  call void @swap(%Qubit* null, %Qubit* nonnull inttoptr (i64 1 to %Qubit*))
 ...
 }
 ```
@@ -904,13 +915,14 @@ has opted into supporting classical computations:
 
 ```llvm
 define i64 @triple(i64 %0) {
-%1 = mul i64 %0, 3
-ret i64 %1
+body:
+  %1 = mul i64 %0, 3
+  ret i64 %1
 }
 
 define void @main() {
 ...
-%0 = call void @triple(i64 2)
+%0 = call i64 @triple(i64 2)
 ...
 }
 ```
