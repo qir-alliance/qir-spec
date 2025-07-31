@@ -123,9 +123,9 @@ start = START-LIT
 
 end = END-LIT TAB "0"
 
-TRUE-LIT = "T" "R" "U" "E"
+TRUE-LIT = "t" "r" "u" "e"
 
-FALSE-LIT = "F" "A" "L" "S" "E"
+FALSE-LIT = "f" "a" "l" "s" "e"
 
 INF-LIT = "I" "N" "F"
 
