@@ -1,8 +1,9 @@
 # Output Schemas
 
 Output schemas specify how backends generate the output of a QIR program based
-on calls to
-[output recording functions](../profiles/Base_Profile.md#output-recording).
+on calls to output recording functions in the
+[Base](../profiles/Base_Profile.md#output-recording) and
+[Adaptive](../profiles/Adaptive_Profile.md#output-recording) Profiles.
 
 Each backend can decide which output schema to use depending on the
 characteristics of their system.
