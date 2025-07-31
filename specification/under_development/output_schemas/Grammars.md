@@ -14,9 +14,9 @@ The grammars share a basic structure and only vary in their definition of
 values, tuples, and arrays. The top level definitions are the same:
 
 ```abnf
-file = header-schema-name EOL header-schema-version *(EOL header) 1*(EOL shot) [EOL]
+file = header-schema-id EOL header-schema-version *(EOL header) 1*(EOL shot) [EOL]
 
-header-schema-name = HEADER-LIT TAB SCHEMA-NAME-LIT TAB (ORDERED-SCHEMA-LIT / LABELED-SCHEMA-LIT)
+header-schema-id = HEADER-LIT TAB SCHEMA-ID-LIT TAB (ORDERED-SCHEMA-LIT / LABELED-SCHEMA-LIT)
 
 header-schema-version = HEADER-LIT TAB SCHEMA-VERSION-LIT TAB field
 
@@ -135,7 +135,7 @@ NAN-LIT = "N" "A" "N"
 
 HEADER-LIT = "H" "E" "A" "D" "E" "R"
 
-SCHEMA-NAME-LIT = "s" "c" "h" "e" "m" "a" "_" "n" "a" "m" "e"
+SCHEMA-ID-LIT = "s" "c" "h" "e" "m" "a" "_" "i" "d"
 
 SCHEMA-VERSION-LIT = "s" "c" "h" "e" "m" "a" "_" "v" "e" "r" "s" "i" "o" "n"
 
