@@ -660,7 +660,7 @@ LLVM instructions must be supported:
 | `fsub`           | Subtracts two floating-point values. |                             |
 | `fmul`           | Multiplies two floating-point values.          |                             |
 | `fdiv`           | Divides two floating-point values. | Division by zero leads to undefined behavior, no support for `NaN`. |
-| `fcmp`           | Compares two floating-point | Comparision options are `olt`, `ole`, `ogt`, `oge`, `oeq`, `one`, `ord`, `ult`, `ule`, `ugt`, `uge`, `ueq`, `une`, `uno`, `false`, `true`. |
+| `fcmp`           | Compares two floating-point | Comparison options are `olt`, `ole`, `ogt`, `oge`, `oeq`, `one`, `ord`, `ult`, `ule`, `ugt`, `uge`, `ueq`, `une`, `uno`, `false`, `true`. |
 | `fpext .. to`           | Casts a value of floating-point type to a larger floating-point type. | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported. |
 | `fptrunc .. to`  | Casts a value of floating-point type to a smaller floating-point type.         | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported. |
 

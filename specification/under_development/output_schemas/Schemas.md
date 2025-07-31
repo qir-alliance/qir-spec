@@ -15,7 +15,7 @@ records and do not support strings as arguments to functions.
 records and support strings as arguments to functions.
 
 Grammars that define the structure and valid values for these schemas are
-available [here](./Grammars.md).
+available in [Grammars.md](./Grammars.md).
 
-Additional information and examples for implementers can be found
-[here](./Notes.md).
+Additional information and examples for implementers can be found in
+[Notes.md](./Notes.md).
