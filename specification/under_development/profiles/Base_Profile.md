@@ -438,6 +438,7 @@ determine which function to invoke to execute a quantum program.
 
 Both the `"entry_point"` attribute and the `"output_labeling_schema"` attribute
 can only be attached to a function definition; they are invalid on a function
+that is declared but not defined.
 
 Within the restrictions imposed by the Base Profile, the number of qubits that
 are needed to execute a quantum program must be known at compile time. This
