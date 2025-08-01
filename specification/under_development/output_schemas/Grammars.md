@@ -6,6 +6,9 @@ they map to the input is covered in the associated specifications. Type
 consistency cannot be defined for array elements and is a validation concern
 when consuming output.
 
+A _prototype_ parser for this grammar that can validate examples in this specification
+is included in the form of [a Python script](./qir-output.py).
+
 ## Grammars
 
 ### Shared Top Level
