@@ -94,9 +94,9 @@ METADATA\trequired_num_results\t5
 ```
 
 `METADATA` records apply to all shots that follow them before the next set of
-`METADATA` records is observed. This allows specifying metadata just once without
-repeating it per shot. `METADATA` records be specified more than once, potentially
-once per shot.
+`METADATA` records is observed. This allows specifying metadata just once
+without repeating it per shot. `METADATA` records can be specified more than
+once, potentially once per shot.
 
 ### `OUTPUT` Records
 
