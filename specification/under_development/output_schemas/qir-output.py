@@ -76,8 +76,8 @@ def main():
         FLOAT: DIGITS ("." DIGITS)? EXPONENT?
         EXPONENT: "e" SIGN? DIGITS
 
-        %import common.WS
-        %ignore WS
+        # Ignore all whitespace except TAB characters
+        %ignore /[ \r\n\f]+/
     """
 
     parser = Lark(grammar, start="file", parser="lalr")
