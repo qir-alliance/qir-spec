@@ -36,6 +36,7 @@ METADATA\tentry_point
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
 METADATA\tqir_profiles\tbase_profile
+METADATA\toutput_labeling_schema\tordered
 OUTPUT\tARRAY\t2
 OUTPUT\tRESULT\t0
 OUTPUT\tRESULT\t0
@@ -55,6 +56,7 @@ METADATA\tentry_point
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
 METADATA\tqir_profiles\tbase_profile
+METADATA\toutput_labeling_schema\tordered
 OUTPUT\tTUPLE\t2
 OUTPUT\tARRAY\t2
 OUTPUT\tRESULT\t0
@@ -74,6 +76,7 @@ METADATA\tentry_point
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
 METADATA\tqir_profiles\tbase_profile
+METADATA\toutput_labeling_schema\tordered
 OUTPUT\tARRAY\t2
 OUTPUT\tRESULT\t0
 OUTPUT\tRESULT\t0
@@ -90,6 +93,7 @@ METADATA\tentry_point
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
 METADATA\tqir_profiles\tbase_profile
+METADATA\toutput_labeling_schema\tordered
 OUTPUT\tARRAY\t2
 OUTPUT\tARRAY\t1
 OUTPUT\tRESULT\t0
@@ -161,6 +165,7 @@ METADATA\tentry_point
 METADATA\trequired_num_qubits\t5
 METADATA\trequired_num_results\t5
 METADATA\tqir_profiles\tbase_profile
+METADATA\toutput_labeling_schema\tlabeled
 OUTPUT\tARRAY\t2\t0_0a
 OUTPUT\tRESULT\t0\t1_0a0r
 OUTPUT\tRESULT\t0\t2_0a1r
