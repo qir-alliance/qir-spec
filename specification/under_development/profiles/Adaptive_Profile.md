@@ -149,10 +149,10 @@ explicitly expressing which values/measurements are returned by the program and
 in which order. How to express this is defined in the section on [output
 recording](#output-recording).
 
-The defined [output schemas](../output_schemas/) provide different options for
-how a backend may express the computed value(s). The exact schema can be freely
-chosen by the backend and is identified by a string label in the produced
-schema. Each output schema contains sufficient information to allow quantum
+The defined [output schemas](../output_schemas/) provide different
+options for how a backend may express the computed value(s). The exact schema
+can be freely chosen by the backend and is identified by a header record in the
+produced output. Each output schema contains sufficient information to allow quantum
 programming frameworks to generate a user-friendly presentation of the returned
 values in the requested order, such as, e.g., a histogram of all results when
 running the program multiple times.
@@ -660,7 +660,7 @@ LLVM instructions must be supported:
 | `fsub`           | Subtracts two floating-point values. |                             |
 | `fmul`           | Multiplies two floating-point values.          |                             |
 | `fdiv`           | Divides two floating-point values. | Division by zero leads to undefined behavior, no support for `NaN`. |
-| `fcmp`           | Compares two floating-point | Comparision options are `olt`, `ole`, `ogt`, `oge`, `oeq`, `one`, `ord`, `ult`, `ule`, `ugt`, `uge`, `ueq`, `une`, `uno`, `false`, `true`. |
+| `fcmp`           | Compares two floating-point | Comparison options are `olt`, `ole`, `ogt`, `oge`, `oeq`, `one`, `ord`, `ult`, `ule`, `ugt`, `uge`, `ueq`, `une`, `uno`, `false`, `true`. |
 | `fpext .. to`           | Casts a value of floating-point type to a larger floating-point type. | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported. |
 | `fptrunc .. to`  | Casts a value of floating-point type to a smaller floating-point type.         | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported. |
 
@@ -717,23 +717,16 @@ nodes by the compiler to propagate the data into that block.
 
 For all output recording functions, the `i8*` argument must be a non-null
 pointer to a global constant that contains a null-terminated string. A backend
-may ignore that argument if it guarantees that the order of the recorded output
-matches the order defined by the entry point. Conversely, certain output schemas
-do not require the recorded output to be listed in a particular order. For those
-schemas, the `i8*` argument serves as a label that permits the compiler or tool
-that generated the labels to reconstruct the order intended by the program.
-[Compiler frontends](https://en.wikipedia.org/wiki/Compiler#Front_end) must
-always generate these labels in such a way that the bitcode does not depend on
-the output schema; while choosing how to best label the program output is up to
-the frontend, the choice of output schema, on the other hand, is up to the
-backend. A backend may reject a program as invalid or fail execution if a label
-is missing.
+may ignore that argument depending on the  [output schema](../output_schemas/)
+it chooses to support. [Compiler frontends](https://en.wikipedia.org/wiki/Compiler#Front_end)
+must always generate these labels in such a way that the QIR program does not
+depend on the output schema. While choosing how to best label the program output
+is up to the frontend, the choice of output schema is up to the backend. A
+backend may reject a program as invalid or fail execution if a label is missing.
 
-Both the labeling schema and the output schema are identified by a metadata
-entry in the produced output. For the [output schema](../output_schemas/), that
-identifier matches the one listed in the corresponding specification. The
-identifier for the labeling schema, on the other hand, is defined by the value
-of the `"output_labeling_schema"` attribute attached to the entry point.
+Both the output schema and the labeling format are identified by records present
+in the produced output. For more details, please refer to the [output schemas
+specification](../output_schemas/).
 
 ## Data Types and Values
 
