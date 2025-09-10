@@ -1,11 +1,11 @@
 # Legacy
 
 This section contains the older QIR specification that defines a full set of potential
-runtime support (often refferred to as the old "full" QIR spec). Concepts from this
-runtime are used in some front-end and simulation environments, but are not broadly
-supported or included as part of the agreed upon QIR Profiles. This spec is preserved
-here for reference and posterity in git. The folder may be removed in subsequent
-updates to the specification.
+runtime support (often referred to as the old "full" QIR spec or QIR v0.1). Concepts
+from this runtime are used in some front-end and simulation environments, but are
+not broadly supported or included as part of the agreed upon QIR Profiles. This
+spec is preserved here for reference and posterity in git. The folder may be
+removed in subsequent updates to the specification.
 
 ## Index
 
