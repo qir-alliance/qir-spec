@@ -4,8 +4,7 @@ This profile defines a subset of the QIR specification to support a coherent set
 of functionalities and capabilities that might be offered by a quantum backend.
 Like all profile specifications, this document is primarily intended for
 [compiler backend](https://en.wikipedia.org/wiki/Compiler#Back_end) authors as
-well as contributors to the [targeting
-stage](../Compilation_And_Targeting.md#targeting) of the QIR compiler. For the
+well as contributors to the targeting stage of the QIR compiler. For the
 sake of comprehensiveness, it is written to be largely self-contained. While the
 profile-specific restrictions defined in this document limit precisely what can
 be used as part of an [entry point function](#entry-point-definition), they do
@@ -51,7 +50,7 @@ instructions that result in a unitary transformation of the quantum state must
 be applied before performing any irreversible actions such as measurements. It
 specifically also implies the following:
 
-- There is no need for the quantum processor ([QPU](../Execution.md)) to be able
+- There is no need for the quantum processor QPU to be able
 to measure only a subset of all available qubits at a time.
 - Executing a Base Profile compliant program does not require support for
 applying quantum instructions dependent on measurement outcomes.
@@ -274,10 +273,7 @@ must satisfy the following three requirements:
 
 For more information about the relation between a profile specification and the
 quantum instruction set we refer to the paragraph on [Bullet 1](#base-profile)
-in the introduction of this document. For more information about how and when
-the QIS is resolved, as well as recommendations for front- and backend
-developers, we refer to the document on [compilation stages and
-targeting](../Compilation_And_Targeting.md).
+in the introduction of this document.
 
 ## Classical Instructions
 
@@ -377,9 +373,9 @@ consecutively so that there are no unused values within these ranges.
 Qubits and result values are represented as opaque pointers in the bitcode,
 which may only ever be dereferenced as part a runtime function implementation.
 In general, the QIR specification distinguishes between two kinds of pointers
-for representing a qubit or result value, as explained in more detail
-[here](../Execution.md), and either one, though not both, may be used throughout
-a bitcode file. A [module flag](#module-flags-metadata) in the bitcode indicates
+for representing a qubit or result value, and either one,
+though not both, may be used throughout a bitcode file. A
+[module flag](#module-flags-metadata) in the bitcode indicates
 which kinds of pointers are used to represent qubits and result values.
 
 The first kind of pointer points to a valid memory location that is managed

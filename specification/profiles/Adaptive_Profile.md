@@ -4,8 +4,7 @@ This profile defines a subset of the QIR specification to support a coherent set
 of functionalities and capabilities that might be offered by a quantum backend.
 Like all profile specifications, this document is primarily intended for
 [compiler backend](https://en.wikipedia.org/wiki/Compiler#Back_end) authors as
-well as contributors to the [targeting
-stage](../Compilation_And_Targeting.md#targeting) of the QIR compiler.
+well as contributors to the targeting stage of the QIR compiler.
 
 The Adaptive Profile specifies supersets of the [Base
 Profile](./Base_Profile.md) that enable control flow based on mid-circuit
@@ -596,10 +595,7 @@ it must satisfy the following three requirements:
 
 For more information about the relationship between a profile specification and
 the quantum instruction set, we refer to the paragraph on [Bullet
-1](#adaptive-profile) in the introduction of this document. For more information
-about how and when the QIS is resolved, as well as recommendations for front-
-and backend developers, we refer to the document on [compilation stages and
-targeting](../Compilation_And_Targeting.md).
+1](#adaptive-profile) in the introduction of this document.
 
 ## Classical Instructions
 
