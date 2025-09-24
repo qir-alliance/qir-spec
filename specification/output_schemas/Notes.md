@@ -159,7 +159,7 @@ Output for a single shot:
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t1.0
+HEADER\tschema_version\t2.0
 START
 METADATA\tentry_point
 METADATA\trequired_num_qubits\t5

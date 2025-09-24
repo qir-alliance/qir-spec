@@ -31,7 +31,7 @@ Examples of `HEADER` records:
 
 ```log
 HEADER\tschema_id\tordered
-HEADER\tschema_version\t1.0
+HEADER\tschema_version\t2.0
 ```
 
 ### `START` Records
@@ -144,7 +144,7 @@ The output must start with two `HEADER` records that contain the name and
 version of the output schema used:
 
 - `HEADER\tschema_id\tordered`
-- `HEADER\tschema_version\t1.0`
+- `HEADER\tschema_version\t2.0`
 
 Additional `HEADER` records that provide more general information about the
 output are optional.
@@ -161,7 +161,7 @@ Example of the output emitted for three shots:
 
 ```log
 HEADER\tschema_id\tordered
-HEADER\tschema_version\t1.0
+HEADER\tschema_version\t2.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -264,7 +264,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tordered
-HEADER\tschema_version\t1.0
+HEADER\tschema_version\t2.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -307,7 +307,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tordered
-HEADER\tschema_version\t1.0
+HEADER\tschema_version\t2.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -357,7 +357,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tordered
-HEADER\tschema_version\t1.0
+HEADER\tschema_version\t2.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -409,7 +409,7 @@ The output for one shot would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tordered
-HEADER\tschema_version\t1.0
+HEADER\tschema_version\t2.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile

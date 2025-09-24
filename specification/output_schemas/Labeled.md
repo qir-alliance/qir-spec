@@ -27,7 +27,7 @@ Here's an example of the output emitted for a single shot:
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t1.0
+HEADER\tschema_version\t2.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -143,7 +143,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t1.0
+HEADER\tschema_version\t2.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -186,7 +186,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t1.0
+HEADER\tschema_version\t2.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -236,7 +236,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t1.0
+HEADER\tschema_version\t2.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -288,7 +288,7 @@ The output for one shot would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t1.0
+HEADER\tschema_version\t2.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
