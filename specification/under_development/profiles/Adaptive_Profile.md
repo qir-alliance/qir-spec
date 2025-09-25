@@ -52,15 +52,6 @@ support more advanced adaptive computations:
 9. Multiple return points.
 <!-- markdownlint-enable MD029 -->
 
-<!-- Original version:
-7. Backwards branching to express control flow loops. Non-terminating loops
-   ("while"-loops) are not permitted within the Adaptive Profile, regardless of
-   the support for this optional feature. It is specifically not permitted to
-   have a loop that terminates only based on a measurement outcome.
-   Correspondingly, permitting for backward branching mostly makes sense when
-   the backend also supports computations on at least one classical data type.
--->
-
 The use of these optional features is represented as a [module
 flag](#module-flags-metadata) in the program IR. Any backend that supports
 capabilities 1-4, and as many of capabilities 5-9 as it desires, is considered
@@ -73,7 +64,7 @@ capabilities are outlined in the following sections.
 
 ## Mandatory Capabilities
 
-**Bullet 1: Quantum transformations** <br/>
+### Bullet 1: Quantum transformations
 
 The set of available instructions that transform the quantum state may vary
 depending on the targeted backend. The profile specification defines how to
@@ -88,7 +79,7 @@ role of the QIS, recommendations for front- and backend providers, as well as
 the distinction between runtime functions and quantum instructions, can be found
 in this [document](../Instruction_Set.md).
 
-**Bullet 2: Measurements** <br/>
+### Bullet 2: Measurements
 
 As for the Base Profile, a measurement function is a QIS function marked with an
 [`irreversible` attribute](./Base_Profile.md#quantum-instruction-set) that
@@ -105,7 +96,7 @@ supported QIS, without impacting the state of the non-measured qubits.
 Furthermore, it must be possible to use the measured qubit(s) afterwards and
 apply additional quantum instructions to the same qubit(s).
 
-**Bullet 3: Forward Branching** <br/>
+### Bullet 3: Forward Branching
 
 Additionally, the Adaptive Profile requires that it must be possible to take
 action based on a measurement result. Specifically, it must be possible to
@@ -150,7 +141,7 @@ conditionally perform quantum instructions depending on measurement outcomes,
 for example when performing real-time error-correction as part of a quantum
 programs.
 
-**Bullet 4: Program output** <br/>
+### Bullet 4: Program output
 
 The specifications of QIR and all its profiles need to accurately reflect the
 program intent. This includes being able to define and customize the program
@@ -159,10 +150,10 @@ explicitly expressing which values/measurements are returned by the program and
 in which order. How to express this is defined in the section on [output
 recording](#output-recording).
 
-The defined [output schemas](../output_schemas/) provide different options for
-how a backend may express the computed value(s). The exact schema can be freely
-chosen by the backend and is identified by a string label in the produced
-schema. Each output schema contains sufficient information to allow quantum
+The defined [output schemas](../output_schemas/) provide different
+options for how a backend may express the computed value(s). The exact schema
+can be freely chosen by the backend and is identified by a header record in the
+produced output. Each output schema contains sufficient information to allow quantum
 programming frameworks to generate a user-friendly presentation of the returned
 values in the requested order, such as, e.g., a histogram of all results when
 running the program multiple times.
@@ -263,7 +254,8 @@ entry:
   br label %loop_body
 loop_body:                          ; preds = %loop_body, %entry
   %0 = phi i64 [ 1, %entry ], [ %1, %loop_body ]
-  call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* nonnull inttoptr (i64 %0 to %Qubit*))
+  %qptr = inttoptr i64 %0 to %Qubit*
+  call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* nonnull %qptr)
   %1 = add i64 %0, 1
   %2 = icmp sle i64 %1, 4
   br i1 %2, label %loop_body, label %loop_exit
@@ -329,8 +321,6 @@ constant. We refer to the [LLVM language
 reference](https://llvm.org/docs/LangRef.html#switch-instruction) for more
 information about the switch instruction.
 
-<!--FIXME: check that the entry point section allows for entry point arguments - global constants as the alternative? -->
-
 ### Bullet 9: Multiple Return Points
 
 A backend my choose to support multiple return points in an entry point
@@ -341,7 +331,7 @@ optional capability must be indicated in the form of [module
 flags](#module-flags-metadata) in the program IR.
 
 A return statement is necessarily always the last statement in a block. For each
-block that contains returns a zero exit code in the entry point function, that
+block that returns a zero exit code in the entry point function, that
 same block must also contain the necessary calls to [output recording
 functions](#output-recording) to ensure the correct program output is recorded.
 If the block returns a non-zero exit code, calls to these functions may be
@@ -524,12 +514,14 @@ attributes #1 = { "irreversible" }
 !1 = !{i32 7, !"qir_minor_version", i32 0}
 !2 = !{i32 1, !"dynamic_qubit_management", i1 false}
 !3 = !{i32 1, !"dynamic_result_management", i1 false}
-!4 = !{i32 5, !"int_computations", !""}
-!5 = !{i32 5, !"float_computations", !""}
+!4 = !{i32 5, !"int_computations", !10}
+!5 = !{i32 5, !"float_computations", !11}
 !6 = !{i32 1, !"ir_functions", i1 false}
 !7 = !{i32 1, !"backwards_branching", i2 0}
 !8 = !{i32 1, !"multiple_target_branching", i1 false}
 !9 = !{i32 1, !"multiple_return_points", i1 false}
+!10 = !{!"i32", !"i64"}
+!11 = !{!"float", !"double"}
 ```
 
 The program performs gate teleportation involving mid-circuit measurements and
@@ -678,6 +670,7 @@ LLVM instructions must be supported:
 | `fsub`           | Subtracts two floating-point values. |                             |
 | `fmul`           | Multiplies two floating-point values.          |                             |
 | `fdiv`           | Divides two floating-point values. | Division by zero leads to undefined behavior, no support for `NaN`. |
+| `fcmp`           | Compares two floating-point | Comparison options are `olt`, `ole`, `ogt`, `oge`, `oeq`, `one`, `ord`, `ult`, `ule`, `ugt`, `uge`, `ueq`, `une`, `uno`, `false`, `true`. |
 | `fpext .. to`           | Casts a value of floating-point type to a larger floating-point type. | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported. |
 | `fptrunc .. to`  | Casts a value of floating-point type to a smaller floating-point type.         | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported. |
 
@@ -717,7 +710,7 @@ additional runtime function must be available:
 
 | Function                            | Signature       | Description     |
 | :---------------------------------- | :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__float_record_output | `void(f64,i8*)` | Records a floating-point value in the generated output. The second parameter defines the string label for the value. Depending on the output schema, the label is included in the output or omitted. |
+| __quantum__rt__double_record_output | `void(double,i8*)` | Records a floating-point value in the generated output. The second parameter defines the string label for the value. Depending on the output schema, the label is included in the output or omitted. |
 
 ### Output Recording
 
@@ -735,23 +728,16 @@ is contained within a single function.
 
 For all output recording functions, the `i8*` argument must be a non-null
 pointer to a global constant that contains a null-terminated string. A backend
-may ignore that argument if it guarantees that the order of the recorded output
-matches the order defined by the entry point. Conversely, certain output schemas
-do not require the recorded output to be listed in a particular order. For those
-schemas, the `i8*` argument serves as a label that permits the compiler or tool
-that generated the labels to reconstruct the order intended by the program.
-[Compiler frontends](https://en.wikipedia.org/wiki/Compiler#Front_end) must
-always generate these labels in such a way that the bitcode does not depend on
-the output schema; while choosing how to best label the program output is up to
-the frontend, the choice of output schema, on the other hand, is up to the
-backend. A backend may reject a program as invalid or fail execution if a label
-is missing.
+may ignore that argument depending on the  [output schema](../output_schemas/)
+it chooses to support. [Compiler frontends](https://en.wikipedia.org/wiki/Compiler#Front_end)
+must always generate these labels in such a way that the QIR program does not
+depend on the output schema. While choosing how to best label the program output
+is up to the frontend, the choice of output schema is up to the backend. A
+backend may reject a program as invalid or fail execution if a label is missing.
 
-Both the labeling schema and the output schema are identified by a metadata
-entry in the produced output. For the [output schema](../output_schemas/), that
-identifier matches the one listed in the corresponding specification. The
-identifier for the labeling schema, on the other hand, is defined by the value
-of the `"output_labeling_schema"` attribute attached to the entry point.
+Both the output schema and the labeling format are identified by records present
+in the produced output. For more details, please refer to the [output schemas
+specification](../output_schemas/).
 
 ## Data Types and Values
 
@@ -790,19 +776,6 @@ identified by an integer value that is bitcast to a pointer to match the
 expected type. How such an integer value is interpreted and specifically how it
 relates to hardware resources is ultimately up to the executing backend.
 
-<!--From prior version metadata:
-For non-constant integer and floating-point values the assumption is that while
-a `%Result*` may point to a valid memory location in RAM or some other memory
-pool, by default, instructions performed on virtual registers with these data
-types correspond to these values being stored in integer or floating registers
-when an instruction is executed. Before a virtual register is used in an
-instruction, there is no assumption that the value in the virtual register
-always corresponds to a physical register. For example, when considering
-register coloring, the virtual register, `%0`, in the QIR program may refer to a
-value stored in RAM for most of its lifetime before being loaded into a register
-when an instruction operates on `%0`.
--->
-
 The integer value that is cast must be either a constant, or a phi node of
 integer type if [iterations](#bullet-7-backwards-branching) are used/supported.
 If the cast value is a phi node, it must not directly or indirectly depend on
@@ -834,20 +807,22 @@ flags](https://llvm.org/docs/LangRef.html#module-flags-metadata) may be defined
 to indicate the use of optional capabilities. A lack of these module flags
 indicates that these capabilities are not used in the program.
 
-- a flag with the string identifier `"int_computations"` that contains a string
-  value where the string value is a comma-separated list of the supported/used
-  integer precision(s). For example, `!0 = !{i32 5, !"int_computations",
-  !"i32,i64"}`. Classical computations on integers of all listed precisions must
-  be supported by the executing backend. An empty value indicates that no
-  integer computations are supported/used.
-- a flag with the string identifier `"float_computations"` that contains a
-  string value where the string value is a comma-separated list of the
-  supported/used floating-point precision(s). For example, `!0 = !{i32 5,
-  !"float_computations", !"f32,f64"}`. The precision must be one of the LLVM
-  recognized values (f16, f32, f64, f80, or f128), and classical computations on
-  floating point numbers of all listed precisions must be supported by the
-  executing backend. An empty value indicates that no floating-point
+- A flag with the string identifier `"int_computations"` that contains a
+  reference to another metadata node that contains a tuple of string literals
+  of the supported/used integer precision(s). For example,
+  `!0 = !{i32 5, !"int_computations", !1}` and `!1 = !{!"i32", !"i64"}`.
+  Classical computations on integers of all listed precisions must be supported
+  by the executing backend. An empty value indicates that no integer
   computations are supported/used.
+- A flag with the string identifier `"float_computations"` that contains a
+  reference to another metadata node that contains a tuple of string literals
+  of the supported/used floating-point precision(s). For example,
+  `!0 = !{i32 5, !"float_computations", !1}` and `!1 = !{!"float", !"double"}`.
+  The precision must be one of the LLVM IEEE-754 floating-point types up to 64-bits
+  (`half` (16-bit), `float` (32-bit), `double` (64-bit)),
+  and classical computations on floating point numbers of all listed
+  precisions must be supported by the executing backend. An empty value
+  indicates that no floating-point computations are supported/used.
 - A flag named `"ir_functions"` that contains a constant `true` or `false` value
   of type `i1` value indicating if subroutines may be expressed a functions
   which can be called from the entry-point.
@@ -888,6 +863,8 @@ specified in **Bullet 5** is supported.
 
 ## Examples
 
+### Classical Computations
+
 For example, consider a backend that supports integer computations and provides
 a runtime function for random number generation. Then an Adaptive Profile
 program may contain code like the following to do randomized benchmarking:
@@ -914,13 +891,15 @@ measurements and boolean computations:
   %2 = and i1 %0, %1
   br i1 %2, label %then, label %continue
 
-then: 
+then:
   tail call void @__quantum__qis__x__body(%Qubit* nonnull inttoptr (i64 2 to %Qubit*))
   br label %continue
 
 continue:
 ...
 ```
+
+### IR-defined functions and function calls
 
 Consider a backend that supports IR-defined functions and provides a `cnot`
 instruction as part of the QIS, but not `swap`. Defining and calling a `swap`
@@ -929,14 +908,15 @@ use of swaps between qubits:
 
 ```llvm
 define void @swap(%Qubit* %arg1, %Qubit* %arg2) {
-call void __quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
-call void __quantum__qis__cnot__body(%Qubit* %arg2, %Qubit* %arg1)
-call void __quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
+  call void @__quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
+  call void @__quantum__qis__cnot__body(%Qubit* %arg2, %Qubit* %arg1)
+  call void @__quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
+  ret void
 }
 
 define void @main() {
 ...
-call void @swap(%Qubit* null, %Qubit* nonnull inttoptr (1 to %Qubit*))
+  call void @swap(%Qubit* null, %Qubit* nonnull inttoptr (i64 1 to %Qubit*))
 ...
 }
 ```
@@ -946,13 +926,14 @@ has opted into supporting classical computations:
 
 ```llvm
 define i64 @triple(i64 %0) {
-%1 = mul i64 %0, 3
-ret i64 %1
+body:
+  %1 = mul i64 %0, 3
+  ret i64 %1
 }
 
 define void @main() {
 ...
-%0 = call void @triple(i64 2)
+%0 = call i64 @triple(i64 2)
 ...
 }
 ```
