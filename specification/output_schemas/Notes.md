@@ -109,9 +109,6 @@ END\t0
 ### Multiple Arrays using the Labeled Schema
 
 ```llvm
-%Qubit = type opaque
-%Result = type opaque
-
 @0 = internal constant [5 x i8] c"0_0a\00"
 @1 = internal constant [7 x i8] c"1_0a0r\00"
 @2 = internal constant [7 x i8] c"2_0a1r\00"
@@ -142,9 +139,9 @@ declare void @__quantum__qis__h__body(ptr)
 
 declare void @__quantum__qis__mz__body(ptr, ptr writeonly) #1
 
-declare void @__quantum__rt__array_record_output(i64, i8*)
+declare void @__quantum__rt__array_record_output(i64, ptr)
 
-declare void @__quantum__rt__result_record_output(%Result*, i8*)
+declare void @__quantum__rt__result_record_output(ptr, ptr)
 
 attributes #0 = { "entry_point" "required_num_qubits"="5" "required_num_results"="5" "qir_profiles"="base_profile" "output_labeling_schema"="labeled" }
 attributes #1 = { "irreversible" }

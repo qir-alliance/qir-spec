@@ -142,11 +142,11 @@ perform a reset:
 
 ```llvm
 ...
-  tail call void @__quantum__qis__mresetz__body(%Qubit* null, %Result* writeonly null)
-  %0 = tail call i1 @__quantum__rt__read_result(%Result* readonly null)
+  tail call void @__quantum__qis__mresetz__body(ptr null, ptr writeonly null)
+  %0 = tail call i1 @__quantum__rt__read_result(ptr readonly null)
   br i1 %0, label %then, label %continue
 then:                                   ; preds = ...
-  tail call void @__quantum__qis__x__body(%Qubit* null)
+  tail call void @__quantum__qis__x__body(ptr null)
   br label %continue
 continue:
   ...

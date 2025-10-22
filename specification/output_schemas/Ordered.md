@@ -193,7 +193,7 @@ label, its value is ignored by backends that use the ordered output schema.
 ### Result
 
 ```llvm
-void @__quantum__rt__result_record_output(%Result*, ptr)
+void @__quantum__rt__result_record_output(ptr, ptr)
 ```
 
 Produces output records that are exactly `"OUTPUT\tRESULT\t0"` or
