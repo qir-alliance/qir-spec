@@ -14,6 +14,8 @@ A backend can support this profile by supporting a minimum set of features
 beyond the [Base Profile](./Base_Profile.md) and can opt in for features beyond
 that.
 
+
+
 To support the Adaptive Profile without any of its optional features, a backend
 must support the following [mandatory capabilities](#mandatory-capabilities):
 
@@ -117,10 +119,12 @@ for backward branching is enabled.
 
 While the Adaptive Profile requires that it must be possible to use a qubit
 after it was measured, the availability of a `reset` instruction depends on the
-QIS supported by the backend. If a single-qubit measurement is supported as part
-of the QIS, it is always possible to reset that qubit, if needed for qubit reuse
-later in the program, using forward branching as illustrated for example by the
-following IR snippet:
+QIS supported by a particular back-end target.
+In some back-ends it may be possible to conditionally
+operate on measured qubits as shown by the following examples, but other back-ends
+may require the use of an explict reset instruction. Here is an example where the `x`
+gate is applied on a measured qubit without the use of a reset because the back-end
+supports this mode of operation.
 
 ```llvm
 ...
@@ -133,6 +137,26 @@ then:                                   ; preds = ...
 continue:
   ...
 ```
+
+For another back-end the above program may have undefined behavior.
+Here is another example of an adaptive profile program
+for an alternate back-end that used a specific instruction to measure and immediately perform a reset:
+```llvm
+...
+  tail call void @__quantum__qis__mresetz__body(%Qubit* null, %Result* writeonly null)
+  %0 = tail call i1 @__quantum__rt__read_result(%Result* readonly null)
+  br i1 %0, label %then, label %continue
+then:                                   ; preds = ...
+  tail call void @__quantum__qis__x__body(%Qubit* null)
+  br label %continue
+continue:
+  ...
+```
+Alternatively, another back-end may require the use of 
+separate `___quantum__qis__mz__body` and `___quantum___qis__reset__body`
+functions to perform the measure and resets separately. Such decisions 
+are the purview of the quantum instruction set provided by a back-end 
+implementing the adaptive profile.
 
 Although forward branching can be useful when combined with purely classical
 operations within a quantum program, the real utility is being able to
