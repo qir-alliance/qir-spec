@@ -73,7 +73,7 @@ toolchains.
 
 The table below describes this compatibility:
 
-Input | Output | Tooling
+QIR Consumed | QIR Produced | Tooling
 -- | -- | --
 QIR v1.0 | QIR v1.0 | Use LLVM 15 or earlier
 QIR v1.0 | QIR v2.0 | Use LLVM 16 or later
