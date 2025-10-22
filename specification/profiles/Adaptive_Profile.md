@@ -4,8 +4,7 @@ This profile defines a subset of the QIR specification to support a coherent set
 of functionalities and capabilities that might be offered by a quantum backend.
 Like all profile specifications, this document is primarily intended for
 [compiler backend](https://en.wikipedia.org/wiki/Compiler#Back_end) authors as
-well as contributors to the [targeting
-stage](../Compilation_And_Targeting.md#targeting) of the QIR compiler.
+well as contributors to the targeting stage of the QIR compiler.
 
 The Adaptive Profile specifies supersets of the [Base
 Profile](./Base_Profile.md) that enable control flow based on mid-circuit
@@ -13,8 +12,6 @@ measurements and classical computations while quantum resources remain coherent.
 A backend can support this profile by supporting a minimum set of features
 beyond the [Base Profile](./Base_Profile.md) and can opt in for features beyond
 that.
-
-
 
 To support the Adaptive Profile without any of its optional features, a backend
 must support the following [mandatory capabilities](#mandatory-capabilities):
@@ -122,8 +119,8 @@ after it was measured, the availability of a `reset` instruction depends on the
 QIS supported by a particular back-end target.
 In some back-ends it may be possible to conditionally
 operate on measured qubits as shown by the following examples, but other back-ends
-may require the use of an explict reset instruction. Here is an example where the `x`
-gate is applied on a measured qubit without the use of a reset because the back-end
+may require the use of an explict reset instruction. Here is an example where the
+`x` gate is applied on a measured qubit without the use of a reset because the back-end
 supports this mode of operation.
 
 ```llvm
@@ -140,7 +137,9 @@ continue:
 
 For another back-end the above program may have undefined behavior.
 Here is another example of an adaptive profile program
-for an alternate back-end that used a specific instruction to measure and immediately perform a reset:
+for an alternate back-end that used a specific instruction to measure and immediately
+perform a reset:
+
 ```llvm
 ...
   tail call void @__quantum__qis__mresetz__body(%Qubit* null, %Result* writeonly null)
@@ -152,10 +151,11 @@ then:                                   ; preds = ...
 continue:
   ...
 ```
-Alternatively, another back-end may require the use of 
+
+Alternatively, another back-end may require the use of
 separate `___quantum__qis__mz__body` and `___quantum___qis__reset__body`
-functions to perform the measure and resets separately. Such decisions 
-are the purview of the quantum instruction set provided by a back-end 
+functions to perform the measure and resets separately. Such decisions
+are the purview of the quantum instruction set provided by a back-end
 implementing the adaptive profile.
 
 Although forward branching can be useful when combined with purely classical
@@ -620,10 +620,7 @@ it must satisfy the following three requirements:
 
 For more information about the relationship between a profile specification and
 the quantum instruction set, we refer to the paragraph on [Bullet
-1](#adaptive-profile) in the introduction of this document. For more information
-about how and when the QIS is resolved, as well as recommendations for front-
-and backend developers, we refer to the document on [compilation stages and
-targeting](../Compilation_And_Targeting.md).
+1](#adaptive-profile) in the introduction of this document.
 
 ## Classical Instructions
 
