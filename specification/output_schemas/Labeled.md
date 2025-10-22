@@ -27,7 +27,7 @@ Here's an example of the output emitted for a single shot:
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t1.0
+HEADER\tschema_version\t2.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -59,7 +59,7 @@ the type of output to be recorded.
 ### Result
 
 ```llvm
-void @__quantum__rt__result_record_output(%Result*, i8*)
+void @__quantum__rt__result_record_output(ptr, ptr)
 ```
 
 Produces output records of the format `"OUTPUT\tRESULT\t0\tlabel"` or
@@ -70,7 +70,7 @@ the corresponding output record.
 ### Boolean
 
 ```llvm
-void @__quantum__rt__bool_record_output(i1, i8*)
+void @__quantum__rt__bool_record_output(i1, ptr)
 ```
 
 Produces output records of the format `"OUTPUT\tBOOL\tfalse\tlabel"` or
@@ -81,7 +81,7 @@ record.
 ### Integer
 
 ```llvm
-void @__quantum__rt__int_record_output(i64, i8*)
+void @__quantum__rt__int_record_output(i64, ptr)
 ```
 
 Produces output records of the format `"OUTPUT\tINT\tn\tlabel"` where `n` is the
@@ -92,7 +92,7 @@ which is included in the corresponding output record.
 ### Double
 
 ```llvm
-void @__quantum__rt__double_record_output(double, i8*)
+void @__quantum__rt__double_record_output(double, ptr)
 ```
 
 Produces output records of the format `"OUTPUT\tDOUBLE\td\tlabel"` where `d` is
@@ -104,7 +104,7 @@ output record.
 ### Tuple
 
 ```llvm
-void @__quantum__rt__tuple_record_output(i64, i8*)
+void @__quantum__rt__tuple_record_output(i64, ptr)
 ```
 
 Produces output records of the format  `"OUTPUT\tTUPLE\tn\tlabel"` where `n` is
@@ -116,7 +116,7 @@ This record indicates the existence of a tuple and how many elements it has.
 ### Array
 
 ```llvm
-void @__quantum__rt__array_record_output(i64, i8*)
+void @__quantum__rt__array_record_output(i64, ptr)
 ```
 
 Produces output records of the format `"OUTPUT\tARRAY\tn\tlabel"` where `n` is
@@ -134,7 +134,7 @@ function:
 
 ```llvm
 @0 = internal constant [3 x i8] c"0_i\00"
-call void @__quantum__rt__int_record_output(i64 %5, i8* getelementptr inbounds ([3 x i8], [3 x i8]* @0, i32 0, i32 0))
+call void @__quantum__rt__int_record_output(i64 %5, ptr @0)
 ret void
 ```
 
@@ -143,7 +143,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t1.0
+HEADER\tschema_version\t2.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -173,11 +173,11 @@ the array items (shown with static result allocation):
 @2 = internal constant [5 x i8] c"2_1a\00"
 @3 = internal constant [7 x i8] c"3_1a0r\00"
 @4 = internal constant [7 x i8] c"4_1a1r\00"
-call void @__quantum__rt__array_record_output(i64 1, i8* getelementptr inbounds ([5 x i8], [5 x i8]* @0, i32 0, i32 0))
-call void @__quantum__rt__result_record_output(%Result* %2, i8* getelementptr inbounds ([7 x i8], [7 x i8]* @1, i32 0, i32 0))
-call void @__quantum__rt__array_record_output(i64 2, i8* getelementptr inbounds ([5 x i8], [5 x i8]* @2, i32 0, i32 0))
-call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 0 to %Result*), i8* getelementptr inbounds ([7 x i8], [7 x i8]* @3, i32 0, i32 0))
-call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 0 to %Result*), i8* getelementptr inbounds ([7 x i8], [7 x i8]* @4, i32 0, i32 0))
+call void @__quantum__rt__array_record_output(i64 1, ptr @0)
+call void @__quantum__rt__result_record_output(ptr %2, ptr @1)
+call void @__quantum__rt__array_record_output(i64 2, ptr @2)
+call void @__quantum__rt__result_record_output(ptr null, ptr @3)
+call void @__quantum__rt__result_record_output(ptr null, ptr @4)
 ret void
 ```
 
@@ -186,7 +186,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t1.0
+HEADER\tschema_version\t2.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -225,9 +225,9 @@ following output recording functions:
 @0 = internal constant [4 x i8] c"0_t\00"
 @1 = internal constant [6 x i8] c"1_t0r\00"
 @2 = internal constant [6 x i8] c"2_t1d\00"
-call void @__quantum__rt__tuple_record_output(i64 2, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @0, i32 0, i32 0))
-call void @__quantum__rt__result_record_output(%Result* %2, i8* getelementptr inbounds ([6 x i8], [6 x i8]* @1, i32 0, i32 0))
-call void @__quantum__rt__double_record_output(double %3, i8* getelementptr inbounds ([6 x i8], [6 x i8]* @2, i32 0, i32 0))
+call void @__quantum__rt__tuple_record_output(i64 2, ptr @0)
+call void @__quantum__rt__result_record_output(ptr %2, ptr @1)
+call void @__quantum__rt__double_record_output(double %3, ptr @2)
 ret void
 ```
 
@@ -236,7 +236,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t1.0
+HEADER\tschema_version\t2.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -273,13 +273,13 @@ containing an integer and result uses the following output recording functions:
 @4 = internal constant [6 x i8] c"4_a1t\00"
 @5 = internal constant [8 x i8] c"5_a1t0i\00"
 @6 = internal constant [8 x i8] c"6_a1t1r\00"
-call void @__quantum__rt__array_record_output(i64 2, i8* getelementptr inbounds ([4 x i8], [4 x i8]* @0, i32 0, i32 0))
-call void @__quantum__rt__tuple_record_output(i64 2, i8* getelementptr inbounds ([6 x i8], [6 x i8]* @1, i32 0, i32 0))
-call void @__quantum__rt__int_record_output(i64 %3, i8* getelementptr inbounds ([8 x i8], [8 x i8]* @2, i32 0, i32 0))
-call void @__quantum__rt__result_record_output(%Result* null, i8* getelementptr inbounds ([8 x i8], [8 x i8]* @3, i32 0, i32 0))
-call void @__quantum__rt__tuple_record_output(i64 2, i8* getelementptr inbounds ([6 x i8], [6 x i8]* @4, i32 0, i32 0))
-call void @__quantum__rt__int_record_output(i64 %7, i8* getelementptr inbounds ([8 x i8], [8 x i8]* @5, i32 0, i32 0))
-call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 1 to %Result*), i8* getelementptr inbounds ([8 x i8], [8 x i8]* @6, i32 0, i32 0))
+call void @__quantum__rt__array_record_output(i64 2, ptr @0)
+call void @__quantum__rt__tuple_record_output(i64 2, ptr @1)
+call void @__quantum__rt__int_record_output(i64 %3, ptr @2)
+call void @__quantum__rt__result_record_output(ptr null, ptr @3)
+call void @__quantum__rt__tuple_record_output(i64 2, ptr @4)
+call void @__quantum__rt__int_record_output(i64 %7, ptr @5)
+call void @__quantum__rt__result_record_output(ptr nonnull inttoptr (i64 1 to ptr), ptr @6)
 ret void
 ```
 
@@ -288,7 +288,7 @@ The output for one shot would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t1.0
+HEADER\tschema_version\t2.0
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile

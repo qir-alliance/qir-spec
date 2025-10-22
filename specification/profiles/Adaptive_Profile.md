@@ -81,8 +81,8 @@ in this [document](../Instruction_Set.md).
 
 As for the Base Profile, a measurement function is a QIS function marked with an
 [`irreversible` attribute](./Base_Profile.md#quantum-instruction-set) that
-populates a value of type `%Result`. The available measurement functions are
-defined by the executing backend as part of the QIS. Unlike the Base Profile,
+populates a result identified by the `ptr` type. The available measurement functions
+are defined by the executing backend as part of the QIS. Unlike the Base Profile,
 the Adaptive Profile relieves a restriction that qubits can only be measured at
 the end of the program and that no quantum operations can be performed after or
 conditionally on a measurement outcome.
@@ -98,9 +98,9 @@ apply additional quantum instructions to the same qubit(s).
 
 Additionally, the Adaptive Profile requires that it must be possible to take
 action based on a measurement result. Specifically, it must be possible to
-execute subsequent quantum instructions conditionally on the produced `%Result`
+execute subsequent quantum instructions conditionally on the produced measurement
 value. To that end, a runtime function must be provided that converts a
-`%Result` value into a value of type `i1`; see the section on [Runtime
+`ptr` result identifier into a value of type `i1`; see the section on [Runtime
 Functions](#runtime-functions) for further clarification. Additionally, the LLVM
 branch instruction `br` must be supported; see the section on [Classical
 Instructions](#classical-instructions) for further clarification.
@@ -125,11 +125,11 @@ supports this mode of operation.
 
 ```llvm
 ...
-  tail call void @__quantum__qis__mz__body(%Qubit* null, %Result* writeonly null)
-  %0 = tail call i1 @__quantum__rt__read_result(%Result* readonly null)
+  tail call void @__quantum__qis__mz__body(ptr null, ptr writeonly null)
+  %0 = tail call i1 @__quantum__rt__read_result(ptr readonly null)
   br i1 %0, label %then, label %continue
 then:                                   ; preds = ...
-  tail call void @__quantum__qis__x__body(%Qubit* null)
+  tail call void @__quantum__qis__x__body(ptr null)
   br label %continue
 continue:
   ...
@@ -142,11 +142,11 @@ perform a reset:
 
 ```llvm
 ...
-  tail call void @__quantum__qis__mresetz__body(%Qubit* null, %Result* writeonly null)
-  %0 = tail call i1 @__quantum__rt__read_result(%Result* readonly null)
+  tail call void @__quantum__qis__mresetz__body(ptr null, ptr writeonly null)
+  %0 = tail call i1 @__quantum__rt__read_result(ptr readonly null)
   br i1 %0, label %then, label %continue
 then:                                   ; preds = ...
-  tail call void @__quantum__qis__x__body(%Qubit* null)
+  tail call void @__quantum__qis__x__body(ptr null)
   br label %continue
 continue:
   ...
@@ -233,8 +233,7 @@ of the program IR. An Adaptive Profile program that includes IR-defined
 functions must indicate this in the form of a [module
 flag](#module-flags-metadata).
 
-IR-defined functions may take arguments of type `%Qubit*` and `%Result*`, and it
-must have `void` return
+IR-defined functions may take arguments of type `ptr` and must have `void` return
 type. If [classical computations](#bullet-5-classical-computations) are
 supported in addition to IR-defined functions, then values of the supported data
 type(s) may also be passed as arguments to, and returned from, an IR-defined
@@ -249,7 +248,7 @@ forbidden. In contrast to the [entry point function](#entry-point-definition),
 an IR-defined function may *not* contain any calls to [output
 recording](#output-recording) or initialization functions, but it may call other
 runtime functions. Just like for the entry point function, values of type
-`%Qubit*` and `%Result*` may only occur in calls to other functions; qubit
+`ptr` may only occur in calls to other functions; qubit
 values of these types that are passed as arguments cannot be assigned to local
 variables, that is they cannot be aliased.
 
@@ -277,8 +276,8 @@ entry:
   br label %loop_body
 loop_body:                          ; preds = %loop_body, %entry
   %0 = phi i64 [ 1, %entry ], [ %1, %loop_body ]
-  %qptr = inttoptr i64 %0 to %Qubit*
-  call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* nonnull %qptr)
+  %qptr = inttoptr i64 %0
+  call void @__quantum__qis__cnot__body(ptr null, ptr nonnull %qptr)
   %1 = add i64 %0, 1
   %2 = icmp sle i64 %1, 4
   br i1 %2, label %loop_body, label %loop_exit
@@ -304,9 +303,9 @@ following code snippet.
   ...
   br label %loop
 loop:
-  call void @__quantum__qis__h__body(%Qubit* null)
-  call void @__quantum__qis__mz__body(%Qubit* null, %Result* writeonly null)
-  %0 = call i1 @__quantum__rt__read_result(%Result* readonly null)
+  call void @__quantum__qis__h__body(ptr null)
+  call void @__quantum__qis__mz__body(ptr null, ptr writeonly null)
+  %0 = call i1 @__quantum__rt__read_result(ptr readonly null)
   br i1 %0, label %cont, label %loop
 cont:
   ...
@@ -368,14 +367,14 @@ contain a logic like this:
 
 define i64 @main() local_unnamed_addr #0 {
 entry:
-  tail call void @__quantum__qis__mz__body(%Qubit* null, %Result* writeonly null)
-  %0 = tail call i1 @__quantum__rt__read_result(%Result* readonly null)
+  tail call void @__quantum__qis__mz__body(ptr null, ptr writeonly null)
+  %0 = tail call i1 @__quantum__rt__read_result(ptr readonly null)
   br i1 %0, label %error, label %exit
 error:
   ; qubits should be in a zero state at the end of the program
   ret i64 1
 exit:
-  call void @__quantum__rt__result_record_output(%Result* null, i8* getelementptr inbounds ([2 x i8], [2 x i8]* @0, i32 0, i32 0))
+  call void @__quantum__rt__result_record_output(ptr null, ptr @0)
   ret i64 0
 }
 ```
@@ -419,11 +418,6 @@ The code below illustrates how a simple program implementing a teleport chain
 looks within a minimal Adaptive Profile representation:
 
 ```llvm
-; type definitions
-
-%Result = type opaque
-%Qubit = type opaque
-
 ; global constants (labels for output recording)
 
 @0 = internal constant [5 x i8] c"0_t0\00"
@@ -434,94 +428,94 @@ looks within a minimal Adaptive Profile representation:
 define i64 @TeleportChain() local_unnamed_addr #0 {
 entry:
   ; calls to initialize the execution environment
-  call void @__quantum__rt__initialize(i8* null)
+  call void @__quantum__rt__initialize(ptr null)
   br label %body
 
 body:                                       ; preds = %entry
-  tail call void @__quantum__qis__h__body(%Qubit* null)
-  tail call void @__quantum__qis__cnot__body(%Qubit* null, %Qubit* nonnull inttoptr (i64 1 to %Qubit*))
-  tail call void @__quantum__qis__h__body(%Qubit* nonnull inttoptr (i64 2 to %Qubit*))
-  tail call void @__quantum__qis__cnot__body(%Qubit* nonnull inttoptr (i64 2 to %Qubit*), %Qubit* nonnull inttoptr (i64 4 to %Qubit*))
-  tail call void @__quantum__qis__h__body(%Qubit* nonnull inttoptr (i64 3 to %Qubit*))
-  tail call void @__quantum__qis__cnot__body(%Qubit* nonnull inttoptr (i64 3 to %Qubit*), %Qubit* nonnull inttoptr (i64 5 to %Qubit*))
-  tail call void @__quantum__qis__cnot__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*), %Qubit* nonnull inttoptr (i64 2 to %Qubit*))
-  tail call void @__quantum__qis__h__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*))
-  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*), %Result* writeonly null)
-  tail call void @__quantum__qis__reset__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*))
-  %0 = tail call i1 @__quantum__rt__read_result(%Result* readonly null)
+  tail call void @__quantum__qis__h__body(ptr null)
+  tail call void @__quantum__qis__cnot__body(ptr null, ptr nonnull inttoptr (i64 1 to ptr))
+  tail call void @__quantum__qis__h__body(ptr nonnull inttoptr (i64 2 to ptr))
+  tail call void @__quantum__qis__cnot__body(ptr nonnull inttoptr (i64 2 to ptr), ptr nonnull inttoptr (i64 4 to ptr))
+  tail call void @__quantum__qis__h__body(ptr nonnull inttoptr (i64 3 to ptr))
+  tail call void @__quantum__qis__cnot__body(ptr nonnull inttoptr (i64 3 to ptr), ptr nonnull inttoptr (i64 5 to ptr))
+  tail call void @__quantum__qis__cnot__body(ptr nonnull inttoptr (i64 1 to ptr), ptr nonnull inttoptr (i64 2 to ptr))
+  tail call void @__quantum__qis__h__body(ptr nonnull inttoptr (i64 1 to ptr))
+  tail call void @__quantum__qis__mz__body(ptr nonnull inttoptr (i64 1 to ptr), ptr writeonly null)
+  tail call void @__quantum__qis__reset__body(ptr nonnull inttoptr (i64 1 to ptr))
+  %0 = tail call i1 @__quantum__rt__read_result(ptr readonly null)
   br i1 %0, label %then__1, label %continue__1
 
 ; conditional quantum gate (only one in this block, but many can appear and the full quantum instruction set should be usable)
 then__1:                                   ; preds = %body
-  tail call void @__quantum__qis__z__body(%Qubit* nonnull inttoptr (i64 4 to %Qubit*))
+  tail call void @__quantum__qis__z__body(ptr nonnull inttoptr (i64 4 to ptr))
   br label %continue__1
 
 continue__1:                               ; preds = %then__1, %body
-  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 2 to %Qubit*), %Result* writeonly nonnull inttoptr (i64 1 to %Result*))
-  tail call void @__quantum__qis__reset__body(%Qubit* nonnull inttoptr (i64 2 to %Qubit*))
-  %1 = tail call i1 @__quantum__rt__read_result(%Result* readonly nonnull inttoptr (i64 1 to %Result*))
+  tail call void @__quantum__qis__mz__body(ptr nonnull inttoptr (i64 2 to ptr), ptr writeonly nonnull inttoptr (i64 1 to ptr))
+  tail call void @__quantum__qis__reset__body(ptr nonnull inttoptr (i64 2 to ptr))
+  %1 = tail call i1 @__quantum__rt__read_result(ptr readonly nonnull inttoptr (i64 1 to ptr))
   br i1 %1, label %then__2, label %continue__2
 
 then__2:                                   ; preds = %continue__1
-  tail call void @__quantum__qis__x__body(%Qubit* nonnull inttoptr (i64 4 to %Qubit*))
+  tail call void @__quantum__qis__x__body(ptr nonnull inttoptr (i64 4 to ptr))
   br label %continue__2
 
 continue__2:                               ; preds = %then__2, %continue__1
-  tail call void @__quantum__qis__cnot__body(%Qubit* nonnull inttoptr (i64 4 to %Qubit*), %Qubit* nonnull inttoptr (i64 3 to %Qubit*))
-  tail call void @__quantum__qis__h__body(%Qubit* nonnull inttoptr (i64 4 to %Qubit*))
-  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 4 to %Qubit*), %Result* writeonly nonnull inttoptr (i64 2 to %Result*))
-  tail call void @__quantum__qis__reset__body(%Qubit* nonnull inttoptr (i64 4 to %Qubit*))
-  %2 = tail call i1 @__quantum__rt__read_result(%Result* readonly nonnull inttoptr (i64 2 to %Result*))
+  tail call void @__quantum__qis__cnot__body(ptr nonnull inttoptr (i64 4 to ptr), ptr nonnull inttoptr (i64 3 to ptr))
+  tail call void @__quantum__qis__h__body(ptr nonnull inttoptr (i64 4 to ptr))
+  tail call void @__quantum__qis__mz__body(ptr nonnull inttoptr (i64 4 to ptr), ptr writeonly nonnull inttoptr (i64 2 to ptr))
+  tail call void @__quantum__qis__reset__body(ptr nonnull inttoptr (i64 4 to ptr))
+  %2 = tail call i1 @__quantum__rt__read_result(ptr readonly nonnull inttoptr (i64 2 to ptr))
   br i1 %2, label %then__3, label %continue__3
 
 then__3:                                   ; preds = %continue__2
-  tail call void @__quantum__qis__z__body(%Qubit* nonnull inttoptr (i64 5 to %Qubit*))
+  tail call void @__quantum__qis__z__body(ptr nonnull inttoptr (i64 5 to ptr))
   br label %continue__3
 
 continue__3:                               ; preds = %then__3, %continue__2
-  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 3 to %Qubit*), %Result* writeonly nonnull inttoptr (i64 3 to %Result*))
-  tail call void @__quantum__qis__reset__body(%Qubit* nonnull inttoptr (i64 3 to %Qubit*))
-  %3 = tail call i1 @__quantum__rt__read_result(%Result* readonly nonnull inttoptr (i64 3 to %Result*))
+  tail call void @__quantum__qis__mz__body(ptr nonnull inttoptr (i64 3 to ptr), ptr writeonly nonnull inttoptr (i64 3 to ptr))
+  tail call void @__quantum__qis__reset__body(ptr nonnull inttoptr (i64 3 to ptr))
+  %3 = tail call i1 @__quantum__rt__read_result(ptr readonly nonnull inttoptr (i64 3 to ptr))
   br i1 %3, label %then__4, label %continue__4
 
 then__4:                                   ; preds = %continue__3
-  tail call void @__quantum__qis__x__body(%Qubit* nonnull inttoptr (i64 5 to %Qubit*))
+  tail call void @__quantum__qis__x__body(ptr nonnull inttoptr (i64 5 to ptr))
   br label %continue__4
 
 continue__4:                                   ; preds = %continue__3, %then__4
-  tail call void @__quantum__qis__mz__body(%Qubit* null, %Result* writeonly nonnull inttoptr (i64 4 to %Result*))
-  tail call void @__quantum__qis__reset__body(%Qubit* null)
-  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 5 to %Qubit*), %Result* writeonly nonnull inttoptr (i64 5 to %Result*))
-  tail call void @__quantum__qis__reset__body(%Qubit* nonnull inttoptr (i64 5 to %Qubit*))
+  tail call void @__quantum__qis__mz__body(ptr null, ptr writeonly nonnull inttoptr (i64 4 to ptr))
+  tail call void @__quantum__qis__reset__body(ptr null)
+  tail call void @__quantum__qis__mz__body(ptr nonnull inttoptr (i64 5 to ptr), ptr writeonly nonnull inttoptr (i64 5 to ptr))
+  tail call void @__quantum__qis__reset__body(ptr nonnull inttoptr (i64 5 to ptr))
   br label %exit
 
 exit:
-  call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 4 to %Result*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @0, i32 0, i32 0))
-  call void @__quantum__rt__result_record_output(%Result* nonnull inttoptr (i64 5 to %Result*), i8* getelementptr inbounds ([5 x i8], [5 x i8]* @1, i32 0, i32 0))
+  call void @__quantum__rt__result_record_output(ptr nonnull inttoptr (i64 4 to ptr), ptr @0)
+  call void @__quantum__rt__result_record_output(ptr nonnull inttoptr (i64 5 to ptr), ptr @1)
   ret i64 0
 }
 
 ; declarations of QIS functions
 
-declare void @__quantum__qis__cnot__body(%Qubit*, %Qubit*) local_unnamed_addr
+declare void @__quantum__qis__cnot__body(ptr, ptr) local_unnamed_addr
 
-declare void @__quantum__qis__h__body(%Qubit*) local_unnamed_addr
+declare void @__quantum__qis__h__body(ptr) local_unnamed_addr
 
-declare void @__quantum__qis__x__body(%Qubit*) local_unnamed_addr
+declare void @__quantum__qis__x__body(ptr) local_unnamed_addr
 
-declare void @__quantum__qis__z__body(%Qubit*) local_unnamed_addr
+declare void @__quantum__qis__z__body(ptr) local_unnamed_addr
 
-declare void @__quantum__qis__reset__body(%Qubit*) local_unnamed_addr
+declare void @__quantum__qis__reset__body(ptr) local_unnamed_addr
 
-declare void @__quantum__qis__mz__body(%Qubit*, %Result* writeonly) #1
+declare void @__quantum__qis__mz__body(ptr, ptr writeonly) #1
 
 ; declarations of runtime functions
 
-declare void @__quantum__rt__initialize(i8*)
+declare void @__quantum__rt__initialize(ptr)
 
-declare i1 @__quantum__rt__read_result(%Result* readonly)
+declare i1 @__quantum__rt__read_result(ptr readonly)
 
-declare void @__quantum__rt__result_record_output(%Result*, i8*)
+declare void @__quantum__rt__result_record_output(ptr, ptr)
 
 ; attributes
 
@@ -633,8 +627,8 @@ use of any optional capabilities:
 | `call`                   | Used within a basic block to invoke any one of the QIS-, IR-, and runtime functions.             | May optionally be preceded by a [`tail` marker](https://llvm.org/docs/LangRef.html#call-instruction).       |
 | `br`                     | Used to branch from one basic block to another.                                                  | The branching is the final instruction in any basic block and may conditionally jump to different blocks depending on an `i1` value. |
 | `ret`                    | Used to return the exit code of the program.                                                     | Must occur (only) as the last instruction of the final block in an entry point, unless multiple return statements (optional capability) are supported. |
-| `inttoptr`               | Used to cast an `i64` integer value to either a `%Qubit*` or a `%Result*`.                       | May be used as part of a function call only.                                                                |
-| `getelementptr inbounds` | Used to create an `i8*` to pass a constant string for the purpose of labeling an output value.   | May be used as part of a call to an output recording function only.                                         |
+| `inttoptr`               | Used to cast an `i64` integer value to a `ptr`.                                                  | May be used as part of a function call only.                                                                |
+| `getelementptr inbounds` | Used to create an `ptr` to pass a constant string for the purpose of labeling an output value.   | May be used as part of a call to an output recording function only.                                         |
 
 See also the section on [data types and values](#data-types-and-values) for more
 information about the creation and usage of LLVM values.
@@ -702,26 +696,26 @@ The following runtime functions must be supported by all backends:
 
 | Function                            | Signature            | Description                                                                                                                                                                                                                                                  |
 | :---------------------------------- | :------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__initialize           | `void(i8*)`          | Initializes the execution environment. Sets all qubits to a zero-state if they are not dynamically managed.                                     |
-| __quantum__rt__read_result | `i1(%Result* readonly)` | Reads the value of the given measurement result and converts it to a boolean value. |
-| __quantum__rt__tuple_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of a tuple and how many tuple elements it has. The second parameter defines a string label for the tuple. Depending on the output schema, the label is included in the output or omitted.  |
-| __quantum__rt__array_record_output  | `void(i64,i8*)`      | Inserts a marker in the generated output that indicates the start of an array and how many array elements it has. The second parameter defines a string label for the array. Depending on the output schema, the label is included in the output or omitted. |
-| __quantum__rt__result_record_output | `void(%Result*,i8*)` | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
-| __quantum__rt__bool_record_output | `void(i1,i8*)` | Adds a boolean value to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
+| __quantum__rt__initialize           | `void(ptr)`          | Initializes the execution environment. Sets all qubits to a zero-state if they are not dynamically managed.                                     |
+| __quantum__rt__read_result | `i1(ptr readonly)` | Reads the value of the given measurement result and converts it to a boolean value. |
+| __quantum__rt__tuple_record_output  | `void(i64,ptr)`      | Inserts a marker in the generated output that indicates the start of a tuple and how many tuple elements it has. The second parameter defines a string label for the tuple. Depending on the output schema, the label is included in the output or omitted.  |
+| __quantum__rt__array_record_output  | `void(i64,ptr)`      | Inserts a marker in the generated output that indicates the start of an array and how many array elements it has. The second parameter defines a string label for the array. Depending on the output schema, the label is included in the output or omitted. |
+| __quantum__rt__result_record_output | `void(ptr,ptr)` | Adds a measurement result to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
+| __quantum__rt__bool_record_output | `void(i1,ptr)` | Adds a boolean value to the generated output. The second parameter defines a string label for the result value. Depending on the output schema, the label is included in the output or omitted.                                                         |
 
 If a backend chooses to support integer computations, then the following
 additional runtime function must be available:
 
 | Function                         | Signature       | Description                                                            |
 | :------------------------------- | :-------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__int_record_output | `void(i64,i8*)` | Records an integer value in the generated output. The second parameter defines the string label for the value. Depending on the output schema, the label is included in the output or omitted.        |
+| __quantum__rt__int_record_output | `void(i64,ptr)` | Records an integer value in the generated output. The second parameter defines the string label for the value. Depending on the output schema, the label is included in the output or omitted.        |
 
 If a backend chooses to support floating-point computations, then the following
 additional runtime function must be available:
 
 | Function                            | Signature       | Description     |
 | :---------------------------------- | :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__double_record_output | `void(double,i8*)` | Records a floating-point value in the generated output. The second parameter defines the string label for the value. Depending on the output schema, the label is included in the output or omitted. |
+| __quantum__rt__float_record_output | `void(f64,ptr)` | Records a floating-point value in the generated output. The second parameter defines the string label for the value. Depending on the output schema, the label is included in the output or omitted. |
 
 ### Output Recording
 
@@ -736,7 +730,7 @@ output recording functions followed by the final return statements. Multiple
 return statements in the application code can be replaced with suitable `phi`
 nodes by the compiler to propagate the data into that block.
 
-For all output recording functions, the `i8*` argument must be a non-null
+For all output recording functions, the `ptr` argument must be a non-null
 pointer to a global constant that contains a null-terminated string. A backend
 may ignore that argument depending on the  [output schema](../output_schemas/)
 it chooses to support. [Compiler frontends](https://en.wikipedia.org/wiki/Compiler#Front_end)
@@ -757,7 +751,7 @@ mid-circuit measurements (**Bullet 2**) or to store classical computations
 
 - Variables of boolean type may be defined, even if the backend supports none of
   the optional extensions to the Adaptive Profile.
-- Values of type `%Qubit*` and `%Result*` may only occur in function calls;
+- Values of type `ptr` may only occur in function calls;
   specifically, local variables of these types cannot be created regardless of
   which optional extensions are supported by the targeted backend. See also the
   subsequent paragraphs for more detail.
@@ -777,9 +771,9 @@ details.
 
 ### Qubit and Result Usage
 
-The `%Qubit*` and `%Result*` data types must be supported by all backends.
+The `ptr` type must be supported by all backends.
 Qubits and results can occur only as arguments in function calls and are
-represented as a pointer of type `%Qubit*` and `%Result*` respectively. To be
+represented as an opaque pointer. To be
 compliant with the Adaptive Profile specification, the program must not make use
 of dynamic qubit or result management, meaning qubits and results must be
 identified by an integer value that is bitcast to a pointer to match the
@@ -790,7 +784,7 @@ The integer value that is cast must be either a constant, or a phi node of
 integer type if [iterations](#bullet-7-backwards-branching) are used/supported.
 If the cast value is a phi node, it must not directly or indirectly depend on
 any quantum measurements. The integer constant that is cast must be in the
-interval `[0, numQubits)` for `%Qubit*` and `[0,numResults)` for `%Result*`,
+interval `[0, numQubits)` for qubits and `[0,numResults)` for results,
 where `numQubits` and `numResults` are the required number of qubits and results
 defined by the corresponding [entry point attributes](#attributes). Since
 backends may look at the values of the `required_num_qubits` and
@@ -890,19 +884,19 @@ you can conditionally apply gates based on logic using multiple mid-circuit
 measurements and boolean computations:
 
 ```llvm
-  tail call void @__quantum__qis__h__body(%Qubit* null)
-  tail call void @__quantum__qis__mz__body(%Qubit* null, %Result* writeonly null)
-  tail call void @__quantum__qis__reset__body(%Qubit* null)
-  %0 = tail call i1 @__quantum__rt__read_result(%Result* readonly null)
-  tail call void @__quantum__qis__h__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*))
-  tail call void @__quantum__qis__mz__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*), %Result* writeonly nonnull inttoptr (i64 1 to %Result*))
-  tail call void @__quantum__qis__reset__body(%Qubit* nonnull inttoptr (i64 1 to %Qubit*))
-  %1 = tail call i1 @__quantum__rt__read_result(%Result* readonly nonnull inttoptr (i64 1 to %Result*))
+  tail call void @__quantum__qis__h__body(ptr null)
+  tail call void @__quantum__qis__mz__body(ptr null, ptr writeonly null)
+  tail call void @__quantum__qis__reset__body(ptr null)
+  %0 = tail call i1 @__quantum__rt__read_result(ptr readonly null)
+  tail call void @__quantum__qis__h__body(ptr nonnull inttoptr (i64 1 to ptr))
+  tail call void @__quantum__qis__mz__body(ptr nonnull inttoptr (i64 1 to ptr), ptr writeonly nonnull inttoptr (i64 1 to ptr))
+  tail call void @__quantum__qis__reset__body(ptr nonnull inttoptr (i64 1 to ptr))
+  %1 = tail call i1 @__quantum__rt__read_result(ptr readonly nonnull inttoptr (i64 1 to ptr))
   %2 = and i1 %0, %1
   br i1 %2, label %then, label %continue
 
 then:
-  tail call void @__quantum__qis__x__body(%Qubit* nonnull inttoptr (i64 2 to %Qubit*))
+  tail call void @__quantum__qis__x__body(ptr nonnull inttoptr (i64 2 to ptr))
   br label %continue
 
 continue:
@@ -917,16 +911,15 @@ function may then greatly reduce code size for a program that involves frequent
 use of swaps between qubits:
 
 ```llvm
-define void @swap(%Qubit* %arg1, %Qubit* %arg2) {
-  call void @__quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
-  call void @__quantum__qis__cnot__body(%Qubit* %arg2, %Qubit* %arg1)
-  call void @__quantum__qis__cnot__body(%Qubit* %arg1, %Qubit* %arg2)
-  ret void
+define void @swap(ptr %arg1, ptr %arg2) {
+  call void @__quantum__qis__cnot__body(ptr %arg1, ptr %arg2)
+  call void @__quantum__qis__cnot__body(ptr %arg2, ptr %arg1)
+  call void @__quantum__qis__cnot__body(ptr %arg1, ptr %arg2)
 }
 
 define void @main() {
 ...
-  call void @swap(%Qubit* null, %Qubit* nonnull inttoptr (i64 1 to %Qubit*))
+  call void @swap(ptr null, ptr nonnull inttoptr (1 to ptr))
 ...
 }
 ```
