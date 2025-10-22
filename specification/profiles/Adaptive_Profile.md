@@ -13,8 +13,6 @@ A backend can support this profile by supporting a minimum set of features
 beyond the [Base Profile](./Base_Profile.md) and can opt in for features beyond
 that.
 
-
-
 To support the Adaptive Profile without any of its optional features, a backend
 must support the following [mandatory capabilities](#mandatory-capabilities):
 
