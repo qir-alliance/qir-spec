@@ -162,7 +162,7 @@ Although forward branching can be useful when combined with purely classical
 operations within a quantum program, the real utility is being able to
 conditionally perform quantum instructions depending on measurement outcomes,
 for example when performing real-time error-correction as part of a quantum
-programs. 
+programs.
 
 ### Bullet 4: Program output
 
