@@ -22,8 +22,9 @@ must support the following [mandatory capabilities](#mandatory-capabilities):
 1. It can execute a sequence of quantum instructions that transform the quantum
    state.
 2. A backend must support applying a measurement operation at any point in the
-   execution of the program. Qubits not undergoing the measurement should not
-   have their state affected.
+   execution of the program. Qubits not undergoing the measurement and are not 
+   conjoined to its state, such as via entanglement, should not have their state 
+   affected.
 3. A backend must be able to apply quantum instructions conditionally on a
    measurement outcome. Specifically, forward branching using the LLVM branch
    instruction `br` must be supported, along with the necessary runtime function
@@ -572,7 +573,7 @@ LLVM standard. The entry point is identified by a custom function attribute;
 as mentioned in the section on [attributes](#attributes), this is the same
 set of attributes as in the base profile.
 
-An entry point function may not take any parameters and must  must return an
+An entry point function may not take any parameters and must return an
 exit code in the form of a 64-bit integer. The exit code `0` must be used to
 indicate a successful execution of the quantum program. Any other value of the
 exit code indicates a failure during execution. The program IR must use exit
@@ -669,11 +670,20 @@ instructions must be supported:
 | `sext .. to`           | Extends an integer value to create an integer of greater bitwidth by filling the added bits with the sign bit of the integer.               | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported.                                                                                            |
 | `trunc .. to`           | Truncates the highest order bits of an integer to create an integer of smaller bitwidth.                          | Behavior if the truncation changes the value of the integer is undefined, no support for `nuw` and/or `nsw`. May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported.                                                                                       |
 | `select`         | Evaluates to one of two integer values depending on a boolean condition. |                                                                                            |
-| `phi`            | Implement the φ node in the SSA graph representing the function.                   | Must be at the start of a basic block, or preceded by other `phi` instructions.                                                                                           |
 
 For more information about any of these instructions, we refer to the
 corresponding section in the [LLVM Language
 Reference](https://llvm.org/docs/LangRef.html).
+
+If a backend chooses to support looping, iterations or backward branching then the following LLVM
+instructions must be supported:
+
+| LLVM Instruction | Context and Purpose                                                                             | Note                                                                                       |
+|:-----------------|:------------------------------------------------------------------------------------------------|:-------------------------------------------------------------------------------------------|
+| `phi`            | Assigns a local variables' data depending upon which branch caused entry to the basic block. | Must be at the start of a basic block, or preceded by other `phi` instructions.                                                                                           |
+
+If unfamiliar with phi nodes, [this entry](https://llvm.org/docs/LangRef.html#phi-instruction) in the Language 
+Reference can provide more details.
 
 If a backend chooses to support floating point computations, then the following
 LLVM instructions must be supported:
@@ -737,7 +747,8 @@ statement in the entry point function. Unless the backend supports multiple
 return points (**Bullet 9**), there is a single block that contains all calls to
 output recording functions followed by the final return statements. Multiple
 return statements in the application code can be replaced with suitable `phi`
-nodes by the compiler to propagate the data into that block.
+nodes by the compiler to propagate the data into that block if all computation 
+is contained within a single function.
 
 For all output recording functions, the `i8*` argument must be a non-null
 pointer to a global constant that contains a null-terminated string. A backend
