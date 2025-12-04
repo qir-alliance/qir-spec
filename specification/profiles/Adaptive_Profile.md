@@ -119,7 +119,7 @@ after it was measured, the availability of a `reset` instruction depends on the
 QIS supported by a particular back-end target.
 In some back-ends it may be possible to conditionally
 operate on measured qubits as shown by the following examples, but other back-ends
-may require the use of an explict reset instruction. Here is an example where the
+may require the use of an explicit reset instruction. Here is an example where the
 `x` gate is applied on a measured qubit without the use of a reset because the back-end
 supports this mode of operation.
 
@@ -841,7 +841,7 @@ indicates that these capabilities are not used in the program.
   value of type `i1` indicating if the program uses the `switch` instruction in
   llvm.
 - A flag named `"multiple_return_points"`  with a constant `true` or `false`
-  value of type `i1` indicating whether multiple return statements can apper in
+  value of type `i1` indicating whether multiple return statements can appear in
   a function within the IR as defined [here](#bullet-9-multiple-return-points).
 
 ## Error Messages
