@@ -148,7 +148,7 @@ attributes #1 = { "irreversible" }
 
 !llvm.module.flags = !{!0, !1, !2, !3}
 
-!0 = !{i32 1, !"qir_major_version", i32 1}
+!0 = !{i32 1, !"qir_major_version", i32 2}
 !1 = !{i32 7, !"qir_minor_version", i32 0}
 ```
 
