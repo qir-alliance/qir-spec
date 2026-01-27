@@ -32,6 +32,14 @@ of qubits and measurements of qubits. Additional functions may be needed to
 support the use of data types beyond those for qubit and measurement result
 values.
 
+## Dynamic Allocation and Arrays
+
+In addition to static allocation of qubits and results, QIR 2.0 supports dynamic
+allocation of these resources and their arrays. This allows for more flexible
+programs where the number of qubits or results is not known at compile time.
+For more details on the specific runtime functions and usage, please see the
+[Dynamic Allocation and Arrays](Memory_Management.md) specification.
+
 ## Quantum Instruction Set (QIS)
 
 The table below lists known quantum instructions along with their signatures and
