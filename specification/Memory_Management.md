@@ -35,6 +35,15 @@ To use dynamic allocation, set the following module flags to `true`:
 When these flags are set, the `required_num_qubits` and `required_num_results`
 attributes on the entry point are not required; the runtime manages allocation.
 
+### Enabling Array Support
+
+To use arrays of qubits and results, set the following module flag to `true`:
+
+- `"arrays"`
+
+This flag enables array support for both qubits and results, regardless of
+whether they are allocated statically or dynamically.
+
 ### Types
 
 Use native LLVM array types (`[%N x ptr]`) and `alloca` for stack
@@ -45,19 +54,19 @@ allocation, or heap allocation as needed.
 **Qubit management:**
 
 ```llvm
-declare ptr @__quantum__rt__qubit_allocate()
+declare ptr @__quantum__rt__qubit_allocate(ptr %out_err)
 declare void @__quantum__rt__qubit_release(ptr %qubit)
 ; Caller provides a buffer capable of holding N pointer-sized entries.
-declare void @__quantum__rt__qubit_array_allocate(i64 %N, ptr %array)
+declare void @__quantum__rt__qubit_array_allocate(i64 %N, ptr %array, ptr %out_err)
 declare void @__quantum__rt__qubit_array_release(i64 %N, ptr %array)
 ```
 
 **Result management:**
 
 ```llvm
-declare ptr @__quantum__rt__result_allocate()
+declare ptr @__quantum__rt__result_allocate(ptr %out_err)
 declare void @__quantum__rt__result_release(ptr %result)
-declare void @__quantum__rt__result_array_allocate(i64 %N, ptr %array)
+declare void @__quantum__rt__result_array_allocate(i64 %N, ptr %array, ptr %out_err)
 declare void @__quantum__rt__result_array_release(i64 %N, ptr %array)
 ```
 
@@ -68,8 +77,17 @@ declare void @__quantum__rt__result_array_release(i64 %N, ptr %array)
   memory.
 - The `array_release` functions release the runtime-managed objects, but do not
   free the classical buffer.
-- A separate fallible allocation API such as `__quantum__rt__try_qubit_allocate`
-  (returning `null` on failure) is under discussion.
+
+**Error handling:**
+
+- All allocation functions accept an optional output parameter `%out_err` for
+  error handling.
+- If `%out_err` is `null`, allocation failure results in runtime termination
+  (crash). This is the common case for most programs.
+- If `%out_err` is non-null, the caller must have allocated memory for an `i1`
+  and passed a pointer to it. The runtime will set this `i1` to `true` on
+  allocation failure and `false` on success. Advanced users can check this flag
+  to handle allocation failures gracefully.
 
 ### Array Output Recording
 
@@ -80,6 +98,10 @@ declare void @__quantum__rt__result_array_record_output(i64 %N, ptr %result_arra
 ```
 
 `%N` is the size of `%result_array`. Endianness for rendering is undecided.
+
+**Note:** This is the only specialized array output recording function. No
+additional output recording functions will be introduced for other types or
+purposes.
 
 ### Support Matrix
 
@@ -92,15 +114,24 @@ When describing container/object capabilities, consider two axes:
 This yields four supported scenarios (stack/heap × dynamic/static) and clarifies
 compiler/runtime responsibilities.
 
+### Qubit State After Release
+
+The state of a qubit after `__quantum__rt__qubit_release` is backend-specific.
+Backends may return qubits in a clean state (e.g., reset to |0⟩) or in a dirty
+state (whatever state the qubit was in when released). Programs should not rely
+on any particular state and should explicitly reset qubits if a known state is
+required.
+
 ### Rationale and Implementation Notes
 
 - Caller-managed classical memory keeps memory semantics simple and leverages
   LLVM's native array and aggregate operations.
 - Separating classical memory lifetime from runtime-managed quantum objects
   simplifies backends.
+- The error handling approach via output parameters allows most programs to use
+  simple allocation with implicit failure handling while enabling advanced users
+  to handle allocation failures explicitly.
 
 ## Open Questions
 
-- Final decision on allocation failure handling (`try_` APIs vs result-style returns)
 - Exact semantics for `result_array_record_output` formatting (endianness)
-- Whether to introduce additional module flags to indicate array support

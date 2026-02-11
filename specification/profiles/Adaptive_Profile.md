@@ -877,6 +877,9 @@ indicates that these capabilities are not used in the program.
 - A flag named `"dynamic_result_management"` with a constant `true` or `false`
   value of type `i1` indicating whether the program uses [dynamic result
   allocation and release](#bullet-10-dynamic-allocation-and-arrays).
+- A flag named `"arrays"` with a constant `true` or `false` value of type `i1`
+  indicating whether the program uses arrays of qubits or results as defined in
+  [Dynamic Allocation and Arrays](#bullet-10-dynamic-allocation-and-arrays).
 
 ## Error Messages
 
