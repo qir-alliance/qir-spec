@@ -3,6 +3,8 @@
 This output schema is meant for backends that can synchronously emit output
 records and do not support strings as arguments to functions.
 
+**Schema Version**: 2.1 (added `RESULT_ARRAY` type for array output support)
+
 ## Records
 
 The output emitted by a system consists of a series of records, where each
@@ -31,7 +33,7 @@ Examples of `HEADER` records:
 
 ```log
 HEADER\tschema_id\tordered
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 ```
 
 ### `START` Records
@@ -147,7 +149,7 @@ The output must start with two `HEADER` records that contain the name and
 version of the output schema used:
 
 - `HEADER\tschema_id\tordered`
-- `HEADER\tschema_version\t2.0`
+- `HEADER\tschema_version\t2.1`
 
 Additional `HEADER` records that provide more general information about the
 output are optional.
@@ -164,7 +166,7 @@ Example of the output emitted for three shots:
 
 ```log
 HEADER\tschema_id\tordered
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -289,7 +291,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tordered
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -332,7 +334,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tordered
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -382,7 +384,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tordered
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -434,7 +436,7 @@ The output for one shot would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tordered
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -473,7 +475,7 @@ would have the following form:
 
 ```log
 HEADER\tschema_id\tordered
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tadaptive_profile

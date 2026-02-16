@@ -3,6 +3,8 @@
 This output schema is meant for backends that asynchronously emit output records
 and support strings as arguments to functions.
 
+**Schema Version**: 2.1 (added `RESULT_ARRAY` type for array output support)
+
 The labeled output schema for asynchronous output emission is the same as the
 [ordered schema](./Ordered.md) with the following changes:
 
@@ -27,7 +29,7 @@ Here's an example of the output emitted for a single shot:
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -167,7 +169,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -210,7 +212,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -260,7 +262,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -312,7 +314,7 @@ The output for one shot would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
