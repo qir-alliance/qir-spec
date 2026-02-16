@@ -39,7 +39,7 @@ container = (tuple / array)
 ### Labeled
 
 ```abnf
-value = output-start (result / bool / int / double) TAB label
+value = output-start (result / result-array / bool / int / double) TAB label
 
 tuple = output-start TUPLE-LIT TAB 1*DIGIT TAB label
 
@@ -49,7 +49,7 @@ array = output-start ARRAY-LIT TAB 1*DIGIT TAB label
 ### No Labels and Ordered
 
 ```abnf
-value = output-start (result / bool / int / double)
+value = output-start (result / result-array / bool / int / double)
 
 tuple = output-start tuple-start 1*collection-items
 
@@ -74,6 +74,8 @@ tuple-items = 1*(EOL tuple)
 output-start = OUTPUT-LIT TAB
 
 result = RESULT-LIT TAB BIT
+
+result-array = RESULT-ARRAY-LIT TAB 1*BIT
 
 bool = BOOL-LIT TAB (TRUE-LIT / FALSE-LIT)
 
@@ -159,6 +161,8 @@ INT-LIT = "I" "N" "T"
 DOUBLE-LIT = "D" "O" "U" "B" "L" "E"
 
 RESULT-LIT = "R" "E" "S" "U" "L" "T"
+
+RESULT-ARRAY-LIT = "R" "E" "S" "U" "L" "T" "_" "A" "R" "R" "A" "Y"
 
 END-LIT = "E" "N" "D"
 ```

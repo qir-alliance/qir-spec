@@ -31,9 +31,12 @@ def main():
         container: tuple | array
 
         // Labeled
-        value: OUTPUT_LIT TAB (RESULT_LIT TAB BIT | BOOL_LIT TAB (TRUE_LIT | FALSE_LIT) | INT_LIT TAB SIGNED_DIGIT | DOUBLE_LIT TAB DOUBLE_VALUE) (TAB label)?
+        value: OUTPUT_LIT TAB (result | result_array | BOOL_LIT TAB (TRUE_LIT | FALSE_LIT) | INT_LIT TAB SIGNED_DIGIT | DOUBLE_LIT TAB DOUBLE_VALUE) (TAB label)?
         tuple: OUTPUT_LIT TAB TUPLE_LIT TAB DIGITS (TAB label)?
         array: OUTPUT_LIT TAB ARRAY_LIT TAB DIGITS (TAB label)?
+
+        result: RESULT_LIT TAB BIT
+        result_array: RESULT_ARRAY_LIT TAB BITS
 
         // Ordered
         // (Extend as needed for ordered/collection-items)
@@ -60,6 +63,7 @@ def main():
         INT_LIT: "INT"
         DOUBLE_LIT: "DOUBLE"
         RESULT_LIT: "RESULT"
+        RESULT_ARRAY_LIT: "RESULT_ARRAY"
         TUPLE_LIT: "TUPLE"
         ARRAY_LIT: "ARRAY"
         TRUE_LIT: "true"
@@ -68,6 +72,7 @@ def main():
         INFINITY_LIT: "INFINITY"
         NAN_LIT: "NAN"
         BIT: "0" | "1"
+        BITS: BIT+
         SIGN: "+" | "-"
         DIGIT: /[0-9]/
         DIGITS: DIGIT+
