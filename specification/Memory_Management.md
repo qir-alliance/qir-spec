@@ -36,8 +36,6 @@ stack allocation and native LLVM arrays).
 
 ## Array Support
 
-### Overview
-
 Array support provides first-class native LLVM array types for all supported
 types in QIR. While this specification focuses on arrays of qubits and results
 (the primary use case), the array capability is general and applies to any type
@@ -110,6 +108,8 @@ store ptr inttoptr (i64 1 to ptr), ptr %q1_ptr, align 8
 ; Use the qubits
 %q0 = load ptr, ptr %q0_ptr, align 8
 call void @__quantum__qis__h__body(ptr %q0)
+%q1 = load ptr, ptr %q1_ptr, align 8
+call void @__quantum__qis__h__body(ptr %q1)
 ```
 
 **Static array with dynamically-allocated results:**
@@ -138,8 +138,6 @@ call void @__quantum__rt__result_release(ptr %r0)
 
 ## Dynamic Allocation
 
-### Overview
-
 Dynamic allocation enables runtime allocation and release of qubits and results,
 allowing programs to determine resource requirements during execution rather
 than at compile time.
@@ -161,9 +159,9 @@ and deallocation.
 
 ```llvm
 ; Returns a pointer value for a single qubit, initially in the ground state.
-; If `%out_err` is null, allocation failure results in runtime termination.
-; If `%out_err` is non-null, it must point to valid memory for an `i1` value.
-; On allocation failure, the `i1` is set to true and null is returned.
+; If `%out_err` is `null`, allocation failure results in runtime termination.
+; If `%out_err` is non-`null`, it must point to valid memory for an `i1` value.
+; On allocation failure, the `i1` is set to true and `null` is returned.
 ; On success, the `i1` is set to false and a valid qubit pointer is returned.
 declare ptr @__quantum__rt__qubit_allocate(ptr %out_err)
 
@@ -179,9 +177,9 @@ declare void @__quantum__rt__qubit_release(ptr %qubit)
 ; Returns a pointer value for a single measurement result, initially in a state
 ; such that calls to `__quantum__rt__read_result` with that pointer will return
 ; false.
-; If `%out_err` is null, allocation failure results in runtime termination.
-; If `%out_err` is non-null, it must point to valid memory for an `i1` value.
-; On allocation failure, the `i1` is set to true and null is returned.
+; If `%out_err` is `null`, allocation failure results in runtime termination.
+; If `%out_err` is non-`null`, it must point to valid memory for an `i1` value.
+; On allocation failure, the `i1` is set to true and `null` is returned.
 ; On success, the `i1` is set to false and a valid result pointer is returned.
 declare ptr @__quantum__rt__result_allocate(ptr %out_err)
 
@@ -204,8 +202,8 @@ These functions require the caller to provide a pre-allocated array buffer.
 ; state, storing the resulting pointer values into memory at the given pointer.
 ; The caller is responsible for ensuring `%array` points to valid memory with
 ; enough space to support writing `%N * sizeof(ptr)` values.
-; If `%out_err` is null, allocation failure results in runtime termination.
-; If `%out_err` is non-null, it must point to valid memory for an `i1` value.
+; If `%out_err` is `null`, allocation failure results in runtime termination.
+; If `%out_err` is non-`null`, it must point to valid memory for an `i1` value.
 ; On allocation failure, the `i1` is set to true. On success, the `i1` is set to
 ; false.
 declare void @__quantum__rt__qubit_array_allocate(i64 %N, ptr %array, ptr %out_err)
@@ -228,8 +226,8 @@ declare void @__quantum__rt__qubit_array_release(i64 %N, ptr %array)
 ; ensuring `%array` points to valid memory with enough space to support writing
 ; `%N * sizeof(ptr)` values. All returned results are initially in a state such
 ; that calls to `__quantum__rt__read_result` with that pointer will return false.
-; If `%out_err` is null, allocation failure results in runtime termination.
-; If `%out_err` is non-null, it must point to valid memory for an `i1` value.
+; If `%out_err` is `null`, allocation failure results in runtime termination.
+; If `%out_err` is non-`null`, it must point to valid memory for an `i1` value.
 ; On allocation failure, the `i1` is set to true. On success, the `i1` is set to
 ; false.
 declare void @__quantum__rt__result_array_allocate(i64 %N, ptr %array, ptr %out_err)
@@ -322,10 +320,10 @@ call void @__quantum__rt__result_array_release(i64 3, ptr %results)
 When both arrays and dynamic allocation are available, programs have flexibility
 in how they manage quantum resources:
 
-| **Array Storage**              | **Static Object IDs**          | **Dynamic Object Allocation** |
-|--------------------------------|--------------------------------|-------------------------------|
-| **Stack (compile-time size)**  | Fixed-size array; compile-time IDs | Fixed-size array; runtime allocation |
-| **Heap (runtime size)**        | Runtime-sized buffer; compile-time IDs | Runtime-sized buffer; runtime allocation |
+| **Array Storage**             | **Static Object IDs**                  | **Dynamic Object Allocation**            |
+|-------------------------------|----------------------------------------|------------------------------------------|
+| **Stack (compile-time size)** | Fixed-size array; compile-time IDs     | Fixed-size array; runtime allocation     |
+| **Heap (runtime size)**       | Runtime-sized buffer; compile-time IDs | Runtime-sized buffer; runtime allocation |
 
 This matrix clarifies the independence of the two capabilities while showing how
 they combine to support various programming patterns.
@@ -366,7 +364,7 @@ for error handling:
 
 - If `%out_err` is `null`, allocation failure results in runtime termination
   (crash). This is the common case for most programs.
-- If `%out_err` is non-null, the caller must have allocated memory for an `i1`
+- If `%out_err` is non-`null`, the caller must have allocated memory for an `i1`
   and passed a pointer to it. The runtime will set this `i1` to `true` on
   allocation failure and `false` on success. Advanced users can check this flag
   to handle allocation failures gracefully.
