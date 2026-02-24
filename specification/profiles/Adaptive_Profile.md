@@ -703,7 +703,7 @@ the quantum instruction set, we refer to the paragraph on [Bullet
 
 ## Classical Instructions
 
-The following table lists all classical instructions the must be supported to
+The following table lists all classical instructions that must be supported to
 execute a minimal Adaptive Profile program, that is a program that does not make
 use of any optional capabilities:
 
