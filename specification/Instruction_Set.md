@@ -34,7 +34,7 @@ values.
 
 ## Dynamic Allocation and Arrays
 
-In addition to static allocation of qubits and results, QIR 2.0 supports dynamic
+In addition to static allocation of qubits and results, QIR supports dynamic
 allocation of these resources and their arrays. This allows for more flexible
 programs where the number of qubits or results is not known at compile time.
 For more details on the specific runtime functions and usage, please see the

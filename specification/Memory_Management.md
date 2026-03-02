@@ -272,6 +272,13 @@ call void @__quantum__rt__qubit_release(ptr %qubit)
 
 **Single qubit allocation with error checking:**
 
+This example shows how to handle allocation failures gracefully. By passing a
+non-null pointer to an `i1` as the `%out_err` parameter, the caller can check
+whether allocation succeeded. If allocation fails, the runtime sets the `i1` to
+`true` and returns `null`; otherwise it sets the `i1` to `false` and returns a
+valid qubit pointer. If `%out_err` is `null`, allocation failure terminates the
+program.
+
 ```llvm
 %err = alloca i1, align 1
 %qubit = call ptr @__quantum__rt__qubit_allocate(ptr %err)
