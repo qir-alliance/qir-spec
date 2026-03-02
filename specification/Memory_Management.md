@@ -262,7 +262,7 @@ for arrays.
 
 ### Dynamic Allocation Examples
 
-**Single qubit allocation:**
+#### Single qubit allocation
 
 ```llvm
 %qubit = call ptr @__quantum__rt__qubit_allocate(ptr null)
@@ -270,7 +270,7 @@ call void @__quantum__qis__h__body(ptr %qubit)
 call void @__quantum__rt__qubit_release(ptr %qubit)
 ```
 
-**Single qubit allocation with error checking:**
+#### Single qubit allocation with error checking
 
 This example shows how to handle allocation failures gracefully. By passing a
 non-null pointer to an `i1` as the `%out_err` parameter, the caller can check
@@ -294,7 +294,12 @@ continue:
   ret void
 ```
 
-**Bulk qubit allocation (requires arrays):**
+#### Array-Based Allocation
+
+The following examples require both dynamic allocation and array support to be
+enabled.
+
+##### Bulk qubit allocation
 
 ```llvm
 %qubits = alloca [5 x ptr], align 8
@@ -307,7 +312,7 @@ call void @__quantum__qis__h__body(ptr %q0)
 call void @__quantum__rt__qubit_array_release(i64 5, ptr %qubits)
 ```
 
-**Result array allocation and output (requires arrays):**
+##### Result array allocation and output
 
 ```llvm
 %results = alloca [3 x ptr], align 8
@@ -320,6 +325,37 @@ call void @__quantum__qis__mz__body(ptr %qubit0, ptr %r0)
 call void @__quantum__rt__result_array_record_output(i64 3, ptr %results, ptr @tag)
 ; Release when done
 call void @__quantum__rt__result_array_release(i64 3, ptr %results)
+```
+
+##### Bulk measurement
+
+This example demonstrates a hypothetical bulk measurement QIS instruction that
+backends may choose to support for efficiency. The instruction takes an array of
+qubits and an array of results, performing all measurements in a single call.
+
+```llvm
+; Allocate qubits and results
+%qubits = alloca [5 x ptr], align 8
+%results = alloca [5 x ptr], align 8
+call void @__quantum__rt__qubit_array_allocate(i64 5, ptr %qubits, ptr null)
+call void @__quantum__rt__result_array_allocate(i64 5, ptr %results, ptr null)
+
+; Prepare qubits
+%q0_ptr = getelementptr inbounds [5 x ptr], ptr %qubits, i64 0, i64 0
+%q0 = load ptr, ptr %q0_ptr, align 8
+call void @__quantum__qis__h__body(ptr %q0)
+; ... prepare other qubits
+
+; Perform bulk measurement using a hypothetical QIS instruction
+; Backends that support this instruction can optimize the measurement operation
+call void @__quantum__qis__mz_array__body(i64 5, ptr %qubits, ptr %results)
+
+; Record the entire result array as output
+call void @__quantum__rt__result_array_record_output(i64 5, ptr %results, ptr @tag)
+
+; Release resources
+call void @__quantum__rt__qubit_array_release(i64 5, ptr %qubits)
+call void @__quantum__rt__result_array_release(i64 5, ptr %results)
 ```
 
 ## Combined Capabilities Matrix
