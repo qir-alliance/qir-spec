@@ -374,11 +374,12 @@ they combine to support various programming patterns.
 
 ### Resource State After Release
 
-**Qubits:** The state of a qubit after `__quantum__rt__qubit_release` is
-backend-specific. Backends may return qubits in a clean state (e.g., reset to
-|0⟩) or in a dirty state (whatever state the qubit was in when released).
-Programs should not rely on any particular state and should explicitly reset
-qubits if a known state is required before reallocation.
+**Qubits:** After `__quantum__rt__qubit_release`, the pointer is invalid and the
+program can no longer observe the state of the released qubit. The runtime may
+perform any cleanup it requires before making that qubit available for a later
+allocation. On every successful call to `__quantum__rt__qubit_allocate` or
+`__quantum__rt__qubit_array_allocate`, the backend must return qubits in the
+ground state.
 
 **Results:** Results are returned to the runtime and are available for
 reallocation. The state is implementation-defined.
