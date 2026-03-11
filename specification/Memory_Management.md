@@ -1,10 +1,9 @@
 
 # Arrays and Dynamic Allocation
 
-As of v1.0, QIR only supported handling of qubits and results statically known
-at compile time, and did not provide native array support. This extension for
-QIR 2.0 [Adaptive Profile](./profiles/Adaptive_Profile.md) adds two independent
-capabilities:
+This specification defines optional arrays and dynamic allocation capabilities
+for the [Adaptive Profile](./profiles/Adaptive_Profile.md). It adds two
+independent capabilities:
 
 1. **Arrays**: First-class support for arrays of any supported type using native
    LLVM array types
