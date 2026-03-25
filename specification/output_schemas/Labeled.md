@@ -3,6 +3,8 @@
 This output schema is meant for backends that asynchronously emit output records
 and support strings as arguments to functions.
 
+**Schema Version**: 2.1 (added `RESULT_ARRAY` type for array output support)
+
 The labeled output schema for asynchronous output emission is the same as the
 [ordered schema](./Ordered.md) with the following changes:
 
@@ -27,7 +29,7 @@ Here's an example of the output emitted for a single shot:
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -66,6 +68,30 @@ Produces output records of the format `"OUTPUT\tRESULT\t0\tlabel"` or
 `"OUTPUT\tRESULT\t1\tlabel"`, representing measurement results. The fourth
 element is a string label associated to the result value which is included in
 the corresponding output record.
+
+### Result Array
+
+```llvm
+void @__quantum__rt__result_array_record_output(i64, ptr, ptr)
+```
+
+This function is available when the `arrays` module flag is set to `true` (see
+[Adaptive Profile](../profiles/Adaptive_Profile.md#bullet-11-arrays)).
+
+Produces a single output record of the format `"OUTPUT\tRESULT_ARRAY\tb\tlabel"`
+where `b` is a binary string representation of the result array and `label` is
+the string label associated to the array. The array is output in memory order:
+the first element in the array (at index 0, the lowest memory address) appears
+as the first (leftmost) bit in the output string, followed by subsequent array
+elements.
+
+For example, if the result array contains three results `[1, 0, 1]` (in memory
+order) and the label is `"results"`, the output would be
+`"OUTPUT\tRESULT_ARRAY\t101\tresults"`.
+
+**Note:** This is the only specialized array output recording function for the
+labeled schema. Arrays of other types (if supported in future profiles) should
+use the generic array container format.
 
 ### Boolean
 
@@ -143,7 +169,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -186,7 +212,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -236,7 +262,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -288,7 +314,7 @@ The output for one shot would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tlabeled
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile

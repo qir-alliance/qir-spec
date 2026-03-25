@@ -48,11 +48,15 @@ support more advanced adaptive computations:
 7. Support for control flow loops (backwards branching).
 8. Multiple target branching.
 9. Multiple return points.
+10. Dynamic allocation of qubits and results at runtime (see [Dynamic
+    Allocation and Arrays](../Memory_Management.md)).
+11. Support for arrays of qubits and results (see [Dynamic Allocation and
+    Arrays](../Memory_Management.md)).
 <!-- markdownlint-enable MD029 -->
 
 The use of these optional features is represented as a [module
 flag](#module-flags-metadata) in the program IR. Any backend that supports
-capabilities 1-4, and as many of capabilities 5-9 as it desires, is considered
+capabilities 1-4, and as many of capabilities 5-11 as it desires, is considered
 as supporting Adaptive Profile programs. Static analysis/verification tools
 should be able to determine what capabilities of the Adaptive Profile a backend
 is implementing and should run a verification pass to ensure Adaptive Profile
@@ -352,6 +356,87 @@ propagating the computed output to a single final block. Any use of this
 optional capability must be indicated in the form of [module
 flags](#module-flags-metadata) in the program IR.
 
+### Bullet 10: Dynamic Allocation
+
+A backend may choose to support dynamic allocation of qubits and results at
+runtime. This capability enables algorithms that require allocating resources
+during execution (e.g., for quantum error correction or parameterized circuits).
+
+Dynamic allocation is indicated via the module flags `dynamic_qubit_management`
+and/or `dynamic_result_management`. When enabled for a resource type, the
+`required_num_qubits` or `required_num_results` attributes (respectively) on the
+entry point are not required, and resources are allocated using the runtime API
+functions defined in the [Dynamic Allocation and
+Arrays](../Memory_Management.md) specification.
+
+The single-resource allocation functions are:
+
+```llvm
+declare ptr @__quantum__rt__qubit_allocate(ptr %out_err)
+declare void @__quantum__rt__qubit_release(ptr %qubit)
+declare ptr @__quantum__rt__result_allocate(ptr %out_err)
+declare void @__quantum__rt__result_release(ptr %result)
+```
+
+These functions may only be used when the corresponding dynamic management flag
+is enabled. See the [Dynamic Allocation and Arrays](../Memory_Management.md)
+specification for detailed semantics, error handling, and usage examples.
+
+### Bullet 11: Arrays
+
+A backend may choose to support arrays of qubits and results. This capability is
+orthogonal to dynamic allocation (**Bullet 10**): arrays can be used with either
+statically allocated resources (using integer-to-pointer casts as in the base
+Adaptive Profile) or dynamically allocated resources (using runtime allocation
+functions).
+
+Array support is indicated via the module flag `"arrays"`. When enabled, programs
+may use native LLVM array types to represent collections of qubits or results.
+
+When arrays are enabled, the following LLVM features for working with arrays
+must be supported:
+
+- **Array types**: Native LLVM array types such as `[N x ptr]` for fixed-size
+  arrays of N pointers (where pointers represent qubits or results).
+- **Stack allocation**: The `alloca` instruction for allocating arrays on the
+  stack with compile-time known sizes.
+- **Element access**: The `getelementptr` (GEP) instruction for computing
+  addresses of array elements. The indices used in GEP must be either constants
+  or values that do not depend on quantum measurements (unless iterations or
+  conditionally terminating loops are also supported via **Bullet 7**).
+- **Aggregate operations**: The `extractvalue` and `insertvalue` instructions
+  for accessing and modifying elements of aggregate types, when used with
+  constant indices.
+- **Load/Store**: Standard `load` and `store` instructions for reading from and
+  writing to array elements.
+
+Note that LLVM does not natively support dynamically-sized arrays (i.e., arrays
+whose size is determined at runtime). For dynamically-sized collections, the
+classical memory management (e.g., allocating a buffer of the appropriate size)
+remains the responsibility of the caller, as described in the [Dynamic
+Allocation and Arrays](../Memory_Management.md) specification. The runtime API
+functions operate on caller-provided memory buffers, enabling flexible memory
+management strategies.
+
+When arrays are enabled, the following array-specific runtime functions become
+available:
+
+```llvm
+declare void @__quantum__rt__qubit_array_allocate(i64 %N, ptr %array, ptr %out_err)
+declare void @__quantum__rt__qubit_array_release(i64 %N, ptr %array)
+declare void @__quantum__rt__result_array_allocate(i64 %N, ptr %array, ptr %out_err)
+declare void @__quantum__rt__result_array_release(i64 %N, ptr %array)
+declare void @__quantum__rt__result_array_record_output(i64 %N, ptr %result_array, ptr %tag)
+```
+
+These array-specific functions may only be used when the `"arrays"` module flag
+is enabled. The array allocation functions (`*_array_allocate`) additionally
+require the corresponding dynamic management flag (`dynamic_qubit_management` or
+`dynamic_result_management`) to be enabled. See the [Dynamic Allocation and
+Arrays](../Memory_Management.md) specification and the [output
+schemas](../output_schemas/) documentation for detailed semantics and usage
+examples.
+
 A return statement is necessarily always the last statement in a block. For each
 block that returns a zero exit code in the entry point function, that
 same block must also contain the necessary calls to [output recording
@@ -618,7 +703,7 @@ the quantum instruction set, we refer to the paragraph on [Bullet
 
 ## Classical Instructions
 
-The following table lists all classical instructions the must be supported to
+The following table lists all classical instructions that must be supported to
 execute a minimal Adaptive Profile program, that is a program that does not make
 use of any optional capabilities:
 
@@ -773,24 +858,35 @@ details.
 
 The `ptr` type must be supported by all backends.
 Qubits and results can occur only as arguments in function calls and are
-represented as an opaque pointer. To be
-compliant with the Adaptive Profile specification, the program must not make use
-of dynamic qubit or result management, meaning qubits and results must be
-identified by an integer value that is bitcast to a pointer to match the
-expected type. How such an integer value is interpreted and specifically how it
-relates to hardware resources is ultimately up to the executing backend.
+represented as an opaque pointer.
+
+**Without dynamic allocation (default):** Unless the optional capability in
+**Bullet 10** is enabled, qubits and results must be identified by an integer
+value that is bitcast to a pointer to match the expected type. How such an
+integer value is interpreted and specifically how it relates to hardware
+resources is ultimately up to the executing backend.
 
 The integer value that is cast must be either a constant, or a phi node of
 integer type if [iterations](#bullet-7-backwards-branching) are used/supported.
 If the cast value is a phi node, it must not directly or indirectly depend on
 any quantum measurements. The integer constant that is cast must be in the
-interval `[0, numQubits)` for qubits and `[0,numResults)` for results,
+interval `[0, numQubits)` for qubits and `[0, numResults)` for results,
 where `numQubits` and `numResults` are the required number of qubits and results
 defined by the corresponding [entry point attributes](#attributes). Since
 backends may look at the values of the `required_num_qubits` and
 `required_num_results` attributes to determine whether a program can be
 executed, it is recommended to index qubits and results consecutively so that
 there are no unused values within these ranges.
+
+**With dynamic allocation enabled:** If the backend supports the optional
+capability in **Bullet 10**, the program may use dynamic allocation of qubits
+and results via the runtime API functions defined in the [Dynamic Allocation and
+Arrays](../Memory_Management.md) specification. In this case, the
+`required_num_qubits` and `required_num_results` attributes are not required,
+and qubits/results are identified by pointer values returned from allocation
+functions rather than integer casts. If **Bullet 11** (arrays) is also enabled,
+array allocation functions may be used. The specific usage patterns and
+constraints are detailed in the dynamic allocation specification.
 
 ## Attributes
 
@@ -843,6 +939,31 @@ indicates that these capabilities are not used in the program.
 - A flag named `"multiple_return_points"`  with a constant `true` or `false`
   value of type `i1` indicating whether multiple return statements can apper in
   a function within the IR as defined [here](#bullet-9-multiple-return-points).
+- A flag named `"dynamic_qubit_management"` with a constant `true` or `false`
+  value of type `i1` indicating whether the program uses [dynamic qubit
+  allocation and release](#bullet-10-dynamic-allocation). When set to `true`,
+  the runtime API functions `__quantum__rt__qubit_allocate` and
+  `__quantum__rt__qubit_release` may be used in the program. If
+  [arrays](#bullet-11-arrays) are also enabled, `__quantum__rt__qubit_array_allocate`
+  and `__quantum__rt__qubit_array_release` may also be used.
+- A flag named `"dynamic_result_management"` with a constant `true` or `false`
+  value of type `i1` indicating whether the program uses [dynamic result
+  allocation and release](#bullet-10-dynamic-allocation). When set to `true`,
+  the runtime API functions `__quantum__rt__result_allocate` and
+  `__quantum__rt__result_release` may be used in the program. If
+  [arrays](#bullet-11-arrays) are also enabled, `__quantum__rt__result_array_allocate`
+  and `__quantum__rt__result_array_release` may also be used.
+- A flag named `"arrays"` with a constant `true` or `false` value of type `i1`
+  indicating whether the program uses [arrays](#bullet-11-arrays) of qubits or
+  results. When set to `true`, programs may use native LLVM array types, the
+  `alloca` instruction for stack-allocated arrays, and array-related aggregate
+  operations as described in **Bullet 11**. Additionally, the
+  `__quantum__rt__result_array_record_output` function may be used for recording
+  result arrays. The array allocation/release functions
+  (`__quantum__rt__qubit_array_allocate`, `__quantum__rt__qubit_array_release`,
+  `__quantum__rt__result_array_allocate`, `__quantum__rt__result_array_release`)
+  require both this flag and the corresponding dynamic management flag to be
+  enabled. When set to `false`, these features must not be used.
 
 ## Error Messages
 

@@ -3,6 +3,8 @@
 This output schema is meant for backends that can synchronously emit output
 records and do not support strings as arguments to functions.
 
+**Schema Version**: 2.1 (added `RESULT_ARRAY` type for array output support)
+
 ## Records
 
 The output emitted by a system consists of a series of records, where each
@@ -31,7 +33,7 @@ Examples of `HEADER` records:
 
 ```log
 HEADER\tschema_id\tordered
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 ```
 
 ### `START` Records
@@ -107,12 +109,14 @@ additional elements:
 - _data_type_: A string that specifies the data type, which can be classified as
 a primitive data type or a container data type:
   - Primitive data types: Represent particular kinds of data and can be any of
-the following: `RESULT`, `BOOL`, `INT` or `DOUBLE`.
+the following: `RESULT`, `BOOL`, `INT`, `DOUBLE`, or `RESULT_ARRAY` (available
+when arrays are enabled).
   - Container types: Represent kinds of containers and can be any of the
 following: `TUPLE` or `ARRAY`.
 - _data_value_: A string that represent the value of the output for primitive
 data types or an integer that represents the number of elements for container
-types.
+types. For `RESULT_ARRAY`, this is a binary string in memory order (first array
+element appears first in the string).
 
 `OUTPUT` records are emitted based on the
 [output recording function](../profiles/Base_Profile.md#output-recording) calls
@@ -128,6 +132,7 @@ OUTPUT\tBOOL\ttrue
 OUTPUT\tBOOL\tfalse
 OUTPUT\tINT\t42
 OUTPUT\tDOUBLE\t3.14159
+OUTPUT\tRESULT_ARRAY\t1010
 OUTPUT\tARRAY\t4
 OUTPUT\tRESULT\t0
 OUTPUT\tRESULT\t0
@@ -144,7 +149,7 @@ The output must start with two `HEADER` records that contain the name and
 version of the output schema used:
 
 - `HEADER\tschema_id\tordered`
-- `HEADER\tschema_version\t2.0`
+- `HEADER\tschema_version\t2.1`
 
 Additional `HEADER` records that provide more general information about the
 output are optional.
@@ -161,7 +166,7 @@ Example of the output emitted for three shots:
 
 ```log
 HEADER\tschema_id\tordered
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -198,6 +203,28 @@ void @__quantum__rt__result_record_output(ptr, ptr)
 
 Produces output records that are exactly `"OUTPUT\tRESULT\t0"` or
 `"OUTPUT\tRESULT\t1"`, representing measurement results.
+
+### Result Array
+
+```llvm
+void @__quantum__rt__result_array_record_output(i64, ptr, ptr)
+```
+
+This function is available when the `arrays` module flag is set to `true` (see
+[Adaptive Profile](../profiles/Adaptive_Profile.md#bullet-11-arrays)).
+
+Produces a single output record of the format `"OUTPUT\tRESULT_ARRAY\tb"` where
+`b` is a binary string representation of the result array. The array is output
+in memory order: the first element in the array (at index 0, the lowest memory
+address) appears as the first (leftmost) bit in the output string, followed by
+subsequent array elements.
+
+For example, if the result array contains three results `[1, 0, 1]` (in memory
+order), the output would be `"OUTPUT\tRESULT_ARRAY\t101"`.
+
+**Note:** This is the only specialized array output recording function for the
+ordered schema. Arrays of other types (if supported in future profiles) should
+use the generic array container format described below.
 
 ### Boolean
 
@@ -264,7 +291,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tordered
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -307,7 +334,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tordered
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -357,7 +384,7 @@ The output for `3` shots would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tordered
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -409,7 +436,7 @@ The output for one shot would have the following form (using fabricated
 
 ```log
 HEADER\tschema_id\tordered
-HEADER\tschema_version\t2.0
+HEADER\tschema_version\t2.1
 START
 METADATA\tentry_point
 METADATA\tqir_profiles\tbase_profile
@@ -425,3 +452,43 @@ OUTPUT\tINT\t33
 OUTPUT\tRESULT\t1
 END\t0
 ```
+
+### Result Array Output (with Arrays Enabled)
+
+When the `arrays` module flag is enabled, a QIR program can record an entire
+result array in a single output record using
+`__quantum__rt__result_array_record_output`. For example, with dynamic
+allocation:
+
+```llvm
+@0 = internal constant [11 x i8] c"results_be\00"
+%results = alloca [4 x ptr], align 8
+call void @__quantum__rt__result_array_allocate(i64 4, ptr %results, ptr null)
+; ... perform measurements into the result array ...
+call void @__quantum__rt__result_array_record_output(i64 4, ptr %results, ptr @0)
+call void @__quantum__rt__result_array_release(i64 4, ptr %results)
+ret void
+```
+
+The output for `2` shots where the results are `[1, 0, 1, 1]` and `[0, 1, 0, 0]`
+would have the following form:
+
+```log
+HEADER\tschema_id\tordered
+HEADER\tschema_version\t2.1
+START
+METADATA\tentry_point
+METADATA\tqir_profiles\tadaptive_profile
+METADATA\tdynamic_result_management\ttrue
+METADATA\tarrays\ttrue
+METADATA\toutput_labeling_schema\tordered
+OUTPUT\tRESULT_ARRAY\t1011
+END\t0
+START
+OUTPUT\tRESULT_ARRAY\t0100
+END\t0
+```
+
+Note that the binary string `1011` represents the array in memory order: the
+first element `results[0] = 1` appears as the first (leftmost) bit in the
+output.
