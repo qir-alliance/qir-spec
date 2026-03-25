@@ -123,7 +123,7 @@ after it was measured, the availability of a `reset` instruction depends on the
 QIS supported by a particular back-end target.
 In some back-ends it may be possible to conditionally
 operate on measured qubits as shown by the following examples, but other back-ends
-may require the use of an explict reset instruction. Here is an example where the
+may require the use of an explicit reset instruction. Here is an example where the
 `x` gate is applied on a measured qubit without the use of a reset because the back-end
 supports this mode of operation.
 
@@ -612,7 +612,7 @@ attributes #1 = { "irreversible" }
 
 !llvm.module.flags = !{!0, !1, !2, !3, !4, !5, !6, !7, !8, !9}
 
-!0 = !{i32 1, !"qir_major_version", i32 1}
+!0 = !{i32 1, !"qir_major_version", i32 2}
 !1 = !{i32 7, !"qir_minor_version", i32 0}
 !2 = !{i32 1, !"dynamic_qubit_management", i1 false}
 !3 = !{i32 1, !"dynamic_result_management", i1 false}
@@ -937,7 +937,7 @@ indicates that these capabilities are not used in the program.
   value of type `i1` indicating if the program uses the `switch` instruction in
   llvm.
 - A flag named `"multiple_return_points"`  with a constant `true` or `false`
-  value of type `i1` indicating whether multiple return statements can apper in
+  value of type `i1` indicating whether multiple return statements can appear in
   a function within the IR as defined [here](#bullet-9-multiple-return-points).
 - A flag named `"dynamic_qubit_management"` with a constant `true` or `false`
   value of type `i1` indicating whether the program uses [dynamic qubit
