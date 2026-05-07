@@ -760,9 +760,14 @@ LLVM instructions must be supported:
 | `fsub`           | Subtracts two floating-point values. |                             |
 | `fmul`           | Multiplies two floating-point values.          |                             |
 | `fdiv`           | Divides two floating-point values. | Division by zero leads to undefined behavior, no support for `NaN`. |
+| `frem`           | Returns the remainder from the division of its two floating-point operands. | Division by zero leads to undefined behavior, no support for `NaN`. |
 | `fcmp`           | Compares two floating-point | Comparison options are `olt`, `ole`, `ogt`, `oge`, `oeq`, `one`, `ord`, `ult`, `ule`, `ugt`, `uge`, `ueq`, `une`, `uno`, `false`, `true`. |
 | `fpext .. to`           | Casts a value of floating-point type to a larger floating-point type. | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported. |
 | `fptrunc .. to`  | Casts a value of floating-point type to a smaller floating-point type.         | May be used at any point in the program if classical computations on both the input and the output type are supported. May only be used as part of a call to an output recording function if computations on the output type are not supported. |
+| `fptoui`  | Converts a value of floating-point type to an usigned integer type value.         | May be used at any point in the program if classical computations on both the input and the output type are supported. |
+| `fptosi`  | Converts a value of floating-point type to a signed integer type value.         | May be used at any point in the program if classical computations on both the input and the output type are supported. |
+| `uitofp`  | Converts a value as an unsigned integer to the target floating-point type.         | May be used at any point in the program if classical computations on both the input and the output type are supported. |
+| `sitofp`  | Converts a value as a signed integer to the target floating-point type.         | May be used at any point in the program if classical computations on both the input and the output type are supported. |
 
 If the backend chooses to support multiple target branching, the following LLVM
 instruction must be supported:
@@ -800,7 +805,7 @@ additional runtime function must be available:
 
 | Function                            | Signature       | Description     |
 | :---------------------------------- | :-------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| __quantum__rt__float_record_output | `void(f64,ptr)` | Records a floating-point value in the generated output. The second parameter defines the string label for the value. Depending on the output schema, the label is included in the output or omitted. |
+| __quantum__rt__double_record_output | `void(double,ptr)` | Records a floating-point value in the generated output. The second parameter defines the string label for the value. Depending on the output schema, the label is included in the output or omitted. |
 
 ### Output Recording
 
