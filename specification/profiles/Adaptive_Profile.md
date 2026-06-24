@@ -36,7 +36,7 @@ that it must be possible to perform a measurement within a branch, and then
 branch again on that measurement. However, it is not a requirement to support
 loops within the control flow graph.
 
-Beyond the providing the required capabilities above, a backend can opt into one
+Beyond providing the required capabilities above, a backend can opt into one
 or more of the following [optional capabilities](#optional-capabilities) to
 support more advanced adaptive computations:
 
@@ -157,7 +157,7 @@ continue:
 ```
 
 Alternatively, another back-end may require the use of
-separate `___quantum__qis__mz__body` and `___quantum___qis__reset__body`
+separate `__quantum__qis__mz__body` and `__quantum__qis__reset__body`
 functions to perform the measure and resets separately. Such decisions
 are the purview of the quantum instruction set provided by a back-end
 implementing the adaptive profile.
@@ -166,7 +166,7 @@ Although forward branching can be useful when combined with purely classical
 operations within a quantum program, the real utility is being able to
 conditionally perform quantum instructions depending on measurement outcomes,
 for example when performing real-time error-correction as part of a quantum
-programs.
+program.
 
 ### Bullet 4: Program output
 
@@ -349,12 +349,39 @@ information about the switch instruction.
 
 ### Bullet 9: Multiple Return Points
 
-A backend my choose to support multiple return points in an entry point
+A backend may choose to support multiple return points in an entry point
 function, and IR-defined functions if the optional capability in **Bullet 6** is
 supported. This eliminates the need to create `phi` nodes for the purpose of
 propagating the computed output to a single final block. Any use of this
 optional capability must be indicated in the form of [module
 flags](#module-flags-metadata) in the program IR.
+
+A return statement is necessarily always the last statement in a block. For each
+block that returns a zero exit code in the entry point function, that
+same block must also contain the necessary calls to [output recording
+functions](#output-recording) to ensure the correct program output is recorded.
+If the block returns a non-zero exit code, calls to these functions may be
+omitted, implying that no output will be recorded in this case.
+
+For example, an Adaptive Profile program that uses this optional capability may
+contain logic like this:
+
+```llvm
+@0 = internal constant [2 x i8] c"0\00"
+
+define i64 @main() local_unnamed_addr #0 {
+entry:
+  tail call void @__quantum__qis__mz__body(ptr null, ptr writeonly null)
+  %0 = tail call i1 @__quantum__rt__read_result(ptr readonly null)
+  br i1 %0, label %error, label %exit
+error:
+  ; qubits should be in a zero state at the end of the program
+  ret i64 1
+exit:
+  call void @__quantum__rt__result_record_output(ptr null, ptr @0)
+  ret i64 0
+}
+```
 
 ### Bullet 10: Dynamic Allocation
 
@@ -436,33 +463,6 @@ require the corresponding dynamic management flag (`dynamic_qubit_management` or
 Arrays](../Memory_Management.md) specification and the [output
 schemas](../output_schemas/) documentation for detailed semantics and usage
 examples.
-
-A return statement is necessarily always the last statement in a block. For each
-block that returns a zero exit code in the entry point function, that
-same block must also contain the necessary calls to [output recording
-functions](#output-recording) to ensure the correct program output is recorded.
-If the block returns a non-zero exit code, calls to these functions may be
-omitted, implying that no output will be recorded in this case.
-
-For example, an Adaptive Profile program that uses this optional capability may
-contain a logic like this:
-
-```llvm
-@0 = internal constant [2 x i8] c"0\00"
-
-define i64 @main() local_unnamed_addr #0 {
-entry:
-  tail call void @__quantum__qis__mz__body(ptr null, ptr writeonly null)
-  %0 = tail call i1 @__quantum__rt__read_result(ptr readonly null)
-  br i1 %0, label %error, label %exit
-error:
-  ; qubits should be in a zero state at the end of the program
-  ret i64 1
-exit:
-  call void @__quantum__rt__result_record_output(ptr null, ptr @0)
-  ret i64 0
-}
-```
 
 ## Program Structure
 
@@ -651,7 +651,7 @@ LLVM standard. The entry point is identified by a custom function attribute;
 as mentioned in the section on [attributes](#attributes), this is the same
 set of attributes as in the base profile.
 
-An entry point function may not take any parameters and must  must return an
+An entry point function may not take any parameters and must return an
 exit code in the form of a 64-bit integer. The exit code `0` must be used to
 indicate a successful execution of the quantum program. Any other value of the
 exit code indicates a failure during execution. The program IR must use exit
@@ -719,7 +719,7 @@ See also the section on [data types and values](#data-types-and-values) for more
 information about the creation and usage of LLVM values.
 
 Additional LLVM instructions, as listed below, must be supported to enable
-classical computations (**Bullet 4**) and multiple target branching (**Bullet
+classical computations (**Bullet 5**) and multiple target branching (**Bullet
 8**).
 
 If a backend chooses to support integer computations, then the following LLVM
@@ -929,7 +929,7 @@ indicates that these capabilities are not used in the program.
   precisions must be supported by the executing backend. An empty value
   indicates that no floating-point computations are supported/used.
 - A flag named `"ir_functions"` that contains a constant `true` or `false` value
-  of type `i1` value indicating if subroutines may be expressed a functions
+  of type `i1` indicating if subroutines may be expressed a functions
   which can be called from the entry-point.
 - A flag named `"backwards_branching"`  with an `i2` value indicating which
   kinds of loops are supported. A value of `0` indicates that the control flow

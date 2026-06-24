@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     name: "Check spelling, linting and links"
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
     - run: |
         wget https://github.com/qir-alliance/.github/archive/refs/heads/main.zip -O clone.zip &&
         unzip clone.zip && mv .github-main out && rm clone.zip &&
@@ -33,6 +33,7 @@ jobs:
       uses: gaurav-nelson/github-action-markdown-link-check@1.0.15
       with:
         use-verbose-mode: 'yes'
+        config-file: '.github/mlc_config.json'
       if: ${{ success() || failure() }}
     - name: "Check spelling in changed files"
       uses: streetsidesoftware/cspell-action@v6

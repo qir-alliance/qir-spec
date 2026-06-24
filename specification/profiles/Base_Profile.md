@@ -83,7 +83,6 @@ running the program multiple times.
 A Base Profile compliant program is defined in an LLVM bitcode file that
 contains (at least) the following:
 
-- the definitions of the opaque `Qubit` and `Result` types
 - global constants that store [string labels](#output-recording) needed for
   certain output schemas that may be ignored if the [output schema](../output_schemas/)
   does not make use of them
@@ -102,11 +101,15 @@ contains (at least) the following:
 The human readable LLVM IR for the bitcode can be obtained using standard [LLVM
 tools](https://llvm.org/docs/CommandGuide/llvm-dis.html). For the purpose of
 clarity, this specification contains examples of the human readable IR emitted
-by [LLVM 13](https://releases.llvm.org/13.0.1/docs/LangRef.html). While the
+by [LLVM 17](https://releases.llvm.org/17.0.1/docs/LangRef.html). While the
 bitcode representation is portable and usually backward compatible, there may be
 visual differences in the human readable format depending on the LLVM version.
 These differences are irrelevant when using standard tools to load, manipulate,
 and/or execute bitcode.
+
+Starting with QIR v2, opaque pointers (`ptr`) are used throughout, replacing the
+previously typed pointers (e.g., `%Qubit*`, `%Result*`) used in QIR v1. Named
+opaque type definitions for `Qubit` and `Result` are no longer required.
 
 The code below illustrates how a simple program looks within a Base Profile
 representation:
@@ -254,12 +257,12 @@ functions](#runtime-functions).
 For a quantum instruction set to be fully compatible with the Base Profile, it
 must satisfy the following three requirements:
 
-- All functions must return `void`; the Base Profile does not permit to call
+- All functions must return `void`; the Base Profile does not permit calling
   functions that return a value. Functions that measure qubits must take the
   qubit pointer(s) as well as the result pointer(s) as arguments.
 
 - Functions that perform a measurement of one or more qubit(s) must be marked
-  with an custom function attribute named `irreversible`. The use of
+  with a custom function attribute named `irreversible`. The use of
   [attributes](#attributes) in general is outlined in the corresponding section.
 
 - Parameters of type `ptr` identifying results must be `writeonly` parameters;
@@ -420,7 +423,7 @@ in the program output; this includes both mandatory and optional attributes but
 not parameter attributes or return value attributes.
 
 Custom function attributes will show up as part of an [attribute
-group](https://releases.llvm.org/13.0.1/docs/LangRef.html#attrgrp) in the IR.
+group](https://releases.llvm.org/17.0.1/docs/LangRef.html#attrgrp) in the IR.
 Attribute groups are numbered in such a way that they can be easily referenced
 by multiple function definitions or global variables. Consumers of Base Profile
 compliant programs must not rely on a particular numbering, but instead look for

@@ -1,0 +1,8 @@
+{
+  "aliveStatusCodes": [200, 206, 301],
+  "ignorePatterns": [
+    {
+      "pattern": "^https://(www\\.|hub\\.)?packtpub\\.com"
+    }
+  ]
+}

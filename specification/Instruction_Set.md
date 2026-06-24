@@ -42,9 +42,7 @@ For more details on the specific runtime functions and usage, please see the
 
 ## Quantum Instruction Set (QIS)
 
-The table below lists known quantum instructions along with their signatures and
-a description of their functionality. Backends are **not** required to support
-all of these. Instead, each backend will declare which of these instructions it
+Each backend will declare which quantum instructions it
 supports. It is recommended that all instructions that have a context
 independent implementation in terms of other instructions are provided as a
 library rather than listing them as part of the backend specification.
