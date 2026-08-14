@@ -52,6 +52,7 @@ support more advanced adaptive computations:
     Allocation and Arrays](../Memory_Management.md)).
 11. Support for arrays of qubits and results (see [Dynamic Allocation and
     Arrays](../Memory_Management.md)).
+12. Support for writing classical values into measurement results via runtime calls.
 <!-- markdownlint-enable MD029 -->
 
 The use of these optional features is represented as a [module
@@ -463,6 +464,23 @@ require the corresponding dynamic management flag (`dynamic_qubit_management` or
 Arrays](../Memory_Management.md) specification and the [output
 schemas](../output_schemas/) documentation for detailed semantics and usage
 examples.
+
+### Bullet 12: Writable Measurement Results
+
+A backend may choose to support writing classical Boolean values into measurement
+results by identifier without performing a measurement on a qubit. This is achieved
+through an additional runtime function:
+
+```llvm
+declare void @__quantum__rt__write_result(i1 %value, ptr %result_id)
+```
+
+This acts as a parallel to `__quantum__rt__read_result`, and allows classical code
+to set or overwrite a value in the given result. This is useful for scenarios that
+set a known default value into a result where the qubit measurement may be conditionally
+skipped at runtime. Alternatively, this can be used to correct a measurement that
+was already performed by overwriting it with a classical value computed based on
+other quantum measurements.
 
 ## Program Structure
 
@@ -969,6 +987,9 @@ indicates that these capabilities are not used in the program.
   `__quantum__rt__result_array_allocate`, `__quantum__rt__result_array_release`)
   require both this flag and the corresponding dynamic management flag to be
   enabled. When set to `false`, these features must not be used.
+- A flag named `"writable_results"` with a constant `true` or `false`
+  value of type `i1` indicating if the program uses `__quantum__rt__write_result`
+  to write a classical Boolean value into the result with the given identifier.
 
 ## Error Messages
 
