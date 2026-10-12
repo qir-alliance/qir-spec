@@ -44,34 +44,30 @@ physical endpoint if and only if their pointer values are equal.
 
 ### Frame
 
-A Frame denotes a rotating reference frame associated with a specific Port. A
-frame is characterized by a `carrier frequency` and an `accumulated phase`, both
-of which may be updated during program execution. Pulses played on a frame are
-implicitly modulated onto the frame's carrier and phase.
+Every Frame reference carries an implicit logical clock: a time value
+representing the point in the frame’s timeline at which its next operation will
+occur. The absolute origin of the clock is unspecified, but all frames in a
+program share the same origin; only differences between clock values are
+meaningful. A frame’s clock never decreases and advances only as follows:
 
-Every Frame reference is bound to exactly one Port reference at the time of its
-declaration or construction; this binding is fixed for the lifetime of the
-frame. Multiple frames may be bound to the same port; the runtime is responsible
-for summing/mixing the pulses when the pulses are played concurrently. Two Frame
-references are distinct even if they share the same port, frequency, and phase:
-identity is by reference, not by value.
-
-Every Frame reference carries an **implicit logical clock**: a non-negative
-real-valued time, in microseconds, representing the point in the frame's
-timeline at which its next operation will occur. The clock starts at zero and
-advances only as follows:
-
-- Playing a waveform on the frame advances the clock by the waveform's duration.
-- Inserting a delay on the frame advances the clock by the delay's duration.
-- Acquiring a measurement on the frame advances the clock by the integration
+- Playing a waveform on the frame advances the frame’s clock by the waveform’s
   duration.
+- Inserting a delay on the frame advances the frame’s clock by the delay’s
+  duration.
+- Acquiring a measurement on the frame advances the frame’s clock by the
+  integration duration.
 - Synchronizing a frame with other frames advances its clock to the maximum of
   the clocks of all frames being synchronized.
 
-Updating the frame's frequency or phase is instantaneous and does not advance
-the clock. The logical clock is a specification-level abstraction that defines
-program meaning; it is not observable from within the program, and a target
-runtime is responsible for realizing it correctly on physical hardware.
+All durations in this specification are expressed in seconds. Updating the
+frame’s frequency or phase is instantaneous and does not advance the clock. The
+logical clock is a specification-level abstraction that defines program meaning;
+it is not observable from within the program. A target runtime is responsible
+for realizing it correctly on physical hardware, and must represent it with a
+resolution of at most 1 ns and a range sufficient that it cannot wrap or
+saturate during the execution of a program (for example, a 64-bit unsigned
+integer count of nanoseconds). Each duration is converted to the runtime’s clock
+ticks by rounding to the nearest tick.
 
 ### Waveform
 
@@ -141,10 +137,11 @@ The use of these optional capabilities is represented by module flags in the
 program IR, following the same conformance model as the
 [Adaptive Profile's optional capabilities](./Adaptive_Profile.md#optional-capabilities).
 Any backend that supports capabilities 1–4, and as many of capabilities 5–7 as
-it desires, is considered as supporting Pulse Profile programs. Static analysis
-and verification tools should be able to determine which optional capabilities a
-given program requires and reject programs using capabilities not supported by
-the targeted backend, with an informative message.
+it desires, is considered as supporting Pulse Profile programs. A target runtime
+must reject, before execution begins, any program that requires a capability the
+target backend does not support. Static analysis and verification tools should
+be able to determine (via module flags) which capabilities a given program requires so that this
+check can also be performed at compile-time.
 
 Capabilities 5–7 are most useful in conjunction with classical-computation or
 control-flow capabilities defined elsewhere in the QIR specification — for
@@ -210,7 +207,7 @@ requirement.:
 !8 = !{i64 1, i64 1, double 7.0e9, double 0.0}
 
 !qir.pulse.waveforms = !{!9}      ; single waveform
-; waveform 0, shape="gaussian", amplitude=2.0, standard deviation=8ns, duration=32ns
+; waveform 0, shape="gaussian", amplitude=2.0, standard deviation=8ns(8.0e-8 s), duration=32ns(3.2e-8 s)
 !9 = !{i64 0, !"gaussian", double 2.0, double 8.0e-9, double 3.2e-8}
 
 ; global constants (labels for output recording)
